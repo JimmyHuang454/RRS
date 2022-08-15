@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-TransportServer newTransportServer() => TransportServer();
-
 class TransportServer extends Stream<Socket> implements ServerSocket {
   String protocolName;
   late ServerSocket serverSocket;
