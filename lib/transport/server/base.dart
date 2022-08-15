@@ -3,12 +3,13 @@ import 'dart:io';
 
 TransportServer newTransportServer() => TransportServer();
 
-class TransportServer extends Stream<SecureSocket>
-    implements SecureServerSocket {
+class TransportServer extends Stream<Socket> implements ServerSocket {
+  String protocolName;
+  late ServerSocket serverSocket;
   late SecureServerSocket secureServerSocket;
 
   // TLS
-  SecurityContext? context;
+  bool useTLS;
   int backlog;
   bool v6Only;
   bool requestClientCertificate;
@@ -17,46 +18,66 @@ class TransportServer extends Stream<SecureSocket>
   bool shared;
 
   TransportServer(
-      {this.context,
-      this.backlog = 0,
+      {this.backlog = 0,
       this.v6Only = false,
+      required this.protocolName,
       this.requestClientCertificate = false,
       this.requireClientCertificate = false,
+      this.useTLS = false,
       this.supportedProtocols,
       this.shared = false});
 
-  Future<SecureServerSocket> bind(address, int port) {
-    return SecureServerSocket.bind(address, port, context,
-            backlog: backlog,
-            v6Only: v6Only,
-            requestClientCertificate: requestClientCertificate,
-            requireClientCertificate: requireClientCertificate,
-            supportedProtocols: supportedProtocols,
-            shared: shared)
-        .then((serverSocket) {
-      secureServerSocket = serverSocket;
+  Future<ServerSocket> bind(address, int port) {
+    if (useTLS) {
+      var securityContext = SecurityContext(withTrustedRoots: useTLS);
+      return SecureServerSocket.bind(address, port, securityContext,
+              backlog: backlog,
+              v6Only: v6Only,
+              requestClientCertificate: requestClientCertificate,
+              requireClientCertificate: requireClientCertificate,
+              supportedProtocols: supportedProtocols,
+              shared: shared)
+          .then((value) {
+        secureServerSocket = value;
+        return this;
+      });
+    }
+    return ServerSocket.bind(address, port, shared: shared).then((value) {
+      serverSocket = value;
       return serverSocket;
     });
   }
 
   @override
-  InternetAddress get address => secureServerSocket.address;
-
-  @override
-  Future<SecureServerSocket> close() {
-    return secureServerSocket.close();
+  InternetAddress get address {
+    return useTLS ? secureServerSocket.address : serverSocket.address;
   }
 
   @override
-  StreamSubscription<SecureSocket> listen(
-      void Function(SecureSocket event)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError}) {
-    return secureServerSocket.listen(onData,
+  Future<ServerSocket> close() {
+    if (useTLS) {
+      return secureServerSocket.close().then(
+        (value) {
+          return this;
+        },
+      );
+    }
+    return serverSocket.close();
+  }
+
+  @override
+  StreamSubscription<Socket> listen(void Function(Socket event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    if (useTLS) {
+      return secureServerSocket.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    }
+    return serverSocket.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   @override
-  int get port => secureServerSocket.port;
+  int get port {
+    return useTLS ? secureServerSocket.port : serverSocket.port;
+  }
 }

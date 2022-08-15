@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-TransportClient newTransportClient() => TransportClient();
-
 class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late Socket socket;
@@ -19,9 +17,9 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   List<String>? supportedProtocols;
 
   TransportClient(
-      {this.protocolName = 'tcp',
+      {required this.protocolName,
       this.allowInsecure = false,
-      this.useTLS = true,
+      this.useTLS = false,
       this.useSystemRoot = true,
       this.keyLog,
       this.supportedProtocols});
