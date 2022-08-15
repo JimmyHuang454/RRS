@@ -13,8 +13,8 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
 
   // TLS
   bool useTLS;
-  SecurityContext? securityContext;
   bool allowInsecure;
+  bool useSystemRoot;
   void Function(String line)? keyLog;
   List<String>? supportedProtocols;
 
@@ -22,12 +22,13 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
       {this.protocolName = 'tcp',
       this.allowInsecure = false,
       this.useTLS = true,
-      this.securityContext,
+      this.useSystemRoot = true,
       this.keyLog,
       this.supportedProtocols});
 
   Future<Socket> connect(host, int port, {Duration? timeout}) {
     if (useTLS) {
+      var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       return SecureSocket.connect(host, port,
               context: securityContext,
               onBadCertificate: onBadCertificate,

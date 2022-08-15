@@ -4,24 +4,25 @@ import 'dart:async';
 
 import 'package:proxy/transport/client/base.dart';
 
-class TCPClient extends TransportClient {
+class WSClient extends TransportClient {
   String path;
   String userAgent;
   late WebSocket ws;
   Map<String, String> header;
 
-  TCPClient(
+  WSClient(
       {this.path = '/',
       this.header = const {},
       this.userAgent = '',
       super.useTLS,
       super.allowInsecure,
-      super.securityContext})
+      super.useSystemRoot})
       : super(protocolName: 'ws');
 
   @override
   Future<SecureSocket> connect(host, int port, {Duration? timeout}) {
     if (useTLS) {
+      var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       var client = HttpClient(context: securityContext);
       client.badCertificateCallback = (cert, host, port) {
         return super.onBadCertificate(cert);
