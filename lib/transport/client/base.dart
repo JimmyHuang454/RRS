@@ -7,11 +7,12 @@ TransportClient newTransportClient() => TransportClient();
 
 class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
-  late SecureSocket socket;
+  late Socket socket;
   String status = 'init';
   String protocolName;
 
   // TLS
+  bool useTLS;
   SecurityContext? securityContext;
   bool allowInsecure;
   void Function(String line)? keyLog;
@@ -20,24 +21,35 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   TransportClient(
       {this.protocolName = 'tcp',
       this.allowInsecure = false,
+      this.useTLS = true,
       this.securityContext,
       this.keyLog,
       this.supportedProtocols});
 
-  Future<SecureSocket> connect(host, int port, {Duration? timeout}) {
-    return SecureSocket.connect(host, port,
-            context: securityContext,
-            onBadCertificate: onBadCertificate,
-            keyLog: keyLog,
-            supportedProtocols: supportedProtocols,
-            timeout: timeout)
-        .then(
-      (value) {
-        socket = value;
-        status = 'created';
-        return value;
-      },
-    );
+  Future<Socket> connect(host, int port, {Duration? timeout}) {
+    if (useTLS) {
+      return SecureSocket.connect(host, port,
+              context: securityContext,
+              onBadCertificate: onBadCertificate,
+              keyLog: keyLog,
+              supportedProtocols: supportedProtocols,
+              timeout: timeout)
+          .then(
+        (value) {
+          socket = value;
+          status = 'created';
+          return value;
+        },
+      );
+    } else {
+      return Socket.connect(host, port, timeout: timeout).then(
+        (value) {
+          socket = value;
+          status = 'created';
+          return value;
+        },
+      );
+    }
   }
 
   bool onBadCertificate(X509Certificate certificate) {
