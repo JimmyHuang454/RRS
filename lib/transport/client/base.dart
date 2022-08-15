@@ -9,15 +9,24 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late SecureSocket socket;
   String status = 'init';
+  String protocolName;
 
-  Future<SecureSocket> connect(host, int port,
-      {SecurityContext? context,
-      bool Function(X509Certificate certificate)? onBadCertificate,
-      void Function(String line)? keyLog,
-      List<String>? supportedProtocols,
-      Duration? timeout}) {
+  // TLS
+  SecurityContext? securityContext;
+  bool allowInsecure;
+  void Function(String line)? keyLog;
+  List<String>? supportedProtocols;
+
+  TransportClient(
+      {this.protocolName = 'tcp',
+      this.allowInsecure = false,
+      this.securityContext,
+      this.keyLog,
+      this.supportedProtocols});
+
+  Future<SecureSocket> connect(host, int port, {Duration? timeout}) {
     return SecureSocket.connect(host, port,
-            context: context,
+            context: securityContext,
             onBadCertificate: onBadCertificate,
             keyLog: keyLog,
             supportedProtocols: supportedProtocols,
@@ -29,6 +38,13 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
         return value;
       },
     );
+  }
+
+  bool onBadCertificate(X509Certificate certificate) {
+    if (allowInsecure) {
+      return true;
+    }
+    return false;
   }
 
   @override

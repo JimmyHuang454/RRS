@@ -19,7 +19,7 @@ class Link {
   bool isValidRequest = false;
 
   InboundStruct inboundStruct;
-  late OutboundStruct outboundStruct; // assign after do route.
+  late OutboundStruct outboundStruct; // assign after routing.
 
   Link(this.client, this.inboundStruct);
 }
