@@ -42,7 +42,7 @@ TransportClient Function() buildClientStream(Map<String, dynamic> stream) {
           header: getValue(stream, 'setting.header', {}),
           userAgent: getValue(stream, 'setting.userAgent', ''),
           useTLS: useTLS,
-          timeout2: timeout2,
+          connectionTimeout: timeout2,
           useSystemRoot: useSystemRoot,
           allowInsecure: allowInsecure,
         );
@@ -50,7 +50,7 @@ TransportClient Function() buildClientStream(Map<String, dynamic> stream) {
   return () => TCPClient(
       useTLS: useTLS,
       useSystemRoot: useSystemRoot,
-      timeout2: timeout2,
+      connectionTimeout: timeout2,
       allowInsecure: allowInsecure,
       supportedProtocols: supportedProtocols);
 } //}}}

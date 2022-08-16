@@ -6,7 +6,7 @@ class TCPClient extends TransportClient {
       super.keyLog,
       super.useTLS,
       super.useSystemRoot,
-      super.timeout2,
+      super.connectionTimeout,
       super.supportedProtocols})
       : super(protocolName: 'tcp');
 }
