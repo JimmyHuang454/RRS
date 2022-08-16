@@ -13,6 +13,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   bool useTLS;
   bool allowInsecure;
   bool useSystemRoot;
+  Duration? timeout2;
   void Function(String line)? keyLog;
   List<String>? supportedProtocols;
 
@@ -22,9 +23,10 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
       this.useTLS = false,
       this.useSystemRoot = true,
       this.keyLog,
+      this.timeout2,
       this.supportedProtocols});
 
-  Future<Socket> connect(host, int port, {Duration? timeout}) {
+  Future<Socket> connect(host, int port) {
     if (useTLS) {
       var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       return SecureSocket.connect(host, port,
@@ -32,7 +34,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
               onBadCertificate: onBadCertificate,
               keyLog: keyLog,
               supportedProtocols: supportedProtocols,
-              timeout: timeout)
+              timeout: timeout2)
           .then(
         (value) {
           socket = value;
@@ -41,7 +43,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
         },
       );
     } else {
-      return Socket.connect(host, port, timeout: timeout).then(
+      return Socket.connect(host, port, timeout: timeout2).then(
         (value) {
           socket = value;
           status = 'created';

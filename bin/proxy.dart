@@ -11,6 +11,7 @@ import 'package:proxy/utils/utils.dart';
 var outStream = '''{
   "protocol": "tcp",
   "setting": {},
+  "timeout": 100,
   "mux": {"enabled": false, "concurrency": 10},
   "tls": {"enabled": true, "alpn": ["h2", "http/1.1"], "useSystemRoot": true, "certificate":""},
 
@@ -32,6 +33,8 @@ TransportClient Function() buildClientStream(Map<String, dynamic> stream) {
   var allowInsecure = getValue(stream, 'tls.allowInsecure', false);
   var supportedProtocols = getValue(stream, 'tls.alpn', []);
   var useSystemRoot = getValue(stream, 'tls.useSystemRoot', true);
+  var timeout = getValue(stream, 'timeout', 100);
+  var timeout2 = Duration(seconds: timeout);
 
   if (protocol == 'ws') {
     return () => WSClient(
@@ -39,6 +42,7 @@ TransportClient Function() buildClientStream(Map<String, dynamic> stream) {
           header: getValue(stream, 'setting.header', {}),
           userAgent: getValue(stream, 'setting.userAgent', ''),
           useTLS: useTLS,
+          timeout2: timeout2,
           useSystemRoot: useSystemRoot,
           allowInsecure: allowInsecure,
         );
@@ -46,6 +50,7 @@ TransportClient Function() buildClientStream(Map<String, dynamic> stream) {
   return () => TCPClient(
       useTLS: useTLS,
       useSystemRoot: useSystemRoot,
+      timeout2: timeout2,
       allowInsecure: allowInsecure,
       supportedProtocols: supportedProtocols);
 } //}}}
@@ -56,11 +61,9 @@ TransportServer Function() buildServerStream(Map<String, dynamic> stream) {
   var useTLS = getValue(stream, 'tls.enabled', false);
   var supportedProtocols = getValue(stream, 'tls.alpn', []);
 
-  if (protocol == 'ws') {
-  }
-  return () => TCPServer(
-      useTLS: useTLS,
-      supportedProtocols: supportedProtocols);
+  if (protocol == 'ws') {}
+  return () =>
+      TCPServer(useTLS: useTLS, supportedProtocols: supportedProtocols);
 } //}}}
 
 void main(List<String> arguments) {

@@ -16,6 +16,7 @@ class WSClient extends TransportClient {
       this.userAgent = '',
       super.useTLS,
       super.allowInsecure,
+      super.timeout2,
       super.useSystemRoot})
       : super(protocolName: 'ws');
 
