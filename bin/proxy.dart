@@ -31,19 +31,22 @@ TransportClient Function() buildOutStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
+  config['tag'] = tag;
+
   if (protocol == 'ws') {
-    return () => WSClient(tag: tag, config: config);
+    return () => WSClient(config: config);
   }
-  return () => TCPClient(tag: tag, config: config);
+  return () => TCPClient(config: config);
 } //}}}
 
 TransportServer Function() buildInStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
+  config['tag'] = tag;
 
   if (protocol == 'ws') {}
-  return () => TCPServer(tag: tag, config: config);
+  return () => TCPServer(config: config);
 } //}}}
 
 void main(List<String> arguments) async {

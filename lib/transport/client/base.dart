@@ -10,7 +10,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   late Socket socket;
   String status = 'init';
   String protocolName;
-  String tag;
+  late String tag;
   Map<String, dynamic> config;
 
   // TLS
@@ -22,7 +22,8 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   List<String>? supportedProtocols;
 
   TransportClient(
-      {required this.protocolName, required this.tag, required this.config}) {
+      {required this.protocolName, required this.config}) {
+    tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);

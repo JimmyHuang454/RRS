@@ -11,10 +11,7 @@ class WSClient extends TransportClient {
   late WebSocket ws;
   late Map<String, String> header;
 
-  WSClient({
-    required super.tag,
-    required super.config,
-  }) : super(protocolName: 'ws') {
+  WSClient({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '/');
     header = getValue(config, 'setting.header', {});
     userAgent = getValue(config, 'setting.header', '');
