@@ -9,8 +9,9 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/inbounds/http.dart';
 
 import 'package:proxy/utils/utils.dart';
+import 'package:proxy/obj_list.dart';
 
-TransportClient Function() buildOutStream(
+TransportClient Function() _buildOutStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
@@ -22,7 +23,15 @@ TransportClient Function() buildOutStream(
   return () => TCPClient(config: config);
 } //}}}
 
-TransportServer Function() buildInStream(
+TransportClient Function() buildOutStream(
+    String tag, Map<String, dynamic> config) {
+  //{{{
+  var res = _buildOutStream(tag, config);
+  outStreamList[tag] = res;
+  return res;
+} //}}}
+
+TransportServer Function() _buildInStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
@@ -32,7 +41,15 @@ TransportServer Function() buildInStream(
   return () => TCPServer(config: config);
 } //}}}
 
-Future<InboundStruct> buildInbounds(
+TransportServer Function() buildInStream(
+    String tag, Map<String, dynamic> config) {
+  //{{{
+  var res = _buildInStream(tag, config);
+  inStreamList[tag] = res;
+  return res;
+} //}}}
+
+Future<InboundStruct> _buildInbounds(
     String tag, Map<String, dynamic> config) async {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
@@ -41,5 +58,13 @@ Future<InboundStruct> buildInbounds(
   if (protocol == 'ws') {}
   var res = HTTPIn(config: config);
   await res.bind2();
+  return res;
+} //}}}
+
+Future<InboundStruct> buildInbounds(
+    String tag, Map<String, dynamic> config) async {
+  //{{{
+  var res = await _buildInbounds(tag, config);
+  inboundsList[tag] = res;
   return res;
 } //}}}
