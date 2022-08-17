@@ -63,15 +63,23 @@ class HTTPRequest extends Link {
 }
 
 class HTTPIn extends InboundStruct {
-  HTTPIn({required super.tag, required super.server, required super.config})
-      : super(protocolName: 'http', protocolVersion: '1.1') {
+  late String address;
+  late int port;
 
+  HTTPIn(
+      {required super.tag,
+      required super.serverTag,
+      required super.config,
+      required super.routeTag})
+      : super(protocolName: 'http', protocolVersion: '1.1') {
     address = getValue(config, 'setting.address', '');
     port = getValue(config, 'setting.port', 0);
 
     if (address == '' || port == 0) {
       throw 'http required "address" and "port" in config.';
     }
+
+    var server = getServer()();
 
     server.listen(
       (client) async {

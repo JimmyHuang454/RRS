@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/obj_list.dart';
 
 class Link {
   Socket client; // in
@@ -29,12 +31,10 @@ class InboundStruct {
   String protocolName;
   String protocolVersion;
   String tag;
+  String serverTag;
+  String routeTag;
 
-  ServerSocket server;
   Map<String, dynamic> config;
-
-  String address;
-  int port;
 
   int totalClient = 0;
 
@@ -42,8 +42,14 @@ class InboundStruct {
       {required this.tag,
       required this.protocolName,
       required this.protocolVersion,
-      required this.server,
-      this.config = const {},
-      this.address = '',
-      this.port = 80});
+      required this.serverTag,
+      required this.routeTag,
+      required this.config});
+
+  TransportServer Function() getServer() {
+    if (!inStreamList.containsKey(serverTag)) {
+      throw "wrong inStream tag.";
+    }
+    return inStreamList[serverTag]!;
+  }
 }

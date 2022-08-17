@@ -8,6 +8,7 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
+import 'package:proxy/obj_list.dart';
 
 var outStream = '''{
   "protocol": "tcp",
@@ -45,9 +46,6 @@ TransportServer Function() buildInStream(
   return () => TCPServer(tag: tag, config: config);
 } //}}}
 
-Map<String, TransportClient Function()> outList = {};
-Map<String, TransportServer Function()> inList = {};
-
 void main(List<String> arguments) async {
   var configFile = File(
       'C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/config/basic.json');
@@ -58,7 +56,7 @@ void main(List<String> arguments) async {
     var inStream = (configJson['inStream'] as Map<String, dynamic>);
     inStream.forEach(
       (key, value) {
-        inList[key] = buildInStream(key, value);
+        inStreamList[key] = buildInStream(key, value);
       },
     );
   }
@@ -67,8 +65,10 @@ void main(List<String> arguments) async {
     var outStream = (configJson['outStream'] as Map<String, dynamic>);
     outStream.forEach(
       (key, value) {
-        outList[key] = buildOutStream(key, value);
+        outStreamList[key] = buildOutStream(key, value);
       },
     );
   }
+  print(inStreamList);
+  print(outStreamList);
 }

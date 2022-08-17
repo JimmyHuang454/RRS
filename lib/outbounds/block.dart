@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 
 class FreedomOut extends OutboundStruct {
-  FreedomOut({required super.tag, required super.client})
+  FreedomOut(
+      {required super.tag, required super.clientTag, required super.config})
       : super(protocolName: 'freedom', protocolVersion: '1');
 
   @override
