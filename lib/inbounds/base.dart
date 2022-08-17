@@ -14,6 +14,7 @@ class Link {
 
   String userID = 'none';
   bool isTLS = false;
+  bool isHTTPRequest = false;
   bool isBitcont = false;
   int timeout = 100;
   bool isValidRequest = false;
@@ -30,9 +31,9 @@ class InboundStruct {
   String tag;
 
   ServerSocket server;
-  List<String> allowedUser;
+  Map<String, dynamic> config;
 
-  String host;
+  String address;
   int port;
 
   int totalClient = 0;
@@ -42,7 +43,7 @@ class InboundStruct {
       required this.protocolName,
       required this.protocolVersion,
       required this.server,
-      this.host = '',
-      this.port = 80,
-      this.allowedUser = const []});
+      this.config = const {},
+      this.address = '',
+      this.port = 80});
 }

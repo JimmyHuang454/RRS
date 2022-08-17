@@ -1,13 +1,11 @@
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class TCPServer extends TransportServer {
-  TCPServer(
-      {super.useTLS,
-      super.backlog,
-      super.v6Only,
-      super.requestClientCertificate,
-      super.requireClientCertificate,
-      super.supportedProtocols,
-      super.shared})
-      : super(protocolName: 'tcp');
+  TCPServer({required super.tag, required super.config})
+      : super(protocolName: 'tcp') {
+    super.useTLS = getValue(config, 'tls.enabled', false);
+    super.requestClientCertificate = getValue(config, 'tls.requireClientCertificate', true);
+    super.supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+  }
 }

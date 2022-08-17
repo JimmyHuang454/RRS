@@ -3,28 +3,33 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:proxy/utils/utils.dart';
+
 class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late Socket socket;
   String status = 'init';
   String protocolName;
+  String tag;
+  Map<String, dynamic> config;
 
   // TLS
-  bool useTLS;
-  bool allowInsecure;
-  bool useSystemRoot;
-  Duration? connectionTimeout;
+  late bool useTLS;
+  late bool allowInsecure;
+  late bool useSystemRoot;
+  late Duration connectionTimeout;
   void Function(String line)? keyLog;
   List<String>? supportedProtocols;
 
   TransportClient(
-      {required this.protocolName,
-      this.allowInsecure = false,
-      this.useTLS = false,
-      this.useSystemRoot = true,
-      this.keyLog,
-      this.connectionTimeout,
-      this.supportedProtocols});
+      {required this.protocolName, required this.tag, required this.config}) {
+    useTLS = getValue(config, 'tls.enabled', false);
+    allowInsecure = getValue(config, 'tls.allowInsecure', false);
+    useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
+    useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
+    connectionTimeout = getValue(config, 'tls.connectionTimeout', 100);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+  }
 
   Future<Socket> connect(host, int port) {
     if (useTLS) {

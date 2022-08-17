@@ -63,26 +63,16 @@ class HTTPRequest extends Link {
 }
 
 class HTTPIn extends InboundStruct {
-  late Map<String, dynamic> config;
-
-  HTTPIn.fromConfig(
-      {required super.tag, required super.server, required this.config})
+  HTTPIn({required super.tag, required super.server, required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
-    if (!config.containsKey('address') || !config.containsKey('port')) {
-      throw 'required "address" and "port".';
+
+    address = getValue(config, 'setting.address', '');
+    port = getValue(config, 'setting.port', 0);
+
+    if (address == '' || port == 0) {
+      throw 'http required "address" and "port" in config.';
     }
-    super.host = config['address'];
-    super.port = config['port'];
-    super.allowedUser = getValue(config, 'user', []);
-  }
 
-  HTTPIn(
-      {required super.tag,
-      required super.host,
-      required super.port,
-      required super.server,
-      super.allowedUser = const []})
-      : super(protocolName: 'http', protocolVersion: '1.1') {
     server.listen(
       (client) async {
         totalClient += 1;

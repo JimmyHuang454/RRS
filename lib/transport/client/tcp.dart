@@ -1,12 +1,6 @@
 import 'package:proxy/transport/client/base.dart';
 
 class TCPClient extends TransportClient {
-  TCPClient(
-      {super.allowInsecure = false,
-      super.keyLog,
-      super.useTLS,
-      super.useSystemRoot,
-      super.connectionTimeout,
-      super.supportedProtocols})
+  TCPClient({required super.tag, required super.config})
       : super(protocolName: 'tcp');
 }

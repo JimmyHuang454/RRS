@@ -9,7 +9,9 @@ abstract class OutboundStruct {
   String tag;
 
   TransportClient Function() client;
+  Map<String, dynamic> config;
 
+  bool useFakeDNS;
   String host;
   int port;
 
@@ -18,6 +20,8 @@ abstract class OutboundStruct {
       required this.protocolName,
       required this.protocolVersion,
       required this.client,
+      this.useFakeDNS = false,
+      this.config = const {},
       this.host = '',
       this.port = 80});
 

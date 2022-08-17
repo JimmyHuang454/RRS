@@ -5,6 +5,8 @@ class TransportServer extends Stream<Socket> implements ServerSocket {
   String protocolName;
   late ServerSocket serverSocket;
   late SecureServerSocket secureServerSocket;
+  String tag;
+  Map<String,dynamic> config;
 
   // TLS
   bool useTLS;
@@ -19,6 +21,8 @@ class TransportServer extends Stream<Socket> implements ServerSocket {
       {this.backlog = 0,
       this.v6Only = false,
       required this.protocolName,
+      required this.tag,
+      required this.config,
       this.requestClientCertificate = false,
       this.requireClientCertificate = false,
       this.useTLS = false,

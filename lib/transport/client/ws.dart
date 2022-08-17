@@ -3,22 +3,22 @@ import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class WSClient extends TransportClient {
-  String path;
-  String userAgent;
+  late String path;
+  late String userAgent;
   late WebSocket ws;
-  Map<String, String> header;
+  late Map<String, String> header;
 
-  WSClient(
-      {this.path = '/',
-      this.header = const {},
-      this.userAgent = '',
-      super.useTLS,
-      super.allowInsecure,
-      super.connectionTimeout,
-      super.useSystemRoot})
-      : super(protocolName: 'ws');
+  WSClient({
+    required super.tag,
+    required super.config,
+  }) : super(protocolName: 'ws') {
+    path = getValue(config, 'setting.path', '/');
+    header = getValue(config, 'setting.header', {});
+    userAgent = getValue(config, 'setting.header', '');
+  }
 
   @override
   Future<SecureSocket> connect(host, int port, {Duration? timeout}) {

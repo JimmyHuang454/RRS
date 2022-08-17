@@ -1,0 +1,65 @@
+{
+  "outbounds": {
+    "terminal": {
+      "protocol": "freedom",
+      "setting": {
+        "strategy": "default"
+      },
+      "outStream": "defalut_tcp"
+    },
+    "proxy": {
+      "protocol": "http",
+      "setting": {
+        "address": "rr2s.org",
+        "port": 443,
+        "userAccount": "jimmy",
+        "userPassword": "RR2S"
+      },
+      "outStream": "tcp_with_tls"
+    }
+  },
+  "inbounds": {
+    "http_inbound": {
+      "protocol": "http",
+      "address": "127.0.0.1",
+      "port": 4430,
+      "inStream": "defalut_tcp",
+      "route": "allowUser"
+    }
+  },
+  "outStream": {
+    "tcp_with_tls": {
+      "protocol": "tcp",
+      "setting": {},
+      "timeout": 100,
+      "mux": {
+        "enabled": false,
+        "concurrency": 10
+      },
+      "tls": {
+        "enabled": true,
+        "alpn": ["h2", "http/1.1"],
+        "useSystemRoot": true,
+        "certificate": ""
+      },
+
+      "fakeRoute": {
+        "enabled": false
+      }
+    },
+    "defalut_tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "inStream": {
+    "defalut_tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "route": {
+    "allowUser": [{
+      "user": ["1"],
+      "outbound": "freedom"
+    }]
+  }
+}
