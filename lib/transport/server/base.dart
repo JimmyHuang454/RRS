@@ -11,9 +11,6 @@ abstract class TransportServer extends Stream<Socket> implements ServerSocket {
 
   // TLS
   late bool useTLS;
-  late int backlog;
-  late bool v6Only;
-  late bool requestClientCertificate;
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
 
@@ -23,7 +20,7 @@ abstract class TransportServer extends Stream<Socket> implements ServerSocket {
   }) {
     tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
-    requestClientCertificate =
+    requireClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
   }
@@ -32,9 +29,6 @@ abstract class TransportServer extends Stream<Socket> implements ServerSocket {
     if (useTLS) {
       var securityContext = SecurityContext(withTrustedRoots: useTLS);
       return SecureServerSocket.bind(address, port, securityContext,
-              backlog: backlog,
-              v6Only: v6Only,
-              requestClientCertificate: requestClientCertificate,
               requireClientCertificate: requireClientCertificate,
               supportedProtocols: supportedProtocols)
           .then((value) {
