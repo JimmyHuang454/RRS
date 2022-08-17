@@ -8,7 +8,6 @@ __pycache__
 download_cache
 engines_deps
 CompilerCache
-test
 build
 
 # Session
