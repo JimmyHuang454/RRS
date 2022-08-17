@@ -26,7 +26,6 @@ class WSClient extends TransportClient {
         return super.onBadCertificate(cert);
       };
       client.connectionTimeout = timeout;
-      client.keyLog = keyLog;
       client.userAgent = userAgent;
       return WebSocket.connect(host, headers: header, customClient: client)
           .then(

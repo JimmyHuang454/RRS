@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
-import 'package:proxy/transport/client/base.dart';
 
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/tcp.dart';
+
+import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/inbounds/http.dart';
+
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
 
@@ -49,13 +53,16 @@ TransportServer Function() buildInStream(
   return () => TCPServer(config: config);
 } //}}}
 
-void buildInbounds(String tag, Map<String, dynamic> config) {
+Future<InboundStruct> buildInbounds(
+    String tag, Map<String, dynamic> config) async {
   //{{{
-  var protocol = getValue(config, 'protocol', 'tcp');
+  var protocol = getValue(config, 'protocol', 'http');
   config['tag'] = tag;
 
   if (protocol == 'ws') {}
-  HTTPIn(config: config);
+  var res = HTTPIn(config: config);
+  await res.bind2();
+  return res;
 } //}}}
 
 void main(List<String> arguments) async {
@@ -81,15 +88,16 @@ void main(List<String> arguments) async {
       },
     );
   }
-  print(inStreamList);
-  print(outStreamList);
 
   if (configJson.containsKey('inbounds')) {
-    var outStream = (configJson['inbounds'] as Map<String, dynamic>);
-    outStream.forEach(
-      (key, value) {
-        outStreamList[key] = buildOutStream(key, value);
+    var inbounds = (configJson['inbounds'] as Map<String, dynamic>);
+    inbounds.forEach(
+      (key, value) async {
+        inboundsList[key] = await buildInbounds(key, value);
       },
     );
   }
+
+  print(inStreamList);
+  print(outStreamList);
 }

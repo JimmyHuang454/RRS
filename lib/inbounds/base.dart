@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/utils/utils.dart';
 
 class Link {
   Socket client; // in
@@ -28,11 +29,11 @@ class Link {
   Link(this.client, this.inboundStruct);
 }
 
-class InboundStruct {
+abstract class InboundStruct {
   String protocolName;
   String protocolVersion;
   late String tag;
-  late String serverTag;
+  late String inStream;
   late String routeTag;
 
   Map<String, dynamic> config;
@@ -44,14 +45,20 @@ class InboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = config['tag'];
-    serverTag = config['serverTag'];
-    routeTag = config['routeTag'];
+    inStream = getValue(config, 'inStream', '');
+    routeTag = getValue(config, 'routeTag', '');
+
+    if (inStream == '' || routeTag == '') {
+      throw 'inStream and routeTag can NOT be null.';
+    }
   }
 
+  Future<ServerSocket> bind2();
+
   TransportServer Function() getServer() {
-    if (!inStreamList.containsKey(serverTag)) {
+    if (!inStreamList.containsKey(inStream)) {
       throw "wrong inStream tag.";
     }
-    return inStreamList[serverTag]!;
+    return inStreamList[inStream]!;
   }
 }

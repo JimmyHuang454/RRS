@@ -6,6 +6,7 @@ import 'dart:io';
 
 class HTTPRequest extends Link {
   String fullURL = '';
+  String inProxyProtocolVersion = '';
   bool isParsed = false;
   List<int> header = [];
   List<int> content = [];
@@ -74,8 +75,13 @@ class HTTPIn extends InboundStruct {
     if (address == '' || port == 0) {
       throw 'http required "address" and "port" in config.';
     }
+  }
 
+  @override
+  Future<ServerSocket> bind2() async {
     var server = getServer()();
+
+    await server.bind(address, port);
 
     server.listen(
       (client) async {
@@ -85,5 +91,6 @@ class HTTPIn extends InboundStruct {
         totalClient -= 1;
       },
     );
+    return server;
   }
 }

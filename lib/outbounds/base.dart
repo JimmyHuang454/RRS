@@ -9,7 +9,7 @@ abstract class OutboundStruct {
   String protocolName;
   String protocolVersion;
   late String tag;
-  late String clientTag;
+  late String outStream;
 
   Map<String, dynamic> config;
 
@@ -20,14 +20,14 @@ abstract class OutboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = config['tag'];
-    clientTag = config['clientTag'];
+    outStream = config['outStream'];
   }
 
   TransportClient Function() getClient() {
-    if (!outStreamList.containsKey(clientTag)) {
+    if (!outStreamList.containsKey(outStream)) {
       throw "wrong outStream tag.";
     }
-    return outStreamList[clientTag]!;
+    return outStreamList[outStream]!;
   }
 
   Future<Socket> connect(Link link);

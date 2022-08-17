@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
-class TransportClient extends Stream<Uint8List> implements SecureSocket {
+abstract class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late Socket socket;
   String status = 'init';
@@ -18,8 +18,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   late bool allowInsecure;
   late bool useSystemRoot;
   late Duration connectionTimeout;
-  void Function(String line)? keyLog;
-  List<String>? supportedProtocols;
+  late List<String> supportedProtocols;
 
   TransportClient(
       {required this.protocolName, required this.config}) {
@@ -37,7 +36,6 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
       return SecureSocket.connect(host, port,
               context: securityContext,
               onBadCertificate: onBadCertificate,
-              keyLog: keyLog,
               supportedProtocols: supportedProtocols,
               timeout: connectionTimeout)
           .then(

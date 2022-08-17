@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:proxy/utils/utils.dart';
 
-class TransportServer extends Stream<Socket> implements ServerSocket {
+abstract class TransportServer extends Stream<Socket> implements ServerSocket {
   String protocolName;
   late ServerSocket serverSocket;
   late SecureServerSocket secureServerSocket;
@@ -15,8 +15,7 @@ class TransportServer extends Stream<Socket> implements ServerSocket {
   late bool v6Only;
   late bool requestClientCertificate;
   late bool requireClientCertificate;
-  late List<String>? supportedProtocols;
-  late bool shared;
+  late List<String> supportedProtocols;
 
   TransportServer({
     required this.protocolName,
@@ -26,7 +25,7 @@ class TransportServer extends Stream<Socket> implements ServerSocket {
     useTLS = getValue(config, 'tls.enabled', false);
     requestClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
-    supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
   }
 
   Future<ServerSocket> bind(address, int port) {
@@ -37,14 +36,13 @@ class TransportServer extends Stream<Socket> implements ServerSocket {
               v6Only: v6Only,
               requestClientCertificate: requestClientCertificate,
               requireClientCertificate: requireClientCertificate,
-              supportedProtocols: supportedProtocols,
-              shared: shared)
+              supportedProtocols: supportedProtocols)
           .then((value) {
         secureServerSocket = value;
         return this;
       });
     }
-    return ServerSocket.bind(address, port, shared: shared).then((value) {
+    return ServerSocket.bind(address, port).then((value) {
       serverSocket = value;
       return serverSocket;
     });

@@ -21,10 +21,12 @@
   "inbounds": {
     "http_inbound": {
       "protocol": "http",
-      "address": "127.0.0.1",
-      "port": 4430,
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 4430
+      },
       "inStream": "defalut_tcp",
-      "route": "allowUser"
+      "routeTag": "allowUser"
     }
   },
   "outStream": {
