@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
-import 'package:proxy/utils/utils.dart';
 
 abstract class OutboundStruct {
   String protocolName;

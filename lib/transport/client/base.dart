@@ -5,7 +5,8 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
-abstract class TransportClient extends Stream<Uint8List> implements SecureSocket {
+abstract class TransportClient extends Stream<Uint8List>
+    implements SecureSocket {
   //{{{
   late Socket socket;
   String status = 'init';
@@ -17,27 +18,27 @@ abstract class TransportClient extends Stream<Uint8List> implements SecureSocket
   late bool useTLS;
   late bool allowInsecure;
   late bool useSystemRoot;
-  late Duration connectionTimeout;
+  late int connectionTimeout;
   late List<String> supportedProtocols;
 
-  TransportClient(
-      {required this.protocolName, required this.config}) {
+  TransportClient({required this.protocolName, required this.config}) {
     tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
   }
 
   Future<Socket> connect(host, int port) {
+    var tempDuration = Duration(seconds: connectionTimeout);
     if (useTLS) {
       var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       return SecureSocket.connect(host, port,
               context: securityContext,
               onBadCertificate: onBadCertificate,
               supportedProtocols: supportedProtocols,
-              timeout: connectionTimeout)
+              timeout: tempDuration)
           .then(
         (value) {
           socket = value;
@@ -46,7 +47,7 @@ abstract class TransportClient extends Stream<Uint8List> implements SecureSocket
         },
       );
     } else {
-      return Socket.connect(host, port, timeout: connectionTimeout).then(
+      return Socket.connect(host, port, timeout: tempDuration).then(
         (value) {
           socket = value;
           status = 'created';
