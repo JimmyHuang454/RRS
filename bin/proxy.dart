@@ -49,6 +49,15 @@ TransportServer Function() buildInStream(
   return () => TCPServer(config: config);
 } //}}}
 
+void buildInbounds(String tag, Map<String, dynamic> config) {
+  //{{{
+  var protocol = getValue(config, 'protocol', 'tcp');
+  config['tag'] = tag;
+
+  if (protocol == 'ws') {}
+  HTTPIn(config: config);
+} //}}}
+
 void main(List<String> arguments) async {
   var configFile = File(
       'C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/config/basic.json');
@@ -74,4 +83,13 @@ void main(List<String> arguments) async {
   }
   print(inStreamList);
   print(outStreamList);
+
+  if (configJson.containsKey('inbounds')) {
+    var outStream = (configJson['inbounds'] as Map<String, dynamic>);
+    outStream.forEach(
+      (key, value) {
+        outStreamList[key] = buildOutStream(key, value);
+      },
+    );
+  }
 }

@@ -66,11 +66,7 @@ class HTTPIn extends InboundStruct {
   late String address;
   late int port;
 
-  HTTPIn(
-      {required super.tag,
-      required super.serverTag,
-      required super.config,
-      required super.routeTag})
+  HTTPIn({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
     address = getValue(config, 'setting.address', '');
     port = getValue(config, 'setting.port', 0);

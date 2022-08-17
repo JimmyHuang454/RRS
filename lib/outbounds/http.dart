@@ -7,7 +7,7 @@ class HTTPOut extends OutboundStruct {
   String userAccount = '';
   String userPassword = '';
 
-  HTTPOut({required super.tag, required super.clientTag, required super.config})
+  HTTPOut({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
     userAccount = getValue(config, 'setting.account', '');
     userPassword = getValue(config, 'setting.password', '');
