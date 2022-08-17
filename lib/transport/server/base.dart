@@ -1,33 +1,33 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:proxy/utils/utils.dart';
 
 class TransportServer extends Stream<Socket> implements ServerSocket {
   String protocolName;
   late ServerSocket serverSocket;
   late SecureServerSocket secureServerSocket;
   String tag;
-  Map<String,dynamic> config;
+  Map<String, dynamic> config;
 
   // TLS
-  bool useTLS;
-  int backlog;
-  bool v6Only;
-  bool requestClientCertificate;
-  bool requireClientCertificate;
-  List<String>? supportedProtocols;
-  bool shared;
+  late bool useTLS;
+  late int backlog;
+  late bool v6Only;
+  late bool requestClientCertificate;
+  late bool requireClientCertificate;
+  late List<String>? supportedProtocols;
+  late bool shared;
 
-  TransportServer(
-      {this.backlog = 0,
-      this.v6Only = false,
-      required this.protocolName,
-      required this.tag,
-      required this.config,
-      this.requestClientCertificate = false,
-      this.requireClientCertificate = false,
-      this.useTLS = false,
-      this.supportedProtocols,
-      this.shared = false});
+  TransportServer({
+    required this.protocolName,
+    required this.tag,
+    required this.config,
+  }) {
+    useTLS = getValue(config, 'tls.enabled', false);
+    requestClientCertificate =
+        getValue(config, 'tls.requireClientCertificate', true);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+  }
 
   Future<ServerSocket> bind(address, int port) {
     if (useTLS) {
