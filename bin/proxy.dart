@@ -26,48 +26,27 @@ var inStream = '''{
   "tls": {"enabled": true, "requireClientCertificate": true, "certificate":"", "key": ""},
 }''';
 
-TransportClient Function() buildOutStream(Map<String, dynamic> stream) {
+TransportClient Function() buildOutStream(
+    String tag, Map<String, dynamic> config) {
   //{{{
-  var protocol = getValue(stream, 'protocol', 'tcp');
-  var useTLS = getValue(stream, 'tls.enabled', false);
-  var allowInsecure = getValue(stream, 'tls.allowInsecure', false);
-  var supportedProtocols = getValue(stream, 'tls.alpn', []);
-  var useSystemRoot = getValue(stream, 'tls.useSystemRoot', true);
-  var timeout = getValue(stream, 'timeout', 100);
-  var timeout2 = Duration(seconds: timeout);
-
+  var protocol = getValue(config, 'protocol', 'tcp');
   if (protocol == 'ws') {
-    return () => WSClient(
-          path: getValue(stream, 'setting.path', '/'),
-          header: getValue(stream, 'setting.header', {}),
-          userAgent: getValue(stream, 'setting.userAgent', ''),
-          useTLS: useTLS,
-          connectionTimeout: timeout2,
-          useSystemRoot: useSystemRoot,
-          allowInsecure: allowInsecure,
-        );
+    return () => WSClient(tag: tag, config: config);
   }
-  return () => TCPClient(
-      useTLS: useTLS,
-      useSystemRoot: useSystemRoot,
-      connectionTimeout: timeout2,
-      allowInsecure: allowInsecure,
-      supportedProtocols: supportedProtocols);
+  return () => TCPClient(tag: tag, config: config);
 } //}}}
 
-TransportServer Function() buildInStream(Map<String, dynamic> stream) {
+TransportServer Function() buildInStream(
+    String tag, Map<String, dynamic> config) {
   //{{{
-  var protocol = getValue(stream, 'protocol', 'tcp');
-  var useTLS = getValue(stream, 'tls.enabled', false);
-  var supportedProtocols = getValue(stream, 'tls.alpn', []);
+  var protocol = getValue(config, 'protocol', 'tcp');
 
   if (protocol == 'ws') {}
-  return () =>
-      TCPServer(useTLS: useTLS, supportedProtocols: supportedProtocols);
+  return () => TCPServer(tag: tag, config: config);
 } //}}}
 
-late Map<String, TransportClient Function()> outList;
-late Map<String, TransportServer Function()> inList;
+Map<String, TransportClient Function()> outList = {};
+Map<String, TransportServer Function()> inList = {};
 
 void main(List<String> arguments) async {
   var configFile = File(
@@ -79,7 +58,7 @@ void main(List<String> arguments) async {
     var inStream = (configJson['inStream'] as Map<String, dynamic>);
     inStream.forEach(
       (key, value) {
-        inList[key] = buildInStream(value);
+        inList[key] = buildInStream(key, value);
       },
     );
   }
@@ -88,9 +67,8 @@ void main(List<String> arguments) async {
     var outStream = (configJson['outStream'] as Map<String, dynamic>);
     outStream.forEach(
       (key, value) {
-        outList[key] = buildOutStream(value);
+        outList[key] = buildOutStream(key, value);
       },
     );
   }
-  buildOutStream(jsonDecode(inStream));
 }

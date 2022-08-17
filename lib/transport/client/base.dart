@@ -26,9 +26,8 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    connectionTimeout = getValue(config, 'tls.connectionTimeout', 100);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', []);
+    connectionTimeout = getValue(config, 'connectionTimeout', 100);
   }
 
   Future<Socket> connect(host, int port) {

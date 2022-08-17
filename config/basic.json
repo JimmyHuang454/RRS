@@ -31,7 +31,7 @@
     "tcp_with_tls": {
       "protocol": "tcp",
       "setting": {},
-      "timeout": 100,
+      "connectionTimeout": 100,
       "mux": {
         "enabled": false,
         "concurrency": 10
