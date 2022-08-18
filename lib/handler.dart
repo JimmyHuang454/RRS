@@ -8,14 +8,14 @@ import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/inbounds/http.dart';
 
+import 'package:proxy/route/route.dart';
+
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
 
-TransportClient Function() _buildOutStream(
-    String tag, Map<String, dynamic> config) {
+TransportClient Function() _buildOutStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
-  config['tag'] = tag;
 
   if (protocol == 'ws') {
     return () => WSClient(config: config);
@@ -26,16 +26,15 @@ TransportClient Function() _buildOutStream(
 TransportClient Function() buildOutStream(
     String tag, Map<String, dynamic> config) {
   //{{{
-  var res = _buildOutStream(tag, config);
+  config['tag'] = tag;
+  var res = _buildOutStream(config);
   outStreamList[tag] = res;
   return res;
 } //}}}
 
-TransportServer Function() _buildInStream(
-    String tag, Map<String, dynamic> config) {
+TransportServer Function() _buildInStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
-  config['tag'] = tag;
 
   if (protocol == 'ws') {}
   return () => TCPServer(config: config);
@@ -44,16 +43,15 @@ TransportServer Function() _buildInStream(
 TransportServer Function() buildInStream(
     String tag, Map<String, dynamic> config) {
   //{{{
-  var res = _buildInStream(tag, config);
+  config['tag'] = tag;
+  var res = _buildInStream(config);
   inStreamList[tag] = res;
   return res;
 } //}}}
 
-Future<InboundStruct> _buildInbounds(
-    String tag, Map<String, dynamic> config) async {
+Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
-  config['tag'] = tag;
 
   if (protocol == 'ws') {}
   var res = HTTPIn(config: config);
@@ -64,15 +62,22 @@ Future<InboundStruct> _buildInbounds(
 Future<InboundStruct> buildInbounds(
     String tag, Map<String, dynamic> config) async {
   //{{{
-  var res = await _buildInbounds(tag, config);
+  config['tag'] = tag;
+  var res = await _buildInbounds(config);
   inboundsList[tag] = res;
   return res;
 } //}}}
 
-Future<InboundStruct> buildRoute(
-    String tag, Map<String, dynamic> config) async {
+Future<Route> _buildRoute(Map<String, dynamic> config) async {
   //{{{
-  var res = await _buildInbounds(tag, config);
-  inboundsList[tag] = res;
+  var res = Route(config: config);
+  return res;
+} //}}}
+
+Future<Route> buildRoute(String tag, Map<String, dynamic> config) async {
+  //{{{
+  config['tag'] = tag;
+  var res = await _buildRoute(config);
+  routeList[tag] = res;
   return res;
 } //}}}

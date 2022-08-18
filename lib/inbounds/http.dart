@@ -25,9 +25,17 @@ class HTTPRequest extends Link {
         if (!isParsed) {
           parse(data);
           if (isParsed) {
+            inboundStruct.doRoute(this);
+
+            try {
+              await outboundStruct.connect(this);
+            } catch (_) {
+              closeAll();
+              return;
+            }
+
             if (method == 'CONNECT') {
-              
-            }else{
+            } else {
               buildHTTP();
             }
           }

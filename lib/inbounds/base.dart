@@ -61,4 +61,14 @@ abstract class InboundStruct {
     }
     return inStreamList[inStream]!;
   }
+
+  OutboundStruct doRoute(Link link) {
+    if (!routeList.containsKey(routeTag)) {
+      throw 'There are no route named "$routeTag"';
+    }
+    var outTag = routeList[routeTag]!.match(link);
+    var res = outboundsList[outTag]!;
+    link.outboundStruct = res;
+    return res;
+  }
 }

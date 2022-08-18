@@ -16,7 +16,8 @@ class FreedomOut extends OutboundStruct {
 
   @override
   Future<Socket> connect(Link link) async {
-    return Socket.connect(link.targetUri.host, link.targetUri.port).then(
+    var temp = getClient()();
+    return temp.connect(link.targetUri.host, link.targetUri.port).then(
       (value) {
         link.server = value;
         return value;
