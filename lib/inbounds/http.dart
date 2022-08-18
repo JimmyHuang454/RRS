@@ -19,26 +19,41 @@ class HTTPRequest extends Link {
         closeAll();
       }
     });
+    client = client;
 
     client.listen(
       (data) async {
         if (!isParsed) {
           parse(data);
-          if (isParsed) {
-            inboundStruct.doRoute(this);
-
-            try {
-              await outboundStruct.connect(this);
-            } catch (_) {
-              closeAll();
-              return;
-            }
-
-            if (method == 'CONNECT') {
-            } else {
-              buildHTTP();
-            }
+          if (!isParsed) {
+            return;
           }
+          inboundStruct.doRoute(this);
+
+          try {
+            server = await outboundStruct.connect(this);
+            server.listen((event) {
+              client.add(event);
+            }, onDone: () {
+              closeAll();
+            }, onError: () {
+              closeAll();
+            });
+          } catch (_) {
+            closeAll();
+            return;
+          }
+
+          if (method == 'CONNECT') {
+            // server.add(content);
+            client.add(buildConnectionResponse());
+          } else {
+            server.add(buildHTTP());
+          }
+          try {
+            await server.done;
+          } catch (_) {}
+          closeAll();
         } else {
           handle(data);
         }
