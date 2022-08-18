@@ -27,7 +27,7 @@ class RouteRule {
 class Route {
   late String tag;
   late String domainStrategy;
-  late List<RouteRule> rules;
+  List<RouteRule> rules = [];
 
   Map<String, dynamic> config;
 

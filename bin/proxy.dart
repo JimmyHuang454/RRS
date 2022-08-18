@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:proxy/handler.dart';
-import 'package:proxy/obj_list.dart';
 
 void main(List<String> arguments) async {
   var configFile = File(
@@ -10,33 +9,5 @@ void main(List<String> arguments) async {
   var config = await configFile.readAsString();
   var configJson = (jsonDecode(config) as Map<String, dynamic>);
 
-  if (configJson.containsKey('inStream')) {
-    var inStream = (configJson['inStream'] as Map<String, dynamic>);
-    inStream.forEach(
-      (key, value) {
-        buildInStream(key, value);
-      },
-    );
-  }
-
-  if (configJson.containsKey('outStream')) {
-    var outStream = (configJson['outStream'] as Map<String, dynamic>);
-    outStream.forEach(
-      (key, value) {
-        buildOutStream(key, value);
-      },
-    );
-  }
-
-  if (configJson.containsKey('inbounds')) {
-    var inbounds = (configJson['inbounds'] as Map<String, dynamic>);
-    inbounds.forEach(
-      (key, value) async {
-        await buildInbounds(key, value);
-      },
-    );
-  }
-
-  print(inStreamList);
-  print(outStreamList);
+  entry(configJson);
 }

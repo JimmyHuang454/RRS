@@ -8,6 +8,9 @@ import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/inbounds/http.dart';
 
+import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/outbounds/freedom.dart';
+
 import 'package:proxy/route/route.dart';
 
 import 'package:proxy/utils/utils.dart';
@@ -68,16 +71,64 @@ Future<InboundStruct> buildInbounds(
   return res;
 } //}}}
 
-Future<Route> _buildRoute(Map<String, dynamic> config) async {
+OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
+  //{{{
+  var protocol = getValue(config, 'protocol', 'http');
+
+  if (protocol == 'ws') {}
+  var res = FreedomOut(config: config);
+  return res;
+} //}}}
+
+OutboundStruct buildOutbounds(String tag, Map<String, dynamic> config) {
+  //{{{
+  config['tag'] = tag;
+  var res = _buildOutbounds(config);
+  outboundsList[tag] = res;
+  return res;
+} //}}}
+
+Route _buildRoute(Map<String, dynamic> config) {
   //{{{
   var res = Route(config: config);
   return res;
 } //}}}
 
-Future<Route> buildRoute(String tag, Map<String, dynamic> config) async {
+Route buildRoute(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = await _buildRoute(config);
+  var res = _buildRoute(config);
   routeList[tag] = res;
   return res;
 } //}}}
+
+void entry(Map<String, dynamic> allConfig) {
+  var item = {
+    'inStream': buildInStream,
+    'outStream': buildOutStream,
+    'route': buildRoute,
+    'outbounds': buildOutbounds
+  };
+
+  item.forEach(
+    (key, value) {
+      if (allConfig.containsKey(key)) {
+        var temp = (allConfig[key] as Map<String, dynamic>);
+        temp.forEach(
+          (key, value) {
+            value(key, value);
+          },
+        );
+      }
+    },
+  );
+
+  if (allConfig.containsKey('inbounds')) {
+    var inbounds = (allConfig['inbounds'] as Map<String, dynamic>);
+    inbounds.forEach(
+      (key, value) async {
+        await buildInbounds(key, value);
+      },
+    );
+  }
+}

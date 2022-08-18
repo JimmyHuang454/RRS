@@ -1,0 +1,35 @@
+{
+  "outStream": {
+    "tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "inStream": {
+    "tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "inbounds": {
+    "HTTPIn": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "routeTag": "freedom",
+      "inStream": "tcp"
+    }
+  },
+  "outbounds": {
+    "freedom": {
+      "protocol": "freedom"
+    }
+  },
+  "route": {
+    "freedom": {
+      "rules": [{
+        "outTag": "freedom"
+      }]
+    }
+  }
+}

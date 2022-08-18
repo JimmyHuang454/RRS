@@ -16,6 +16,13 @@ void main() {
       'setting': {'address': listen, 'port': port}
     });
 
+
+    buildRoute('1', {
+      'rules': [
+        {'outTag': 'freedom'}
+      ]
+    });
+
     var client = TCPClient(config: {'tag': 'TCPClient_http'});
     await client.connect(listen, port);
 
