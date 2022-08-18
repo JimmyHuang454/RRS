@@ -26,7 +26,7 @@ class Link {
   InboundStruct inboundStruct;
   late OutboundStruct outboundStruct; // assign after routing.
 
-  Link(this.client, this.inboundStruct);
+  Link({required this.client, required this.inboundStruct});
 }
 
 abstract class InboundStruct {

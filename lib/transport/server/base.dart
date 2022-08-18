@@ -30,13 +30,14 @@ abstract class TransportServer extends Stream<Socket> implements ServerSocket {
       var securityContext = SecurityContext(withTrustedRoots: useTLS);
       return SecureServerSocket.bind(address, port, securityContext,
               requireClientCertificate: requireClientCertificate,
-              supportedProtocols: supportedProtocols)
+              supportedProtocols: supportedProtocols,
+              shared: false)
           .then((value) {
         secureServerSocket = value;
         return this;
       });
     }
-    return ServerSocket.bind(address, port).then((value) {
+    return ServerSocket.bind(address, port, shared: false).then((value) {
       serverSocket = value;
       return serverSocket;
     });

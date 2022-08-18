@@ -11,15 +11,13 @@ class HTTPRequest extends Link {
   List<int> header = [];
   List<int> content = [];
 
-  HTTPRequest(Socket client, InboundStruct inboundStruct)
-      : super(client, inboundStruct) {
-    Future.delayed(Duration(seconds: 10), () {
+  HTTPRequest({required super.client, required super.inboundStruct}) {
+    Future.delayed(Duration(seconds: 3), () {
       if (!isParsed) {
         // timeout
         closeAll();
       }
     });
-    client = client;
 
     client.listen(
       (data) async {
@@ -28,21 +26,22 @@ class HTTPRequest extends Link {
           if (!isParsed) {
             return;
           }
-          inboundStruct.doRoute(this);
+          outboundStruct = inboundStruct.doRoute(this);
 
           try {
             server = await outboundStruct.connect(this);
-            server.listen((event) {
-              client.add(event);
-            }, onDone: () {
-              closeAll();
-            }, onError: () {
-              closeAll();
-            });
           } catch (_) {
             closeAll();
             return;
           }
+
+          server.listen((event) {
+            client.add(event);
+          }, onDone: () {
+            closeAll();
+          }, onError: () {
+            closeAll();
+          });
 
           if (method == 'CONNECT') {
             // server.add(content);
@@ -66,7 +65,10 @@ class HTTPRequest extends Link {
   }
 
   void closeAll() {
-    client.close();
+    try {
+      client.close();
+      server.close();
+    } catch (_) {}
   }
 
   void parse(List<int> data) {
@@ -110,7 +112,7 @@ class HTTPRequest extends Link {
 
   List<int> buildConnectionResponse() {
     //{{{
-    var temp = '$protocolVersion 200 Connection Established\r\n\r\n';
+    var temp = '$inProxyProtocolVersion 200 Connection Established\r\n\r\n';
     return temp.codeUnits;
   } //}}}
 
@@ -149,7 +151,7 @@ class HTTPIn extends InboundStruct {
     server.listen(
       (client) async {
         totalClient += 1;
-        HTTPRequest(client, this);
+        HTTPRequest(client: client, inboundStruct: this);
         await client.done;
         totalClient -= 1;
       },
