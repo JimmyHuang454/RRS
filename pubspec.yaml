@@ -12,4 +12,4 @@ environment:
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.16.0
-dependencies: {uuid: ^3.0.6}
+dependencies: {json5: ^0.8.0, uuid: ^3.0.6}

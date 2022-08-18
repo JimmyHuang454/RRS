@@ -98,6 +98,12 @@
       "languageVersion": "2.16"
     },
     {
+      "name": "json5",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/json5-0.8.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "lints",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/lints-2.0.0",
       "packageUri": "lib/",
@@ -290,7 +296,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-08-14T19:58:41.718799Z",
+  "generated": "2022-08-18T13:55:07.427599Z",
   "generator": "pub",
   "generatorVersion": "2.17.6"
 }

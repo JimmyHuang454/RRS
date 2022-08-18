@@ -75,7 +75,7 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
 
-  if (protocol == 'ws') {}
+  if (protocol == 'http') {}
   var res = FreedomOut(config: config);
   return res;
 } //}}}

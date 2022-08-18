@@ -113,6 +113,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.4"
+  json5:
+    dependency: "direct main"
+    description:
+      name: json5
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.8.0"
   lints:
     dependency: "direct dev"
     description:
