@@ -10,6 +10,7 @@ import 'package:proxy/inbounds/http.dart';
 
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/outbounds/freedom.dart';
+import 'package:proxy/outbounds/http.dart';
 
 import 'package:proxy/route/route.dart';
 
@@ -71,16 +72,18 @@ Future<InboundStruct> buildInbounds(
   return res;
 } //}}}
 
-OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
+OutboundStruct Function() _buildOutbounds(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
 
-  if (protocol == 'http') {}
-  var res = FreedomOut(config: config);
-  return res;
+  if (protocol == 'http') {
+    return () => HTTPOut(config: config);
+  }
+  return () => FreedomOut(config: config);
 } //}}}
 
-OutboundStruct buildOutbounds(String tag, Map<String, dynamic> config) {
+OutboundStruct Function() buildOutbounds(
+    String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
   var res = _buildOutbounds(config);

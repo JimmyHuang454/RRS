@@ -29,7 +29,7 @@ class HTTPRequest extends Link {
           outboundStruct = inboundStruct.doRoute(this);
 
           try {
-            server = await outboundStruct.connect(this);
+            server = await outboundStruct.connect2(this);
           } catch (_) {
             closeAll();
             return;

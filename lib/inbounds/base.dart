@@ -67,7 +67,7 @@ abstract class InboundStruct {
       throw 'There are no route named "$routeTag"';
     }
     var outTag = routeList[routeTag]!.match(link);
-    var res = outboundsList[outTag]!;
+    var res = outboundsList[outTag]!();
     link.outboundStruct = res;
     return res;
   }
