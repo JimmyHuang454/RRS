@@ -115,8 +115,8 @@ void entry(Map<String, dynamic> allConfig) {
       if (allConfig.containsKey(key)) {
         var temp = (allConfig[key] as Map<String, dynamic>);
         temp.forEach(
-          (key, value) {
-            value(key, value);
+          (tag, content) {
+            value(tag, content);
           },
         );
       }

@@ -39,7 +39,7 @@ class HTTPRequest extends Link {
             client.add(event);
           }, onDone: () {
             closeAll();
-          }, onError: () {
+          }, onError: (e) {
             closeAll();
           });
 

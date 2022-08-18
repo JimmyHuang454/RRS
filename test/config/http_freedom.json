@@ -22,7 +22,8 @@
   },
   "outbounds": {
     "freedom": {
-      "protocol": "freedom"
+      "protocol": "freedom",
+      "outStream": "tcp"
     }
   },
   "route": {

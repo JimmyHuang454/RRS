@@ -1,3 +1,4 @@
+import 'dart:io';
 
 dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
   var temp = key.split('.');
@@ -30,6 +31,14 @@ int indexOfElements(List<int> old, List<int> n, [int start = 0]) {
   return -1;
 }
 
-void devPrint(msg){
+void devPrint(msg) {
   print(msg);
+}
+
+Future<int> getUnusedPort(InternetAddress address) {
+  return ServerSocket.bind(address, 0).then((socket) {
+    var port = socket.port;
+    socket.close();
+    return port;
+  });
 }
