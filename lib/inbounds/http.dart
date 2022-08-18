@@ -13,7 +13,7 @@ class HTTPRequest extends Link {
 
   HTTPRequest(Socket client, InboundStruct inboundStruct)
       : super(client, inboundStruct) {
-    Future.delayed(Duration(seconds: timeout), () {
+    Future.delayed(Duration(seconds: 10), () {
       if (!isParsed) {
         // timeout
         closeAll();
@@ -21,8 +21,25 @@ class HTTPRequest extends Link {
     });
 
     client.listen(
-      (data) async {},
+      (data) async {
+        if (!isParsed) {
+          parse(data);
+          if (isParsed) {
+            if (method == 'CONNECT') {
+              
+            }else{
+              buildHTTP();
+            }
+          }
+        } else {
+          handle(data);
+        }
+      },
     );
+  }
+
+  void handle(List<int> data) {
+    client.close();
   }
 
   void closeAll() {
@@ -31,27 +48,32 @@ class HTTPRequest extends Link {
 
   void parse(List<int> data) {
     //{{{
-    if (isParsed) {
+    content += data;
+
+    var pos1 = indexOfElements(content, '\r\n'.codeUnits);
+    if (pos1 == 0) {
+      // badRequest.
+      closeAll();
+      return;
+    }
+    var pos2 = indexOfElements(content, '\r\n\r\n'.codeUnits, pos1 + 2);
+    if (pos2 == -1 || pos1 == -1) {
       return;
     }
 
-    var pos1 = indexOfElements(data, '\r\n'.codeUnits);
-    var pos2 = indexOfElements(data, '\r\n\r\n'.codeUnits, pos1 + 2);
-    if (pos2 == -1 || pos1 == -1 || pos1 == 0) {
-      return;
-    }
-    isParsed = true;
-
-    var firstLine = utf8.decode(data.sublist(0, pos1));
+    var firstLine = utf8.decode(content.sublist(0, pos1));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
       isValidRequest = false;
-      client.close();
+      closeAll();
       return;
     }
     method = temp2[0];
     fullURL = temp2[1];
     inProxyProtocolVersion = temp2[2];
+
+    header = content.sublist(pos1 + 2, pos2);
+    content = content.sublist(pos2 + 4);
 
     if (method == 'CONNECT') {
       targetUri = Uri.parse('none://$fullURL');
@@ -59,7 +81,25 @@ class HTTPRequest extends Link {
       targetUri = Uri.parse(fullURL);
     }
     isValidRequest = true;
+    isParsed = true;
     return;
+  } //}}}
+
+  List<int> buildConnectionResponse() {
+    //{{{
+    var temp = '$protocolVersion 200 Connection Established\r\n\r\n';
+    return temp.codeUnits;
+  } //}}}
+
+  List<int> buildHTTP() {
+    //{{{
+    var temp = '$method $targetUri $inProxyProtocolVersion\r\n';
+    var temp2 = temp.codeUnits;
+    if (header != []) {
+      temp2 += header + '\r\n'.codeUnits;
+    }
+    temp2 += '\r\n'.codeUnits + content;
+    return temp2;
   } //}}}
 }
 

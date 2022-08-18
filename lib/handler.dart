@@ -68,3 +68,11 @@ Future<InboundStruct> buildInbounds(
   inboundsList[tag] = res;
   return res;
 } //}}}
+
+Future<InboundStruct> buildRoute(
+    String tag, Map<String, dynamic> config) async {
+  //{{{
+  var res = await _buildInbounds(tag, config);
+  inboundsList[tag] = res;
+  return res;
+} //}}}

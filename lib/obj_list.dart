@@ -5,3 +5,4 @@ import 'package:proxy/inbounds/base.dart';
 Map<String, TransportClient Function()> outStreamList = {};
 Map<String, TransportServer Function()> inStreamList = {};
 Map<String, InboundStruct> inboundsList = {};
+Map<String, InboundStruct> routeList = {};
