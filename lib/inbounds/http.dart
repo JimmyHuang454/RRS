@@ -60,7 +60,7 @@ class HTTPRequest extends Link {
   }
 
   void handle(List<int> data) {
-    client.close();
+    server.add(data);
   }
 
   void closeAll() {
@@ -111,13 +111,13 @@ class HTTPRequest extends Link {
 
   List<int> buildConnectionResponse() {
     //{{{
-    var temp = '$inProxyProtocolVersion 200 Connection Established\r\n\r\n';
+    var temp = '$protocolVersion 200 Connection Established\r\n\r\n';
     return temp.codeUnits;
   } //}}}
 
   List<int> buildHTTP() {
     //{{{
-    var temp = '$method $targetUri $inProxyProtocolVersion\r\n';
+    var temp = '$method $targetUri $protocolVersion\r\n';
     var temp2 = temp.codeUnits;
     if (header != []) {
       temp2 += header + '\r\n'.codeUnits;

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:async/async.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
@@ -31,17 +32,34 @@ class HTTPOut extends OutboundStruct {
   }
 
   @override
-  Future<Socket> connect2(Link link) {
+  Future<Socket> connect2(Link link) async {
     link = link;
-    return socket.connect(httpAddress, httpPort).then(
-      (value) async {
-        link.server = value;
-        if (link.method == 'CONNECT') {
-          add(_buildConnectionRequest());
+    var conn = await socket.connect(httpAddress, httpPort);
+    if (link.method == 'CONNECT') {
+      var streamController = StreamController<int>();
+      var w = StreamQueue<int>(streamController.stream);
+      var l = conn.listen((data) {
+        var pos = indexOfElements(data, '\r\n\r\n'.codeUnits);
+        if (pos == -1) {
+          streamController.add(0); // failed.
+        } else {
+          streamController.add(1); // created
         }
-        return value;
-      },
-    );
+      }, onError: (e) {
+        streamController.add(0);
+      });
+      socket.add(_buildConnectionRequest());
+      var res = await w.next;
+      await w.cancel();
+      await streamController.close();
+      await l.cancel();
+      if (res != 1) {
+        await conn.close();
+        throw 'failed to build http tunnel.';
+      }
+      isBuildConnection = true;
+    }
+    return conn;
   }
 
   @override

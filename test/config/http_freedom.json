@@ -18,11 +18,24 @@
       },
       "routeTag": "freedom",
       "inStream": "tcp"
+    },
+    "HTTPIn_block": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5457
+      },
+      "routeTag": "block",
+      "inStream": "tcp"
     }
   },
   "outbounds": {
     "freedom": {
       "protocol": "freedom",
+      "outStream": "tcp"
+    },
+    "block": {
+      "protocol": "block",
       "outStream": "tcp"
     }
   },
@@ -30,6 +43,11 @@
     "freedom": {
       "rules": [{
         "outTag": "freedom"
+      }]
+    },
+    "block": {
+      "rules": [{
+        "outTag": "block"
       }]
     }
   }

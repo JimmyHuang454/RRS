@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
-abstract class TransportClient extends Stream<Uint8List>
+class TransportClient extends Stream<Uint8List>
     implements SecureSocket {
   //{{{
   late Socket socket;
