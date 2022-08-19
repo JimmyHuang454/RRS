@@ -17,7 +17,7 @@
         "address": "127.0.0.1",
         "port": 5455
       },
-      "routeTag": "httpout",
+      "route": "httpout",
       "inStream": "tcp"
     },
     "HTTPIn2": {
@@ -26,7 +26,7 @@
         "address": "127.0.0.1",
         "port": 5454
       },
-      "routeTag": "freedom",
+      "route": "freedom",
       "inStream": "tcp"
     }
   },
@@ -47,12 +47,12 @@
   "route": {
     "freedom": {
       "rules": [{
-        "outTag": "freedom"
+        "outbound": "freedom"
       }]
     },
     "httpout": {
       "rules": [{
-        "outTag": "http_with_no_tls"
+        "outbound": "http_with_no_tls"
       }]
     }
   }

@@ -23,7 +23,7 @@
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 4430
+        "port": 8080
       },
       "inStream": "defalut_tcp",
       "routeTag": "allowUser"
@@ -59,9 +59,11 @@
     }
   },
   "route": {
-    "allowUser": [{
-      "user": ["1"],
-      "outbound": "freedom"
-    }]
+    "allowUser": {
+      "rules": [{
+        "user": ["1"],
+        "outbound": "terminal"
+      }]
+    }
   }
 }

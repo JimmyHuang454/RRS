@@ -16,7 +16,7 @@
         "address": "127.0.0.1",
         "port": 5455
       },
-      "routeTag": "freedom",
+      "route": "freedom",
       "inStream": "tcp"
     },
     "HTTPIn_block": {
@@ -25,7 +25,7 @@
         "address": "127.0.0.1",
         "port": 5457
       },
-      "routeTag": "block",
+      "route": "block",
       "inStream": "tcp"
     }
   },
@@ -42,12 +42,12 @@
   "route": {
     "freedom": {
       "rules": [{
-        "outTag": "freedom"
+        "outbound": "freedom"
       }]
     },
     "block": {
       "rules": [{
-        "outTag": "block"
+        "outbound": "block"
       }]
     }
   }

@@ -3,14 +3,14 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
 class RouteRule {
-  late String outTag;
+  late String outbound;
   late String matchAddress;
   late List<String> allowedUser;
 
   Map<String, dynamic> config;
 
   RouteRule({required this.config}) {
-    outTag = config['outTag'];
+    outbound = config['outbound'];
 
     allowedUser = getValue(config, 'allowedUser', ['']);
     matchAddress = getValue(config, 'address', '');
@@ -48,17 +48,17 @@ class Route {
   String _match(Link link) {
     for (var i = 0, len = rules.length; i < len; ++i) {
       if (rules[i].match(link)) {
-        return rules[i].outTag;
+        return rules[i].outbound;
       }
     }
-    return rules[rules.length - 1].outTag;
+    return rules[rules.length - 1].outbound;
   }
 
   String match(Link link) {
-    var outTag = _match(link);
-    if (!outboundsList.containsKey(outTag)) {
-      throw 'There are no outbound named "$outTag".';
+    var outbound = _match(link);
+    if (!outboundsList.containsKey(outbound)) {
+      throw 'There are no outbound named "$outbound".';
     }
-    return outTag;
+    return outbound;
   }
 }

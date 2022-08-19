@@ -35,7 +35,7 @@ abstract class InboundStruct {
   String protocolVersion;
   late String tag;
   late String inStream;
-  late String routeTag;
+  late String route;
 
   Map<String, dynamic> config;
 
@@ -47,10 +47,10 @@ abstract class InboundStruct {
       required this.config}) {
     tag = config['tag'];
     inStream = getValue(config, 'inStream', '');
-    routeTag = getValue(config, 'routeTag', '');
+    route = getValue(config, 'route', '');
 
-    if (inStream == '' || routeTag == '') {
-      throw 'inStream and routeTag can NOT be null.';
+    if (inStream == '' || route == '') {
+      throw 'inStream and route can NOT be null.';
     }
   }
 
@@ -64,11 +64,11 @@ abstract class InboundStruct {
   }
 
   OutboundStruct doRoute(Link link) {
-    if (!routeList.containsKey(routeTag)) {
-      throw 'There are no route named "$routeTag"';
+    if (!routeList.containsKey(route)) {
+      throw 'There are no route named "$route"';
     }
-    var outTag = routeList[routeTag]!.match(link);
-    var res = outboundsList[outTag]!();
+    var outbound = routeList[route]!.match(link);
+    var res = outboundsList[outbound]!();
     link.outboundStruct = res;
     return res;
   }

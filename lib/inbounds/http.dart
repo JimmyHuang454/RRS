@@ -29,7 +29,8 @@ class HTTPRequest extends Link {
 
           try {
             server = await outboundStruct.connect2(this);
-          } catch (_) {
+          } catch (e) {
+            print(e);
             closeAll();
             return;
           }

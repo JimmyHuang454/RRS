@@ -122,6 +122,7 @@ void entry(Map<String, dynamic> allConfig) {
         var temp = (allConfig[key] as Map<String, dynamic>);
         temp.forEach(
           (tag, content) {
+            print(content);
             value(tag, content);
           },
         );
