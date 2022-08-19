@@ -6,7 +6,6 @@ import 'dart:io';
 
 class HTTPRequest extends Link {
   String fullURL = '';
-  String inProxyProtocolVersion = '';
   bool isParsed = false;
   List<int> header = [];
   List<int> content = [];
@@ -95,7 +94,7 @@ class HTTPRequest extends Link {
     }
     method = temp2[0];
     fullURL = temp2[1];
-    inProxyProtocolVersion = temp2[2];
+    protocolVersion = temp2[2];
 
     header = content.sublist(pos1 + 2, pos2);
     content = content.sublist(pos2 + 4);

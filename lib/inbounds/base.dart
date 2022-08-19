@@ -16,6 +16,7 @@ class Link {
   String targetAddress = '';
   String streamType = 'TCP'; // TCP | UDP
 
+  String protocolVersion = '';
   String userID = 'none';
   bool isTLS = false;
   bool isHTTPRequest = false;
