@@ -10,6 +10,18 @@ class HTTPRequest extends Link {
   List<int> header = [];
   List<int> content = [];
 
+  void clientSend(List<int> data) {
+    try {
+      client.add(data);
+    } catch (_) {}
+  }
+
+  void serverSend(List<int> data) {
+    try {
+      server.add(data);
+    } catch (_) {}
+  }
+
   HTTPRequest({required super.client, required super.inboundStruct}) {
     Future.delayed(Duration(seconds: 3), () {
       if (!isParsed) {
@@ -18,55 +30,58 @@ class HTTPRequest extends Link {
       }
     });
 
-    client.listen(
-      (data) async {
+    client.listen((data) async {
+      if (!isParsed) {
+        parse(data);
         if (!isParsed) {
-          parse(data);
-          if (!isParsed) {
-            return;
-          }
-          outboundStruct = inboundStruct.doRoute(this);
-
-          try {
-            server = await outboundStruct.connect2(this);
-          } catch (e) {
-            print(e);
-            closeAll();
-            return;
-          }
-
-          server.listen((event) {
-            client.add(event);
-          }, onDone: () {
-            closeAll();
-          }, onError: (e) {
-            closeAll();
-          });
-
-          if (method == 'CONNECT') {
-            // server.add(content);
-            client.add(buildConnectionResponse());
-          } else {
-            server.add(buildHTTP());
-          }
-          try {
-            await server.done;
-          } catch (_) {}
-          closeAll();
-        } else {
-          handle(data);
+          return;
         }
-      },
-    );
+        outboundStruct = inboundStruct.doRoute(this);
+
+        try {
+          server = await outboundStruct.connect2(this);
+        } catch (e) {
+          print(e);
+          closeAll();
+          return;
+        }
+
+        server.listen((event) {
+          clientSend(event);
+        }, onDone: () {
+          closeAll();
+        }, onError: (e) {
+          closeAll();
+        });
+
+        if (method == 'CONNECT') {
+          clientSend(buildConnectionResponse());
+        } else {
+          serverSend(buildHTTP());
+        }
+        try {
+          await server.done;
+        } catch (_) {}
+        closeAll();
+      } else {
+        handle(data);
+      }
+    }, onError: (e) {
+      closeAll();
+    }, onDone: () {
+      closeAll();
+    });
   }
 
   void handle(List<int> data) {
-    server.add(data);
+    serverSend(data);
   }
 
   void closeAll() {
     try {
       client.close();
+    } catch (_) {}
+    try {
       server.close();
     } catch (_) {}
   }
@@ -148,14 +163,14 @@ class HTTPIn extends InboundStruct {
 
     await server.bind(address, port);
 
-    server.listen(
-      (client) async {
-        totalClient += 1;
-        HTTPRequest(client: client, inboundStruct: this);
+    server.listen((client) async {
+      totalClient += 1;
+      HTTPRequest(client: client, inboundStruct: this);
+      try {
         await client.done;
-        totalClient -= 1;
-      },
-    );
+      } catch (_) {}
+      totalClient -= 1;
+    });
     return server;
   }
 }
