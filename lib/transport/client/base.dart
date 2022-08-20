@@ -5,8 +5,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
-class TransportClient extends Stream<Uint8List>
-    implements SecureSocket {
+class TransportClient extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late Socket socket;
   String status = 'init';
@@ -26,7 +25,7 @@ class TransportClient extends Stream<Uint8List>
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['http/1.1']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
   }
 
@@ -36,8 +35,8 @@ class TransportClient extends Stream<Uint8List>
       var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       return SecureSocket.connect(host, port,
               context: securityContext,
-              onBadCertificate: onBadCertificate,
               supportedProtocols: supportedProtocols,
+              onBadCertificate: onBadCertificate,
               timeout: tempDuration)
           .then(
         (value) {
@@ -58,10 +57,7 @@ class TransportClient extends Stream<Uint8List>
   }
 
   bool onBadCertificate(X509Certificate certificate) {
-    if (allowInsecure) {
-      return true;
-    }
-    return false;
+    return allowInsecure;
   }
 
   @override

@@ -11,7 +11,7 @@ void main() {
     expect(res.allowInsecure, false);
     expect(res.useSystemRoot, true);
     expect(res.connectionTimeout, 100);
-    expect(res.supportedProtocols, ['']);
+    expect(res.supportedProtocols, ['http/1.1']);
 
     print(outStreamList);
     expect(outStreamList.containsKey('TCPClient'), true);
