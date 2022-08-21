@@ -11,9 +11,11 @@ class Link {
 
   late Uri targetUri; // if it's a HTTP request.
   String method = 'GET';
+  int cmd = 0;
 
   String typeOfAddress = 'domain'; // domain | ipv4 | ipv6
   String targetAddress = '';
+  int targetport = 0;
   String streamType = 'TCP'; // TCP | UDP
 
   String protocolVersion = '';
