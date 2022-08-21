@@ -14,6 +14,7 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/outbounds/freedom.dart';
 import 'package:proxy/outbounds/block.dart';
 import 'package:proxy/outbounds/http.dart';
+import 'package:proxy/outbounds/trojan.dart';
 
 import 'package:proxy/route/route.dart';
 
@@ -89,6 +90,8 @@ OutboundStruct Function() _buildOutbounds(Map<String, dynamic> config) {
     return () => HTTPOut(config: config);
   } else if (protocol == 'block') {
     return () => BlockOut(config: config);
+  } else if (protocol == 'trojan') {
+    return () => TrojanOut(config: config);
   }
   return () => FreedomOut(config: config);
 } //}}}

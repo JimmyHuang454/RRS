@@ -1,16 +1,13 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:async/async.dart';
-import 'package:collection/collection.dart';
 import 'package:cryptography/cryptography.dart';
 
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 
-class HTTPOut extends OutboundStruct {
+class TrojanOut extends OutboundStruct {
   String password = '';
   String userID = '';
   List<int> passwordSha224 = [];
@@ -19,7 +16,7 @@ class HTTPOut extends OutboundStruct {
   bool isAuth = false;
   late Link link;
 
-  HTTPOut({required super.config})
+  TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
     password = getValue(config, 'setting.password', '');
     userID = getValue(config, 'setting.userID', '');
