@@ -7,6 +7,7 @@ import 'package:proxy/transport/server/tcp.dart';
 
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/inbounds/http.dart';
+import 'package:proxy/inbounds/socks5.dart';
 
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/outbounds/freedom.dart';
@@ -58,8 +59,12 @@ Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
 
-  if (protocol == 'ws') {}
-  var res = HTTPIn(config: config);
+  InboundStruct res;
+  if (protocol == 'socks5') {
+    res = Socks5In(config: config);
+  } else {
+    res = HTTPIn(config: config);
+  }
   await res.bind2();
   return res;
 } //}}}

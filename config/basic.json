@@ -27,6 +27,15 @@
       },
       "inStream": "defalut_tcp",
       "route": "allowUser"
+    },
+    "socks5_inbound": {
+      "protocol": "socks5",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8081
+      },
+      "inStream": "defalut_tcp",
+      "route": "allowUser"
     }
   },
   "outStream": {

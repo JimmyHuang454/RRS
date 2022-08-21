@@ -37,9 +37,9 @@ class Socks5Request extends Link {
     client.listen((data) async {
       if (!isAuth) {
         auth(data);
-        parseDST([]);
+        await parseDST([]);
       } else if (!isParseDST) {
-        parseDST(data);
+        await parseDST(data);
       } else {
         serverAdd(data);
       }
@@ -59,7 +59,7 @@ class Socks5Request extends Link {
     } catch (_) {}
   }
 
-  void bindServer() async {
+  Future<void> bindServer() async {
     //{{{
     outboundStruct = inboundStruct.doRoute(this);
     try {
@@ -85,11 +85,11 @@ class Socks5Request extends Link {
     });
   } //}}}
 
-  void handleCMD() {
+  Future<void> handleCMD() async {
     //{{{
     if (cmd == 1) {}
 
-    bindServer();
+    await bindServer();
 
     int rep = 0;
     var res = [5, rep, 0];
@@ -102,10 +102,10 @@ class Socks5Request extends Link {
     isValidRequest = true;
   } //}}}
 
-  void parseDST(List<int> data) {
+  Future<void> parseDST(List<int> data) async {
     //{{{
     content += data;
-    if (content.length < 4) {
+    if (content.length < 5) {
       return;
     }
 
@@ -115,44 +115,49 @@ class Socks5Request extends Link {
     }
     cmd = content[1];
 
-    int addressLength;
+    int addressEnd = 4;
     var atyp = content[3];
-    InternetAddress internetAddress;
 
     if (atyp == 1) {
       typeOfAddress = 'ipv4';
-      addressLength = 4;
-      internetAddress = InternetAddress.fromRawAddress(
-          Uint8List.fromList(content.sublist(4, addressLength)));
-      targetAddress = internetAddress.address;
+      addressEnd += 4;
     } else if (atyp == 3) {
       typeOfAddress = 'domain';
-      addressLength = atyp;
-      targetAddress = utf8.decode(content.sublist(4, addressLength));
+      addressEnd += content[4] + 1;
     } else if (atyp == 4) {
       typeOfAddress = 'ipv6';
-      addressLength = 16;
-      internetAddress = InternetAddress.fromRawAddress(
-          Uint8List.fromList(content.sublist(4, addressLength)));
-      targetAddress = internetAddress.address;
+      addressEnd += 16;
     } else {
       closeAll();
       return;
     }
 
-    var addressAndPortLength = 4 + addressLength + 2;
+    var addressAndPortLength = addressEnd + 2;
     if (content.length < addressAndPortLength) {
       return;
     }
 
-    Uint8List byteList =
-        Uint8List.fromList(content.sublist(4, addressAndPortLength));
-    ByteData byteData = ByteData.sublistView(byteList);
-    targetport = byteData.getUint16(4 + addressLength, Endian.host);
+    if (typeOfAddress == 'domain') {
+      targetAddress = utf8.decode(content.sublist(5, addressEnd));
+    } else {
+      var internetAddress = InternetAddress.fromRawAddress(
+          Uint8List.fromList(content.sublist(4, addressEnd)));
+      targetAddress = internetAddress.address;
+    }
 
-    content = content.sublist(4 + addressAndPortLength);
+    Uint8List byteList =
+        Uint8List.fromList(content.sublist(addressEnd, addressAndPortLength));
+    ByteData byteData = ByteData.sublistView(byteList);
+    targetport = byteData.getUint16(0, Endian.big);
+
+    content = content.sublist(addressAndPortLength);
+    await handleCMD();
+
+    if (content.isNotEmpty) {
+      serverAdd(content);
+    }
+    content = [];
     isParseDST = true;
-    handleCMD();
   } //}}}
 
   void auth(List<int> data) {
@@ -164,14 +169,15 @@ class Socks5Request extends Link {
       return;
     }
 
-    var nmethods = content[1];
+    int nmethods = content[1];
     var authLength = 2 + nmethods;
 
     if (content.length < authLength) {
       return;
     }
 
-    methods = content.sublist(2, nmethods);
+    // 5 1 0
+    methods = content.sublist(2, authLength);
 
     clientAdd([socks5Version, authMethod]);
     if (authMethod == 2) {

@@ -9,6 +9,7 @@ download_cache
 engines_deps
 CompilerCache
 build
+.dart_tool
 
 # Session
 Session.vim
