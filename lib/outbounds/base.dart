@@ -40,7 +40,10 @@ abstract class OutboundStruct extends Stream<Uint8List>
     return outStreamList[outStream]!;
   }
 
-  Future<Socket> connect2(Link link);
+  Future<Socket> connect2(Link link) {
+    link = link;
+    return socket.connect(outAddress, outPort);
+  }
 
   @override
   Encoding get encoding => socket.encoding;
