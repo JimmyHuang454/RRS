@@ -19,7 +19,7 @@ class Link {
   String streamType = 'TCP'; // TCP | UDP
 
   String protocolVersion = '';
-  String userID = 'none';
+  List<int> userID = [];
   bool isTLS = false;
   bool isHTTPRequest = false;
   bool isBitcont = false;

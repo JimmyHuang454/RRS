@@ -56,8 +56,20 @@
       "languageVersion": "2.14"
     },
     {
+      "name": "cryptography",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/cryptography-2.0.5",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "file",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/file-6.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/fixnum-1.0.1",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -296,7 +308,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-08-18T13:55:07.427599Z",
+  "generated": "2022-08-21T13:13:37.183185Z",
   "generator": "pub",
   "generatorVersion": "2.17.6"
 }

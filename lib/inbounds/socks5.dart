@@ -5,7 +5,6 @@ import 'package:proxy/inbounds/base.dart';
 import 'dart:io';
 
 class Socks5Request extends Link {
-  String fullURL = '';
   bool isAuth = false;
   bool isParseDST = false;
   int authMethod = 0;
