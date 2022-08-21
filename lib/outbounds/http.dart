@@ -10,8 +10,6 @@ import 'package:proxy/outbounds/base.dart';
 class HTTPOut extends OutboundStruct {
   String userAccount = '';
   String userPassword = '';
-  String httpAddress = '';
-  int httpPort = 80;
   bool isBuildConnection = false;
   late Link link;
 
@@ -19,10 +17,8 @@ class HTTPOut extends OutboundStruct {
       : super(protocolName: 'http', protocolVersion: '1.1') {
     userAccount = getValue(config, 'setting.account', '');
     userPassword = getValue(config, 'setting.password', '');
-    httpAddress = getValue(config, 'setting.address', '');
-    httpPort = getValue(config, 'setting.port', 0);
 
-    if (httpAddress == '' || httpPort == 0) {
+    if (outAddress == '' || outPort == 0) {
       throw '"address" and "port" can not be empty in http setting.';
     }
   }
@@ -35,7 +31,7 @@ class HTTPOut extends OutboundStruct {
   @override
   Future<Socket> connect2(Link link) async {
     link = link;
-    var conn = await socket.connect(httpAddress, httpPort);
+    var conn = await socket.connect(outAddress, outPort);
     if (link.method == 'CONNECT') {
       var streamController = StreamController<int>();
       var w = StreamQueue<int>(streamController.stream);

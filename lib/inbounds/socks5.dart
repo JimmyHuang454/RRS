@@ -2,7 +2,6 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
-import 'package:proxy/utils/utils.dart';
 import 'dart:io';
 
 class Socks5Request extends Link {
@@ -13,18 +12,6 @@ class Socks5Request extends Link {
   int socks5Version = 5;
   List<int> methods = [];
   List<int> content = [];
-
-  void clientAdd(List<int> data) {
-    try {
-      client.add(data);
-    } catch (_) {}
-  }
-
-  void serverAdd(List<int> data) {
-    try {
-      server.add(data);
-    } catch (_) {}
-  }
 
   Socks5Request({required super.client, required super.inboundStruct}) {
     Future.delayed(Duration(seconds: 3), () {
@@ -49,41 +36,6 @@ class Socks5Request extends Link {
       closeAll();
     });
   }
-
-  void closeAll() {
-    try {
-      client.close();
-    } catch (_) {}
-    try {
-      server.close();
-    } catch (_) {}
-  }
-
-  Future<void> bindServer() async {
-    //{{{
-    outboundStruct = inboundStruct.doRoute(this);
-    try {
-      server = await outboundStruct.connect2(this);
-    } catch (e) {
-      print(e);
-      closeAll();
-      return;
-    }
-
-    server.listen((event) {
-      clientAdd(event);
-    }, onDone: () {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
-    });
-
-    server.done.then((value) {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
-    });
-  } //}}}
 
   Future<void> handleCMD() async {
     //{{{
@@ -190,16 +142,10 @@ class Socks5Request extends Link {
 }
 
 class Socks5In extends InboundStruct {
-  late String address;
-  late int port;
-
   Socks5In({required super.config})
       : super(protocolName: 'socks5', protocolVersion: '1.1') {
-    address = getValue(config, 'setting.address', '');
-    port = getValue(config, 'setting.port', 0);
-
-    if (address == '' || port == 0) {
-      throw 'socks5 required "address" and "port" in config.';
+    if (inAddress == '' || inPort == 0) {
+      throw 'http required "address" and "port" in config.';
     }
   }
 
@@ -207,7 +153,7 @@ class Socks5In extends InboundStruct {
   Future<ServerSocket> bind2() async {
     var server = getServer()();
 
-    await server.bind(address, port);
+    await server.bind(inAddress, inPort);
 
     server.listen((client) async {
       totalClient += 1;

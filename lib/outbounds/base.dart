@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
@@ -11,6 +12,8 @@ abstract class OutboundStruct extends Stream<Uint8List>
     implements SecureSocket {
   String protocolName;
   String protocolVersion;
+  late String outAddress;
+  late int outPort;
   late String tag;
   late String outStream;
   late TransportClient socket;
@@ -26,6 +29,8 @@ abstract class OutboundStruct extends Stream<Uint8List>
     tag = config['tag'];
     outStream = config['outStream'];
     socket = getClient()();
+    outAddress = getValue(config, 'setting.address', '');
+    outPort = getValue(config, 'setting.port', 0);
   }
 
   TransportClient Function() getClient() {

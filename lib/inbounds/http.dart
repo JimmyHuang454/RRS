@@ -10,18 +10,6 @@ class HTTPRequest extends Link {
   List<int> header = [];
   List<int> content = [];
 
-  void clientSend(List<int> data) {
-    try {
-      client.add(data);
-    } catch (_) {}
-  }
-
-  void serverSend(List<int> data) {
-    try {
-      server.add(data);
-    } catch (_) {}
-  }
-
   HTTPRequest({required super.client, required super.inboundStruct}) {
     Future.delayed(Duration(seconds: 3), () {
       if (!isParsed) {
@@ -31,59 +19,26 @@ class HTTPRequest extends Link {
     });
 
     client.listen((data) async {
-      if (!isParsed) {
+      if (isParsed) {
+        serverAdd(data);
+      } else {
         parse(data);
         if (!isParsed) {
           return;
         }
-        outboundStruct = inboundStruct.doRoute(this);
-
-        try {
-          server = await outboundStruct.connect2(this);
-        } catch (e) {
-          print(e);
-          closeAll();
-          return;
-        }
-
-        server.listen((event) {
-          clientSend(event);
-        }, onDone: () {
-          closeAll();
-        }, onError: (e) {
-          closeAll();
-        });
+        await bindServer();
 
         if (method == 'CONNECT') {
-          clientSend(buildConnectionResponse());
+          clientAdd(buildConnectionResponse());
         } else {
-          serverSend(buildHTTP());
+          serverAdd(buildHTTP());
         }
-        try {
-          await server.done;
-        } catch (_) {}
-        closeAll();
-      } else {
-        handle(data);
       }
     }, onError: (e) {
       closeAll();
     }, onDone: () {
       closeAll();
     });
-  }
-
-  void handle(List<int> data) {
-    serverSend(data);
-  }
-
-  void closeAll() {
-    try {
-      client.close();
-    } catch (_) {}
-    try {
-      server.close();
-    } catch (_) {}
   }
 
   void parse(List<int> data) {
@@ -146,15 +101,9 @@ class HTTPRequest extends Link {
 }
 
 class HTTPIn extends InboundStruct {
-  late String address;
-  late int port;
-
   HTTPIn({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
-    address = getValue(config, 'setting.address', '');
-    port = getValue(config, 'setting.port', 0);
-
-    if (address == '' || port == 0) {
+    if (inAddress == '' || inPort == 0) {
       throw 'http required "address" and "port" in config.';
     }
   }
@@ -163,7 +112,7 @@ class HTTPIn extends InboundStruct {
   Future<ServerSocket> bind2() async {
     var server = getServer()();
 
-    await server.bind(address, port);
+    await server.bind(inAddress, inPort);
 
     server.listen((client) async {
       totalClient += 1;

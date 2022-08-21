@@ -30,11 +30,59 @@ class Link {
   late OutboundStruct outboundStruct; // assign after routing.
 
   Link({required this.client, required this.inboundStruct});
+
+  void closeAll() {
+    try {
+      client.close();
+    } catch (_) {}
+    try {
+      server.close();
+    } catch (_) {}
+  }
+
+  void clientAdd(List<int> data) {
+    try {
+      client.add(data);
+    } catch (_) {}
+  }
+
+  void serverAdd(List<int> data) {
+    try {
+      server.add(data);
+    } catch (_) {}
+  }
+
+  Future<void> bindServer() async {
+    outboundStruct = inboundStruct.doRoute(this);
+    try {
+      server = await outboundStruct.connect2(this);
+    } catch (e) {
+      print(e);
+      closeAll();
+      return;
+    }
+
+    server.listen((event) {
+      clientAdd(event);
+    }, onDone: () {
+      closeAll();
+    }, onError: (e) {
+      closeAll();
+    });
+
+    server.done.then((value) {
+      closeAll();
+    }, onError: (e) {
+      closeAll();
+    });
+  }
 }
 
 abstract class InboundStruct {
   String protocolName;
   String protocolVersion;
+  late String inAddress;
+  late int inPort;
   late String tag;
   late String inStream;
   late String route;
@@ -50,6 +98,8 @@ abstract class InboundStruct {
     tag = config['tag'];
     inStream = getValue(config, 'inStream', '');
     route = getValue(config, 'route', '');
+    inAddress = getValue(config, 'setting.address', '');
+    inPort = getValue(config, 'setting.port', 0);
 
     if (inStream == '' || route == '') {
       throw 'inStream and route can NOT be null.';
@@ -72,6 +122,8 @@ abstract class InboundStruct {
     var outbound = routeList[route]!.match(link);
     var res = outboundsList[outbound]!();
     link.outboundStruct = res;
+    print(
+        "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
     return res;
   }
 }
