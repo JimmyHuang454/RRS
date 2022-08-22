@@ -47,8 +47,6 @@ class HTTPRequest extends Link {
 
     var pos1 = indexOfElements(content, '\r\n'.codeUnits);
     if (pos1 == 0) {
-      // badRequest.
-      closeAll();
       return;
     }
     var pos2 = indexOfElements(content, '\r\n\r\n'.codeUnits, pos1 + 2);

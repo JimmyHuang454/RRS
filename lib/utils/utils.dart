@@ -17,16 +17,21 @@ dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
   return deep;
 }
 
-int indexOfElements(List<int> old, List<int> n, [int start = 0]) {
+int indexOfElements(List<int> content, List<int> pattern, [int start = 0]) {
+  if (start == -1) {
+    return -1;
+  }
   var i = start;
-  for (; i < old.length && i + 3 < old.length; ++i) {
+  for (; i < content.length && pattern.isNotEmpty; ++i) {
     var j = 0;
-    for (; j < n.length; ++j) {
-      if (old[i + j] != n[j]) {
+    var k = i + j;
+    for (; j < pattern.length && k < content.length; ++j) {
+      if (content[k] != pattern[j]) {
         break;
       }
+      k += 1;
     }
-    if (j == n.length) {
+    if (j == pattern.length) {
       return i;
     }
   }
@@ -64,7 +69,8 @@ class Address {
       _type = 'domain';
       rawString = utf8.decode(data);
     } else {
-      internetAddress = InternetAddress.fromRawAddress(Uint8List.fromList(data));
+      internetAddress =
+          InternetAddress.fromRawAddress(Uint8List.fromList(data));
     }
   }
 
