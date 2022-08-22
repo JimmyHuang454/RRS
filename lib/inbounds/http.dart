@@ -19,7 +19,6 @@ class HTTPRequest extends Link {
     });
 
     client.listen((data) async {
-      print(data);
       if (isParsed) {
         serverAdd(data);
       } else {
@@ -57,8 +56,6 @@ class HTTPRequest extends Link {
     if (method == 'CONNECT') {
       targetUri = Uri.parse('none://$fullURL');
       content = content.sublist(pos1 + 4);
-      print(buildConnectionResponse());
-      clientAdd(buildConnectionResponse());
     } else {
       targetUri = Uri.parse(fullURL);
     }
@@ -68,6 +65,11 @@ class HTTPRequest extends Link {
 
     if (!await bindServer()) {
       return;
+    }
+
+    if (method == 'CONNECT') {
+      // ??? why we can not response befor bindServer?
+      clientAdd(buildConnectionResponse());
     }
 
     if (content.isNotEmpty) {
