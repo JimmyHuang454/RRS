@@ -19,20 +19,11 @@ class HTTPRequest extends Link {
     });
 
     client.listen((data) async {
+      print(data);
       if (isParsed) {
         serverAdd(data);
       } else {
-        parse(data);
-        if (!isParsed) {
-          return;
-        }
-        await bindServer();
-
-        if (method == 'CONNECT') {
-          clientAdd(buildConnectionResponse());
-        } else {
-          serverAdd(buildHTTP());
-        }
+        await parse(data);
       }
     }, onError: (e) {
       closeAll();
@@ -41,23 +32,19 @@ class HTTPRequest extends Link {
     });
   }
 
-  void parse(List<int> data) {
+  Future<void> parse(List<int> data) async {
     //{{{
     content += data;
 
-    var pos1 = indexOfElements(content, '\r\n'.codeUnits);
-    if (pos1 == 0) {
+    var pos1 = indexOfElements(content, '\r\n\r\n'.codeUnits);
+    if (pos1 == -1) {
       return;
     }
-    var pos2 = indexOfElements(content, '\r\n\r\n'.codeUnits, pos1 + 2);
-    if (pos2 == -1 || pos1 == -1) {
-      return;
-    }
+    var pos2 = indexOfElements(content.sublist(0, pos1 + 2), '\r\n'.codeUnits);
 
-    var firstLine = utf8.decode(content.sublist(0, pos1));
+    var firstLine = utf8.decode(content.sublist(0, pos2));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
-      isValidRequest = false;
       closeAll();
       return;
     }
@@ -65,18 +52,28 @@ class HTTPRequest extends Link {
     fullURL = temp2[1];
     protocolVersion = temp2[2];
 
-    header = content.sublist(pos1 + 2, pos2);
+    header = content.sublist(pos2 + 2, pos1 + 2); // with \r\n
 
     if (method == 'CONNECT') {
       targetUri = Uri.parse('none://$fullURL');
-      content = content.sublist(pos2 + 4);
+      content = content.sublist(pos1 + 4);
+      print(buildConnectionResponse());
+      clientAdd(buildConnectionResponse());
     } else {
       targetUri = Uri.parse(fullURL);
     }
     targetAddress = Address(targetUri.host);
     targetport = targetUri.port;
-    isValidRequest = true;
     isParsed = true;
+
+    if (!await bindServer()) {
+      return;
+    }
+
+    if (content.isNotEmpty) {
+      serverAdd(content);
+    }
+    content = [];
     return;
   } //}}}
 
@@ -84,18 +81,6 @@ class HTTPRequest extends Link {
     //{{{
     var temp = '$protocolVersion 200 Connection Established\r\n\r\n';
     return temp.codeUnits;
-  } //}}}
-
-  List<int> buildHTTP() {
-    //{{{
-    return content;
-    var temp = '$method $targetUri $protocolVersion\r\n';
-    var temp2 = temp.codeUnits;
-    if (header != []) {
-      temp2 += header + '\r\n'.codeUnits;
-    }
-    temp2 += '\r\n'.codeUnits + content;
-    return temp2;
   } //}}}
 }
 

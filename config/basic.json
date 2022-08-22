@@ -1,6 +1,6 @@
 {
   "outbounds": {
-    "terminal": {
+    "endPoint": {
       "protocol": "freedom",
       "setting": {
         "strategy": "default"
@@ -70,7 +70,7 @@
     "allowUser": {
       "rules": [{
         "user": ["1"],
-        "outbound": "terminal"
+        "outbound": "endPoint"
       }]
     },
     "v2ray": {
