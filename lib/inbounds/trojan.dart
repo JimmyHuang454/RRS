@@ -31,8 +31,7 @@ class TrojanRequest extends Link {
       if (isTunnel) {
         passToTunnel(data);
       } else if (!isAuth) {
-        auth(data);
-        await parseDST([]);
+        await auth(data);
       } else if (!isParseDST) {
         await parseDST(data);
       } else {
@@ -44,23 +43,6 @@ class TrojanRequest extends Link {
       closeAll();
     });
   }
-
-  Future<void> handleCMD() async {
-    //{{{
-    if (cmd == 1) {}
-
-    await bindServer();
-
-    int rep = 0;
-    var res = [5, rep, 0];
-    // res.add(server.remoteAddress.address.codeUnits.length);
-    res.add(1); // ipv4
-    res += server.remoteAddress.rawAddress;
-    res += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
-    clientAdd(res);
-    isValidRequest = true;
-  } //}}}
 
   Future<void> parseDST(List<int> data) async {
     //{{{
@@ -74,27 +56,22 @@ class TrojanRequest extends Link {
       isGetRRSID = 2; // got it.
     }
 
-    if (content.length < 5) {
+    if (content.length < 3) {
       return;
     }
 
-    if (content[0] != socks5Version) {
-      closeAll();
-      return;
-    }
-    cmd = content[1];
+    cmd = content[0];
 
-    int addressEnd = 4;
-    var atyp = content[3];
+    int addressEnd = 2;
+    var atyp = content[1];
+    bool isDomain = false;
 
     if (atyp == 1) {
-      typeOfAddress = 'ipv4';
       addressEnd += 4;
     } else if (atyp == 3) {
-      typeOfAddress = 'domain';
+      isDomain = true;
       addressEnd += content[4] + 1;
     } else if (atyp == 4) {
-      typeOfAddress = 'ipv6';
       addressEnd += 16;
     } else {
       closeAll();
@@ -102,17 +79,17 @@ class TrojanRequest extends Link {
     }
 
     var addressAndPortLength = addressEnd + 2;
-    var trojanRequestLength = addressAndPortLength + 4;
+    var trojanRequestLength = addressAndPortLength + 2; // with crlf.
     if (content.length < trojanRequestLength) {
       return;
     }
 
-    if (typeOfAddress == 'domain') {
-      targetAddress = utf8.decode(content.sublist(5, addressEnd));
+    if (isDomain) {
+      targetAddress =
+          Address.fromRawAddress(content.sublist(5, addressEnd), 'domain');
     } else {
-      var internetAddress = InternetAddress.fromRawAddress(
-          Uint8List.fromList(content.sublist(4, addressEnd)));
-      targetAddress = internetAddress.address;
+      targetAddress =
+          Address.fromRawAddress(content.sublist(4, addressEnd), 'ip');
     }
 
     Uint8List byteList =
@@ -121,37 +98,42 @@ class TrojanRequest extends Link {
     targetport = byteData.getUint16(0, Endian.big);
 
     content = content.sublist(trojanRequestLength);
-    await handleCMD();
+    isParseDST = true;
+    await bindServer();
 
     if (content.isNotEmpty) {
       serverAdd(content);
     }
     content = [];
-    isParseDST = true;
   } //}}}
 
-  void auth(List<int> data) {
+  Future<void> auth(List<int> data) async {
     //{{{
     content += data;
-    if (content.length < 72) {
+    if (content.length < 58) {
+      // 56 + 2
       return;
     }
 
     var pwd = content.sublist(0, 56);
-    var temp = content.sublist(56, 72);
+    var crlf = content.sublist(56, 58);
     if (!ListEquality().equals(pwd, pwdSHA224)) {
       isTunnel = true;
+      passToTunnel([]);
       return;
     }
-    content = content.sublist(72);
+    content = content.sublist(58);
 
-    if (ListEquality().equals(temp, [0, 0, 0, 0])) {
+    if (ListEquality().equals(crlf, [0, 0])) {
       isGetRRSID = 1; // need to get.
     }
     isAuth = true;
+    await parseDST([]);
   } //}}}
 
-  void passToTunnel(List<int> data) {}
+  void passToTunnel(List<int> data) {
+    content += data;
+  }
 }
 
 class TrojanIn extends InboundStruct {

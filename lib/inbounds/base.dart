@@ -13,8 +13,7 @@ class Link {
   String method = 'GET';
   int cmd = 0;
 
-  String typeOfAddress = 'domain'; // domain | ipv4 | ipv6
-  String targetAddress = '';
+  late Address targetAddress;
   int targetport = 0;
   String streamType = 'TCP'; // TCP | UDP
 

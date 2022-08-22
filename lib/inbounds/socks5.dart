@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/utils/utils.dart';
 import 'dart:io';
 
 class Socks5Request extends Link {
@@ -70,15 +71,14 @@ class Socks5Request extends Link {
 
     int addressEnd = 4;
     var atyp = content[3];
+    bool isDomain = false;
 
     if (atyp == 1) {
-      typeOfAddress = 'ipv4';
       addressEnd += 4;
     } else if (atyp == 3) {
-      typeOfAddress = 'domain';
       addressEnd += content[4] + 1;
+      isDomain = true;
     } else if (atyp == 4) {
-      typeOfAddress = 'ipv6';
       addressEnd += 16;
     } else {
       closeAll();
@@ -90,12 +90,12 @@ class Socks5Request extends Link {
       return;
     }
 
-    if (typeOfAddress == 'domain') {
-      targetAddress = utf8.decode(content.sublist(5, addressEnd));
+    if (isDomain) {
+      targetAddress =
+          Address.fromRawAddress(content.sublist(5, addressEnd), 'domain');
     } else {
-      var internetAddress = InternetAddress.fromRawAddress(
-          Uint8List.fromList(content.sublist(4, addressEnd)));
-      targetAddress = internetAddress.address;
+      targetAddress =
+          Address.fromRawAddress(content.sublist(4, addressEnd), 'ip');
     }
 
     Uint8List byteList =

@@ -75,7 +75,7 @@ class HTTPRequest extends Link {
     } else {
       targetUri = Uri.parse(fullURL);
     }
-    targetAddress = targetUri.host;
+    targetAddress = Address(targetUri.host);
     targetport = targetUri.port;
     isValidRequest = true;
     isParsed = true;

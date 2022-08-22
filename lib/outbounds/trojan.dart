@@ -11,7 +11,6 @@ class TrojanOut extends OutboundStruct {
   String userID = '';
   List<int> passwordSha224 = [];
   List<int> userIDSha224 = [];
-  List<int> response = [];
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
   bool isReceiveResponse = false;
