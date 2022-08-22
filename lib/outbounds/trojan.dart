@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
-
 import 'package:proxy/utils/utils.dart';
-import 'package:proxy/inbounds/base.dart';
+import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
 
 class TrojanOut extends OutboundStruct {
@@ -12,9 +10,10 @@ class TrojanOut extends OutboundStruct {
   String userID = '';
   List<int> passwordSha224 = [];
   List<int> userIDSha224 = [];
+  List<int> response = [];
   final List<int> ctrl = [0, 13, 0, 10];
-  bool isAuth = false;
-  late Link link;
+  bool isSendHeader = false;
+  bool isReceiveResponse = false;
 
   TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
@@ -24,18 +23,14 @@ class TrojanOut extends OutboundStruct {
     if (outAddress == '' || outPort == 0 || password == '') {
       throw '"address", "port" and "password" can not be empty in trojan setting.';
     }
+
+    passwordSha224 = sha224.convert(password.codeUnits).bytes;
+    if (userID != '') {
+      userIDSha224 = sha224.convert(userID.codeUnits).bytes;
+    }
   }
 
   Future<List<int>> _buildRequest() async {
-    if (passwordSha224.isEmpty) {
-      var temp = await Sha224().hash(password.codeUnits);
-      passwordSha224 = temp.bytes;
-    }
-    if (userID != '' && userIDSha224.isEmpty) {
-      var temp2 = await Sha224().hash(password.codeUnits);
-      userIDSha224 = temp2.bytes;
-    }
-
     List<int> header, request;
     if (userIDSha224.isEmpty) {
       header = passwordSha224 + ctrl; // X'0D0A'
@@ -65,11 +60,51 @@ class TrojanOut extends OutboundStruct {
 
   @override
   void add(List<int> data) async {
-    if (isAuth) {
+    if (isSendHeader) {
       socket.add(data);
     } else {
       socket.add(await _buildRequest() + data);
-      isAuth = true;
+      isSendHeader = true;
     }
+  }
+
+  @override
+  StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    return socket.listen((data) {
+      if (isReceiveResponse) {
+        onData!(data);
+      } else {
+        response += data;
+
+        if (response.length < 5) {
+          return;
+        }
+
+        if (response[1] != 0) {
+          // handle error.
+        }
+
+        if (link.method != 'CONNECT') {
+          // TODO: handle udp.
+        }
+        var atyp = response[3];
+        var responseLength = 6;
+        if (atyp == 1) {
+          // ipv4
+          responseLength += 4;
+        } else if (atyp == 3) {
+          // domain
+          responseLength += response[4] + 1;
+        } else {
+          // ipv6
+          responseLength += 16;
+        }
+        response = response.sublist(responseLength);
+        isReceiveResponse = true;
+        onData!(Uint8List.fromList(response));
+        response = [];
+      }
+    }, onError: onError, onDone: onDone);
   }
 }

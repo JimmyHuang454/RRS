@@ -17,6 +17,7 @@ abstract class OutboundStruct extends Stream<Uint8List>
   late String tag;
   late String outStream;
   late TransportClient socket;
+  late Link link;
 
   Map<String, dynamic> config;
 
@@ -40,8 +41,8 @@ abstract class OutboundStruct extends Stream<Uint8List>
     return outStreamList[outStream]!;
   }
 
-  Future<Socket> connect2(Link link) {
-    link = link;
+  Future<Socket> connect2(Link l) {
+    link = l;
     return socket.connect(outAddress, outPort);
   }
 
