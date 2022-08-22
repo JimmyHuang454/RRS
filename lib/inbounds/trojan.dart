@@ -70,7 +70,7 @@ class TrojanRequest extends Link {
       addressEnd += 4;
     } else if (atyp == 3) {
       isDomain = true;
-      addressEnd += content[4] + 1;
+      addressEnd += content[2] + 1;
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
@@ -86,10 +86,10 @@ class TrojanRequest extends Link {
 
     if (isDomain) {
       targetAddress =
-          Address.fromRawAddress(content.sublist(5, addressEnd), 'domain');
+          Address.fromRawAddress(content.sublist(3, addressEnd), 'domain');
     } else {
       targetAddress =
-          Address.fromRawAddress(content.sublist(4, addressEnd), 'ip');
+          Address.fromRawAddress(content.sublist(2, addressEnd), 'ip');
     }
 
     Uint8List byteList =
@@ -116,7 +116,7 @@ class TrojanRequest extends Link {
     }
 
     var pwd = content.sublist(0, 56);
-    var crlf = content.sublist(56, 58);
+    var tempCrlf = content.sublist(56, 58);
     if (!ListEquality().equals(pwd, pwdSHA224)) {
       isTunnel = true;
       passToTunnel([]);
@@ -124,7 +124,7 @@ class TrojanRequest extends Link {
     }
     content = content.sublist(58);
 
-    if (ListEquality().equals(crlf, [0, 0])) {
+    if (ListEquality().equals(tempCrlf, [0, 0])) {
       isGetRRSID = 1; // need to get.
     }
     isAuth = true;
@@ -151,9 +151,9 @@ class TrojanIn extends InboundStruct {
         inPort == 0 ||
         password == '' ||
         tunnelAddress == '') {
-      throw 'http required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
+      throw 'trojan required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
     }
-    pwdSHA224 = sha224.convert(password.codeUnits).bytes;
+    pwdSHA224 = sha224.convert(password.codeUnits).toString().codeUnits;
   }
 
   @override

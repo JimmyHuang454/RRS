@@ -1,0 +1,63 @@
+// get proxy request from 127.0.0.1:5454 then transmit it to 127.0.0.1:5453 by http outbound.
+{
+  "outStream": {
+    "tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "inStream": {
+    "tcp": {
+      "protocol": "tcp"
+    }
+  },
+  "inbounds": {
+    "HTTPIn": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "route": "out",
+      "inStream": "tcp"
+    },
+    "TrojanIn": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "tunnelAddress": "1",
+        "tunnelPort": 1,
+        "password": "123"
+      },
+      "route": "freedom",
+      "inStream": "tcp"
+    }
+  },
+  "outbounds": {
+    "freedom": {
+      "protocol": "freedom",
+      "outStream": "tcp"
+    },
+    "TrojanOut": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "password": "123"
+      },
+      "outStream": "tcp"
+    }
+  },
+  "route": {
+    "freedom": {
+      "rules": [{
+        "outbound": "freedom"
+      }]
+    },
+    "out": {
+      "rules": [{
+        "outbound": "TrojanOut"
+      }]
+    }
+  }
+}
