@@ -13,7 +13,6 @@ void main() {
     expect(res.connectionTimeout, 100);
     expect(res.supportedProtocols, ['http/1.1']);
 
-    print(outStreamList);
     expect(outStreamList.containsKey('TCPClient'), true);
     expect(outStreamList.containsKey('tCPClient'), false);
   });

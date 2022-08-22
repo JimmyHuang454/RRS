@@ -14,9 +14,7 @@ void main() {
     var res = '';
     client.listen(
       (event) {
-        print(event);
         res = utf8.decode(event);
-        print(res);
       },
     );
     await Future.delayed(Duration(seconds: 2));

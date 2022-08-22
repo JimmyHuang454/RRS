@@ -11,7 +11,6 @@ class HTTPOut extends OutboundStruct {
   String userAccount = '';
   String userPassword = '';
   bool isBuildConnection = false;
-  late Link link;
 
   HTTPOut({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
@@ -29,8 +28,8 @@ class HTTPOut extends OutboundStruct {
   }
 
   @override
-  Future<Socket> connect2(Link link) async {
-    link = link;
+  Future<Socket> connect2(Link l) async {
+    link = l;
     var conn = await socket.connect(outAddress, outPort);
     if (link.method == 'CONNECT') {
       var streamController = StreamController<int>();

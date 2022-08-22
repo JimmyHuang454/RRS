@@ -1,9 +1,10 @@
 import 'package:test/test.dart';
-import 'dart:io';
+import 'package:proxy/utils/utils.dart';
 
 void main() {
   test('address', () {
-    var res = InternetAddress('https://trojan-gfw.github.io/trojan/protocol');
-    expect(res.address, 'd');
+    var res = Address('https://trojan-gfw.github.io/trojan/protocol');
+    expect(res.address, 'https://trojan-gfw.github.io/trojan/protocol');
+    expect(res.type, 'domain');
   });
 }
