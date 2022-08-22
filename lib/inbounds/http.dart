@@ -68,10 +68,10 @@ class HTTPRequest extends Link {
     protocolVersion = temp2[2];
 
     header = content.sublist(pos1 + 2, pos2);
-    content = content.sublist(pos2 + 4);
 
     if (method == 'CONNECT') {
       targetUri = Uri.parse('none://$fullURL');
+      content = content.sublist(pos2 + 4);
     } else {
       targetUri = Uri.parse(fullURL);
     }
@@ -90,6 +90,7 @@ class HTTPRequest extends Link {
 
   List<int> buildHTTP() {
     //{{{
+    return content;
     var temp = '$method $targetUri $protocolVersion\r\n';
     var temp2 = temp.codeUnits;
     if (header != []) {

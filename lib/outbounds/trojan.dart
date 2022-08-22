@@ -44,15 +44,15 @@ class TrojanOut extends OutboundStruct {
       request = [3];
     }
 
-    if (link.typeOfAddress == 'domain') {
+    if (link.targetAddress.type == 'domain') {
       request.add(3);
-      request.add(link.targetAddress.codeUnits.length);
-    } else if (link.typeOfAddress == 'ipv4') {
+      request.add(link.targetAddress.rawAddress.lengthInBytes);
+    } else if (link.targetAddress.type == 'ipv4') {
       request.add(1);
     } else {
       request.add(4);
     }
-    request += link.targetAddress.codeUnits;
+    request += link.targetAddress.rawAddress;
     request += Uint8List(2)
       ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
     var res = header + request + crlf;

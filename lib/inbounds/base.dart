@@ -34,12 +34,12 @@ class Link {
     try {
       client.close();
     } catch (e) {
-      devPrint(e);
+      // devPrint(e);
     }
     try {
       server.close();
     } catch (e) {
-      devPrint(e);
+      // devPrint(e);
     }
   }
 
@@ -47,7 +47,7 @@ class Link {
     try {
       client.add(data);
     } catch (e) {
-      devPrint(e);
+      // devPrint(e);
     }
   }
 
@@ -55,7 +55,7 @@ class Link {
     try {
       server.add(data);
     } catch (e) {
-      devPrint(e);
+      // devPrint(e);
     }
   }
 
@@ -132,7 +132,7 @@ abstract class InboundStruct {
     var res = outboundsList[outbound]!();
     link.outboundStruct = res;
     print(
-        "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
+        "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress.address}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
     return res;
   }
 }
