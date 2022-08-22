@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
-import 'package:cryptography/cryptography.dart';
-import 'dart:io';
+import 'package:crypto/crypto.dart';
 
 class TrojanRequest extends Link {
   bool isAuth = false;
@@ -69,11 +69,10 @@ class TrojanRequest extends Link {
       if (content.length < 56) {
         return;
       }
-      userID = content.sublist(0,56);
+      userID = content.sublist(0, 56);
       content = content.sublist(56);
       isGetRRSID = 2; // got it.
     }
-
 
     if (content.length < 5) {
       return;
@@ -139,14 +138,14 @@ class TrojanRequest extends Link {
     }
 
     var pwd = content.sublist(0, 56);
-    var crlf = content.sublist(56, 72);
+    var temp = content.sublist(56, 72);
     if (!ListEquality().equals(pwd, pwdSHA224)) {
       isTunnel = true;
       return;
     }
     content = content.sublist(72);
 
-    if (ListEquality().equals(crlf, [0, 0, 0, 0])) {
+    if (ListEquality().equals(temp, [0, 0, 0, 0])) {
       isGetRRSID = 1; // need to get.
     }
     isAuth = true;
@@ -172,13 +171,12 @@ class TrojanIn extends InboundStruct {
         tunnelAddress == '') {
       throw 'http required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
     }
+    pwdSHA224 = sha224.convert(password.codeUnits).bytes;
   }
 
   @override
   Future<ServerSocket> bind2() async {
     var server = getServer()();
-    var temp = await Sha224().hash(password.codeUnits);
-    pwdSHA224 = temp.bytes;
 
     await server.bind(inAddress, inPort);
 

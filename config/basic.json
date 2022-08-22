@@ -8,14 +8,13 @@
       "outStream": "defalut_tcp"
     },
     "proxy": {
-      "protocol": "http",
+      "protocol": "trojan",
       "setting": {
-        "address": "rr2s.org",
-        "port": 443,
-        "userAccount": "jimmy",
-        "userPassword": "RR2S"
+        "address": "127.0.0.1",
+        "port": 8848,
+        "password": "password"
       },
-      "outStream": "tcp_with_tls"
+      "outStream": "defalut_tcp"
     }
   },
   "inbounds": {
@@ -35,7 +34,7 @@
         "port": 8081
       },
       "inStream": "defalut_tcp",
-      "route": "allowUser"
+      "route": "v2ray"
     }
   },
   "outStream": {
@@ -72,6 +71,11 @@
       "rules": [{
         "user": ["1"],
         "outbound": "terminal"
+      }]
+    },
+    "v2ray": {
+      "rules": [{
+        "outbound": "proxy"
       }]
     }
   }

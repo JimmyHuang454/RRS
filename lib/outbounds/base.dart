@@ -29,9 +29,10 @@ abstract class OutboundStruct extends Stream<Uint8List>
       required this.config}) {
     tag = config['tag'];
     outStream = config['outStream'];
-    socket = getClient()();
     outAddress = getValue(config, 'setting.address', '');
     outPort = getValue(config, 'setting.port', 0);
+
+    socket = getClient()();
   }
 
   TransportClient Function() getClient() {

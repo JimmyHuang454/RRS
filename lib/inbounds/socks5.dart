@@ -40,7 +40,9 @@ class Socks5Request extends Link {
     //{{{
     if (cmd == 1) {}
 
-    await bindServer();
+    if (!await bindServer()) {
+      return;
+    }
 
     int rep = 0;
     var res = [5, rep, 0];

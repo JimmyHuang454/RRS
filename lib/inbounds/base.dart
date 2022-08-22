@@ -34,32 +34,41 @@ class Link {
   void closeAll() {
     try {
       client.close();
-    } catch (_) {}
+    } catch (e) {
+      devPrint(e);
+    }
     try {
       server.close();
-    } catch (_) {}
+    } catch (e) {
+      devPrint(e);
+    }
   }
 
   void clientAdd(List<int> data) {
     try {
       client.add(data);
-    } catch (_) {}
+    } catch (e) {
+      devPrint(e);
+    }
   }
 
   void serverAdd(List<int> data) {
     try {
       server.add(data);
-    } catch (_) {}
+    } catch (e) {
+      devPrint(e);
+    }
   }
 
-  Future<void> bindServer() async {
+  Future<bool> bindServer() async {
     outboundStruct = inboundStruct.doRoute(this);
+    server = outboundStruct;
     try {
-      server = await outboundStruct.connect2(this);
+      await outboundStruct.connect2(this);
     } catch (e) {
       print(e);
       closeAll();
-      return;
+      return false;
     }
 
     server.listen((event) {
@@ -75,6 +84,7 @@ class Link {
     }, onError: (e) {
       closeAll();
     });
+    return true;
   }
 }
 
