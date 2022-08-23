@@ -57,7 +57,7 @@ class Route {
   String match(Link link) {
     var outbound = _match(link);
     if (!outboundsList.containsKey(outbound)) {
-      throw 'There are no outbound named "$outbound".';
+      throw 'There are no route tag named "$outbound".';
     }
     return outbound;
   }

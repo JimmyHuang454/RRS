@@ -7,7 +7,16 @@
       },
       "outStream": "defalut_tcp"
     },
-    "proxy": {
+    "trojanProxy": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "uif02.xyz",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "ws_with_tls"
+    },
+    "localTrojan": {
       "protocol": "trojan",
       "setting": {
         "address": "127.0.0.1",
@@ -27,6 +36,15 @@
       "inStream": "defalut_tcp",
       "route": "allowUser"
     },
+    "trojan_inbound": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8082
+      },
+      "inStream": "defalut_tcp",
+      "route": "proxy"
+    },
     "socks5_inbound": {
       "protocol": "socks5",
       "setting": {
@@ -34,7 +52,7 @@
         "port": 8081
       },
       "inStream": "defalut_tcp",
-      "route": "v2ray"
+      "route": "proxy"
     }
   },
   "outStream": {
@@ -59,6 +77,15 @@
     },
     "defalut_tcp": {
       "protocol": "tcp"
+    },
+    "ws_with_tls": {
+      "protocol": "ws",
+      "tls": {
+        "enabled": true
+      },
+      "setting": {
+        "path": "uif_trojan"
+      }
     }
   },
   "inStream": {
@@ -73,9 +100,10 @@
         "outbound": "endPoint"
       }]
     },
-    "v2ray": {
+    "proxy": {
       "rules": [{
-        "outbound": "proxy"
+        "user": ["1"],
+        "outbound": "trojanProxy"
       }]
     }
   }

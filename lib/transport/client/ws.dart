@@ -12,43 +12,64 @@ class WSClient extends TransportClient {
   late Map<String, String> header;
 
   WSClient({required super.config}) : super(protocolName: 'ws') {
-    path = getValue(config, 'setting.path', '/');
-    header = getValue(config, 'setting.header', {});
-    userAgent = getValue(config, 'setting.header', '');
+    path = getValue(config, 'setting.path', '');
+    // header = getValue(config, 'setting.header', {});
+    // userAgent = getValue(config, 'setting.header', '');
   }
 
   @override
-  Future<SecureSocket> connect(host, int port, {Duration? timeout}) {
-    if (useTLS) {
-      var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
-      var client = HttpClient(context: securityContext);
-      client.badCertificateCallback = (cert, host, port) {
-        return super.onBadCertificate(cert);
-      };
-      client.connectionTimeout = timeout;
-      client.userAgent = userAgent;
-      return WebSocket.connect(host, headers: header, customClient: client)
-          .then(
-        (value) {
-          ws = value;
-          return this;
-        },
-      );
+  Future<SecureSocket> connect(host, int port) {
+    var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
+    var client = HttpClient(context: securityContext);
+    var address = '';
+    if (port == 443 || port == 80) {
+      address = '$host/$path';
     } else {
-      return WebSocket.connect(host, headers: header).then(
-        (value) {
-          ws = value;
-          return this;
-        },
-      );
+      address = '$host:$port/$path';
     }
+    client.badCertificateCallback = (cert, host, port) {
+      return super.onBadCertificate(cert);
+    };
+    var tempDuration = Duration(seconds: connectionTimeout);
+    client.connectionTimeout = tempDuration;
+    // client.userAgent = userAgent;
+
+    if (useTLS) {
+      address = 'wss://$address';
+    } else {
+      address = 'ws://$address';
+    }
+    return WebSocket.connect(address).then(
+      (value) {
+        ws = value;
+        return this;
+      },
+    );
   }
 
   @override
   StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    return ws.listen(onData as void Function(dynamic event),
-        onError: onError, onDone: onDone) as StreamSubscription<Uint8List>;
+    var controller = StreamController<Uint8List>();
+    var temp = controller.stream;
+
+    ws.listen((event) {
+      controller.add(event);
+    }, onDone: () {
+      controller.close();
+    }, onError: (e) {
+      controller.addError(e);
+    }, cancelOnError: true);
+
+    var res = temp.listen((event) {
+      onData!(event);
+    }, onDone: () {
+      onDone!();
+    }, onError: (e) {
+      onError!(e);
+    }, cancelOnError: true);
+
+    return res;
   }
 
   @override
@@ -59,4 +80,13 @@ class WSClient extends TransportClient {
 
   @override
   void destroy() => ws.close();
+
+  @override
+  Future get done => ws.done;
+
+  @override
+  InternetAddress get remoteAddress => InternetAddress('127.0.0.1');
+
+  @override
+  int get remotePort => 1;
 }

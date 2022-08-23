@@ -25,7 +25,8 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['http/1.1']);
+    supportedProtocols =
+        getValue(config, 'tls.supportedProtocols', ['http/1.1']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
   }
 
@@ -107,8 +108,11 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
 
   @override
   StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
-          {Function? onError, void Function()? onDone, bool? cancelOnError}) =>
-      socket.listen(onData, onError: onError, onDone: onDone);
+          {Function? onError,
+          void Function()? onDone,
+          bool? cancelOnError = true}) =>
+      socket.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
   @override
   int get port => socket.port;
@@ -157,6 +161,101 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   }
 
   @override
+  // TODO: implement selectedProtocol
+  String? get selectedProtocol => throw UnimplementedError();
+} //}}}
+
+class TransportClient2 {
+  //{{{
+  late Socket socket;
+  String status = 'init';
+  String protocolName;
+  late String tag;
+  Map<String, dynamic> config;
+  bool isListened = false;
+
+  // TLS
+  late bool useTLS;
+  late bool allowInsecure;
+  late bool useSystemRoot;
+  late int connectionTimeout;
+  late List<String> supportedProtocols;
+
+  TransportClient2({required this.protocolName, required this.config}) {
+    tag = config['tag'];
+    useTLS = getValue(config, 'tls.enabled', false);
+    allowInsecure = getValue(config, 'tls.allowInsecure', false);
+    useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
+    supportedProtocols =
+        getValue(config, 'tls.supportedProtocols', ['http/1.1']);
+    connectionTimeout = getValue(config, 'connectionTimeout', 100);
+  }
+
+  Future<Socket> connect(host, int port) {
+    var tempDuration = Duration(seconds: connectionTimeout);
+    if (useTLS) {
+      var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
+      return SecureSocket.connect(host, port,
+              context: securityContext,
+              supportedProtocols: supportedProtocols,
+              onBadCertificate: onBadCertificate,
+              timeout: tempDuration)
+          .then(
+        (value) {
+          socket = value;
+          status = 'created';
+          return value;
+        },
+      );
+    } else {
+      return Socket.connect(host, port, timeout: tempDuration).then(
+        (value) {
+          socket = value;
+          status = 'created';
+          return value;
+        },
+      );
+    }
+  }
+
+  bool onBadCertificate(X509Certificate certificate) {
+    return allowInsecure;
+  }
+
+  void add(List<int> data) {
+    socket.add(data);
+  }
+
+  InternetAddress get address => socket.address;
+
+  Future close() {
+    return socket.close().then(
+      (value) {
+        status = 'closed';
+        return value;
+      },
+    );
+  }
+
+  Future get done => socket.done;
+
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
+    if (isListened) {
+      socket.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: true);
+    }
+  }
+
+  int get port => socket.port;
+
+  InternetAddress get remoteAddress => socket.remoteAddress;
+
+  int get remotePort => socket.remotePort;
+
+  // TODO: implement peerCertificate
+  X509Certificate? get peerCertificate => throw UnimplementedError();
+
   // TODO: implement selectedProtocol
   String? get selectedProtocol => throw UnimplementedError();
 } //}}}
