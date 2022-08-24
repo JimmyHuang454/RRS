@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:proxy/utils/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/inbounds/base.dart';
 
 class TrojanOut extends OutboundStruct {
   String password = '';
@@ -14,6 +15,7 @@ class TrojanOut extends OutboundStruct {
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
   bool isReceiveResponse = false;
+  late Link link;
 
   TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
@@ -60,11 +62,17 @@ class TrojanOut extends OutboundStruct {
   }
 
   @override
+  Future<void> connect(Link l) async {
+    link = l;
+    await transportClient.connect(outAddress, outPort);
+  }
+
+  @override
   void add(List<int> data) {
     if (isSendHeader) {
-      socket.add(data);
+      super.add(data);
     } else {
-      socket.add(_buildRequest() + data);
+      super.add(_buildRequest() + data);
       isSendHeader = true;
     }
   }

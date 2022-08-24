@@ -13,14 +13,4 @@ class FreedomOut extends OutboundStruct {
       throw "wrong strategy.";
     }
   }
-
-  @override
-  Future<Socket> connect2(Link link) async {
-    return socket.connect(link.targetAddress.address, link.targetport).then(
-      (value) {
-        link.server = value;
-        return value;
-      },
-    );
-  }
 }

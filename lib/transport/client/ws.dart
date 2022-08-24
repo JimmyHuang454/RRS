@@ -18,7 +18,7 @@ class WSClient extends TransportClient {
   }
 
   @override
-  Future<SecureSocket> connect(host, int port) {
+  Future<void> connect(host, int port) async {
     var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
     var client = HttpClient(context: securityContext);
     var address = '';
@@ -39,47 +39,31 @@ class WSClient extends TransportClient {
     } else {
       address = 'ws://$address';
     }
-    return WebSocket.connect(address).then(
-      (value) {
-        ws = value;
-        return this;
-      },
-    );
+    ws = await WebSocket.connect(address);
   }
 
   @override
-  StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    var controller = StreamController<Uint8List>();
-    var temp = controller.stream;
-
-    ws.listen((event) {
-      controller.add(event);
-    }, onDone: () {
-      controller.close();
-    }, onError: (e) {
-      controller.addError(e);
-    }, cancelOnError: true);
-
-    var res = temp.listen((event) {
-      onData!(event);
-    }, onDone: () {
-      onDone!();
-    }, onError: (e) {
-      onError!(e);
-    }, cancelOnError: true);
-
-    return res;
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    clearListen();
+    streamSubscription = ws.listen((data) {
+      onData!(data);
+    }, onError: onError, onDone: onDone, cancelOnError: true);
+    islisten = true;
   }
 
   @override
-  Future close() => ws.close();
+  Future close() {
+    return ws.close().then((value) {
+      clearListen();
+      return value;
+    });
+  }
 
   @override
-  void add(List<int> data) => ws.add(data);
-
-  @override
-  void destroy() => ws.close();
+  void add(List<int> data) {
+    ws.add(data);
+  }
 
   @override
   Future get done => ws.done;

@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/utils/utils.dart';
@@ -49,9 +48,9 @@ class Socks5Request extends Link {
     var res = [5, rep, 0];
     // res.add(server.remoteAddress.address.codeUnits.length);
     res.add(1); // ipv4
-    res += server.remoteAddress.rawAddress;
+    res += outboundStruct.remoteAddress.rawAddress;
     res += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
+      ..buffer.asByteData().setInt16(0, outboundStruct.remotePort, Endian.big);
     clientAdd(res);
     isValidRequest = true;
   } //}}}

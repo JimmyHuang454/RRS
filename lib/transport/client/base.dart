@@ -5,13 +5,14 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
-class TransportClient extends Stream<Uint8List> implements SecureSocket {
+class TransportClient2 extends Stream<Uint8List> implements SecureSocket {
   //{{{
   late Socket socket;
   String status = 'init';
   String protocolName;
   late String tag;
   Map<String, dynamic> config;
+  List<dynamic> streamListen = [];
 
   // TLS
   late bool useTLS;
@@ -20,7 +21,7 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   late int connectionTimeout;
   late List<String> supportedProtocols;
 
-  TransportClient({required this.protocolName, required this.config}) {
+  TransportClient2({required this.protocolName, required this.config}) {
     tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
@@ -79,10 +80,17 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   @override
   InternetAddress get address => socket.address;
 
+  void clearListen() {
+    for (var i = 0, len = streamListen.length; i < len; ++i) {
+      streamListen[i].cancel();
+    }
+  }
+
   @override
   Future close() {
     return socket.close().then(
       (value) {
+        clearListen();
         status = 'closed';
         return value;
       },
@@ -108,11 +116,14 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
 
   @override
   StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
-          {Function? onError,
-          void Function()? onDone,
-          bool? cancelOnError = true}) =>
-      socket.listen(onData,
-          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+      {Function? onError,
+      void Function()? onDone,
+      bool? cancelOnError = true}) {
+    var temp = socket.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    streamListen.add(temp);
+    return temp;
+  }
 
   @override
   int get port => socket.port;
@@ -165,14 +176,19 @@ class TransportClient extends Stream<Uint8List> implements SecureSocket {
   String? get selectedProtocol => throw UnimplementedError();
 } //}}}
 
-class TransportClient2 {
+class TransportClient {
   //{{{
-  late Socket socket;
   String status = 'init';
   String protocolName;
   late String tag;
   Map<String, dynamic> config;
-  bool isListened = false;
+
+  bool islisten = false;
+  late Socket socket;
+  late dynamic streamSubscription;
+  // void Function(Uint8List event)? onData;
+  // Function? onError;
+  // void Function()? onDone;
 
   // TLS
   late bool useTLS;
@@ -181,7 +197,7 @@ class TransportClient2 {
   late int connectionTimeout;
   late List<String> supportedProtocols;
 
-  TransportClient2({required this.protocolName, required this.config}) {
+  TransportClient({required this.protocolName, required this.config}) {
     tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
@@ -191,11 +207,11 @@ class TransportClient2 {
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
   }
 
-  Future<Socket> connect(host, int port) {
+  Future<void> connect(host, int port) async {
     var tempDuration = Duration(seconds: connectionTimeout);
     if (useTLS) {
       var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
-      return SecureSocket.connect(host, port,
+      await SecureSocket.connect(host, port,
               context: securityContext,
               supportedProtocols: supportedProtocols,
               onBadCertificate: onBadCertificate,
@@ -208,7 +224,7 @@ class TransportClient2 {
         },
       );
     } else {
-      return Socket.connect(host, port, timeout: tempDuration).then(
+      await Socket.connect(host, port, timeout: tempDuration).then(
         (value) {
           socket = value;
           status = 'created';
@@ -222,40 +238,36 @@ class TransportClient2 {
     return allowInsecure;
   }
 
+  void clearListen() {
+    if (islisten) {
+      streamSubscription.cancel();
+    }
+    islisten = false;
+  }
+
   void add(List<int> data) {
     socket.add(data);
   }
 
-  InternetAddress get address => socket.address;
-
   Future close() {
     return socket.close().then(
       (value) {
+        clearListen();
         status = 'closed';
         return value;
       },
     );
   }
 
-  Future get done => socket.done;
-
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    if (isListened) {
-      socket.listen(onData,
-          onError: onError, onDone: onDone, cancelOnError: true);
-    }
+      {Function? onError, void Function()? onDone}) {
+    clearListen();
+    streamSubscription = socket.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: true);
+    islisten = true;
   }
 
-  int get port => socket.port;
-
+  Future get done => socket.done;
   InternetAddress get remoteAddress => socket.remoteAddress;
-
   int get remotePort => socket.remotePort;
-
-  // TODO: implement peerCertificate
-  X509Certificate? get peerCertificate => throw UnimplementedError();
-
-  // TODO: implement selectedProtocol
-  String? get selectedProtocol => throw UnimplementedError();
 } //}}}

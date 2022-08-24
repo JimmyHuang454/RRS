@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:async/async.dart';
 
@@ -11,6 +10,7 @@ class HTTPOut extends OutboundStruct {
   String userAccount = '';
   String userPassword = '';
   bool isBuildConnection = false;
+  late Link link;
 
   HTTPOut({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
@@ -28,13 +28,14 @@ class HTTPOut extends OutboundStruct {
   }
 
   @override
-  Future<Socket> connect2(Link l) async {
+  Future<void> connect(Link l) async {
     link = l;
-    var conn = await socket.connect(outAddress, outPort);
+    var conn = await transportClient.connect(outAddress, outPort);
+
     if (link.method == 'CONNECT') {
       var streamController = StreamController<int>();
       var w = StreamQueue<int>(streamController.stream);
-      var l = conn.listen((data) {
+      super.listen((data) {
         var pos = indexOfElements(data, '\r\n\r\n'.codeUnits);
         if (pos == -1) {
           streamController.add(0); // failed.
@@ -44,13 +45,14 @@ class HTTPOut extends OutboundStruct {
       }, onError: (e) {
         streamController.add(0);
       });
-      socket.add(_buildConnectionRequest());
+      super.add(_buildConnectionRequest());
       var res = await w.next;
       await w.cancel();
       await streamController.close();
-      await l.cancel();
+      transportClient.clearListen();
+
       if (res != 1) {
-        await conn.close();
+        await super.close();
         throw 'failed to build http tunnel.';
       }
       isBuildConnection = true;
@@ -59,14 +61,9 @@ class HTTPOut extends OutboundStruct {
   }
 
   @override
-  void add(List<int> data) {
-    socket.add(data);
-  }
-
-  @override
-  StreamSubscription<Uint8List> listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    return socket.listen((data) {
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    super.listen((data) {
       if (link.method == 'CONNECT') {
         if (isBuildConnection) {
           onData!(data);
