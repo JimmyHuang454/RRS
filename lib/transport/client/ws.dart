@@ -19,19 +19,19 @@ class WSClient extends TransportClient {
 
   @override
   Future<void> connect(host, int port) async {
-    var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
-    var client = HttpClient(context: securityContext);
+    // var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
+    // var client = HttpClient(context: securityContext);
     var address = '';
     if (port == 443 || port == 80) {
       address = '$host/$path';
     } else {
       address = '$host:$port/$path';
     }
-    client.badCertificateCallback = (cert, host, port) {
-      return super.onBadCertificate(cert);
-    };
-    var tempDuration = Duration(seconds: connectionTimeout);
-    client.connectionTimeout = tempDuration;
+    // client.badCertificateCallback = (cert, host, port) {
+    //   return super.onBadCertificate(cert);
+    // };
+    // var tempDuration = Duration(seconds: connectionTimeout);
+    // client.connectionTimeout = tempDuration;
     // client.userAgent = userAgent;
 
     if (useTLS) {

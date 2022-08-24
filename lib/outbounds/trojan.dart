@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
 import 'package:proxy/utils/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
+
+Map<String, dynamic> trojanBalance = {};
 
 class TrojanOut extends OutboundStruct {
   String password = '';
@@ -15,16 +19,25 @@ class TrojanOut extends OutboundStruct {
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
   bool isReceiveResponse = false;
+  bool isBalancer = false;
+  bool redirected = false;
   late Link link;
+  List<int> content = [];
+  String realOutAddress = '';
+  int realOutPort = 0;
 
   TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
     password = getValue(config, 'setting.password', '');
     userID = getValue(config, 'setting.userID', '');
+    isBalancer = getValue(config, 'setting.balance.enable', false);
 
     if (outAddress == '' || outPort == 0 || password == '') {
       throw '"address", "port" and "password" can not be empty in trojan setting.';
     }
+
+    realOutAddress = outAddress;
+    realOutPort = outPort;
 
     passwordSha224 = sha224.convert(password.codeUnits).toString().codeUnits;
     if (userID != '') {
@@ -61,10 +74,27 @@ class TrojanOut extends OutboundStruct {
     return res;
   }
 
+  Future<void> handleBalance() async {
+    if (!trojanBalance.containsValue(tag)) {
+      var url = Uri(
+          host: outAddress,
+          queryParameters: getValue(config, 'setting.balance', {}));
+      var response = await http.get(url);
+      var res = jsonDecode(response.body);
+      trojanBalance[tag] = res;
+    }
+    var balanceInfo = trojanBalance[tag];
+    realOutAddress = balanceInfo['realOutAddress'];
+    realOutPort = balanceInfo['realOutPort'];
+  }
+
   @override
   Future<void> connect(Link l) async {
     link = l;
-    await transportClient.connect(outAddress, outPort);
+    if (isBalancer) {
+      await handleBalance();
+    }
+    await transportClient.connect(realOutAddress, realOutPort);
   }
 
   @override

@@ -1,7 +1,6 @@
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
-import 'package:proxy/transport/client/htmlws.dart';
 
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/tcp.dart';
@@ -28,8 +27,6 @@ TransportClient Function() _buildOutStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return () => WSClient(config: config);
-  } else if (protocol == 'htmlws') {
-    return () => HTMLWSClient(config: config);
   }
   return () => TCPClient(config: config);
 } //}}}
