@@ -1,17 +1,19 @@
-import 'dart:io';
+import 'dart:html' as html;
 import 'dart:typed_data';
 import 'dart:async';
+import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class WSClient extends TransportClient {
+class HTMLWSClient extends TransportClient {
   late String path;
   late String userAgent;
-  late WebSocket ws;
+  late html.WebSocket ws;
   late Map<String, String> header;
 
-  WSClient({required super.config}) : super(protocolName: 'ws') {
+  HTMLWSClient({required super.config}) : super(protocolName: 'htmlws') {
     path = getValue(config, 'setting.path', '');
     // header = getValue(config, 'setting.header', {});
     // userAgent = getValue(config, 'setting.header', '');
@@ -19,61 +21,56 @@ class WSClient extends TransportClient {
 
   @override
   Future<void> connect(host, int port) async {
-    var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
-    var client = HttpClient(context: securityContext);
     var address = '';
     if (port == 443 || port == 80) {
       address = '$host/$path';
     } else {
       address = '$host:$port/$path';
     }
-    client.badCertificateCallback = (cert, host, port) {
-      return super.onBadCertificate(cert);
-    };
-    var tempDuration = Duration(seconds: connectionTimeout);
-    client.connectionTimeout = tempDuration;
-    // client.userAgent = userAgent;
-
     if (useTLS) {
       address = 'wss://$address';
     } else {
       address = 'ws://$address';
     }
-    ws = await WebSocket.connect(address);
+    ws = html.WebSocket(address);
+
+    var streamController = StreamController<int>();
+    var w = StreamQueue<int>(streamController.stream);
+    var o = ws.onOpen.listen(
+      (event) {
+        streamController.add(1);
+      },
+    );
+    await w.next;
+    await streamController.close();
+    w.cancel();
+    o.cancel();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     clearListen();
-    streamSubscription = ws.listen(
-        (data) {
-          onData!(data);
-        },
-        onError: onError,
-        onDone: () {
-          clearListen();
-          onDone!();
-        },
-        cancelOnError: true);
+    streamSubscription = ws.onMessage.listen((data) {
+      onData!((data.data as ByteBuffer).asUint8List());
+    });
     islisten = true;
+  }
+
+  Future<void> _close() async {
+    clearListen();
+    ws.close();
   }
 
   @override
   Future close() {
-    clearListen();
-    return ws.close().then((value) {
-      return value;
-    });
+    return _close();
   }
 
   @override
   void add(List<int> data) {
-    ws.add(data);
+    ws.sendByteBuffer(Uint8List.fromList(data).buffer);
   }
-
-  @override
-  Future get done => ws.done;
 
   @override
   InternetAddress get remoteAddress => InternetAddress('127.0.0.1');
