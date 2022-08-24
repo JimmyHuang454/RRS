@@ -76,9 +76,12 @@ class TrojanOut extends OutboundStruct {
 
   Future<void> handleBalance() async {
     if (!trojanBalance.containsValue(tag)) {
-      var url = Uri(
-          host: outAddress,
-          queryParameters: getValue(config, 'setting.balance', {}));
+      var params = {
+        'userID': userID,
+        'password': password,
+        'config': getValue(config, 'setting.balance', {})
+      };
+      var url = Uri(host: outAddress, queryParameters: params);
       var response = await http.get(url);
       var res = jsonDecode(response.body);
       trojanBalance[tag] = res;
@@ -86,6 +89,15 @@ class TrojanOut extends OutboundStruct {
     var balanceInfo = trojanBalance[tag];
     realOutAddress = balanceInfo['realOutAddress'];
     realOutPort = balanceInfo['realOutPort'];
+    if (balanceInfo.contains('testAddress')) {
+      try {
+        var response = await http
+            .get(balanceInfo['testAddress'])
+            .timeout(Duration(seconds: 3));
+      } catch (_) {
+        throw "Balance server assign a node that can not be used. Please connect your service provider to fix this.";
+      }
+    }
   }
 
   @override
