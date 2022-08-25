@@ -64,6 +64,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  dns_client:
+    dependency: "direct main"
+    description:
+      name: dns_client
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.2.1"
+  extendedip:
+    dependency: transitive
+    description:
+      name: extendedip
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   file:
     dependency: transitive
     description:
@@ -71,6 +85,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.2"
+  freezed_annotation:
+    dependency: transitive
+    description:
+      name: freezed_annotation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.14.3"
   frontend_server_client:
     dependency: transitive
     description:
@@ -127,6 +148,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.8.0"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.6.0"
   lints:
     dependency: "direct dev"
     description:
@@ -148,6 +176,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.12"
+  maxminddb:
+    dependency: "direct main"
+    description:
+      name: maxminddb
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   meta:
     dependency: transitive
     description:

@@ -1,6 +1,12 @@
+import 'dart:io';
+
 import 'package:proxy/utils/utils.dart';
+import 'package:dns_client/dns_client.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
+
+Map<String, dynamic> cachedDNS = {};
+var doh = DnsOverHttps('https://doh.pub/dns-query');
 
 class RouteRule {
   late String outbound;
@@ -16,9 +22,21 @@ class RouteRule {
     matchAddress = getValue(config, 'address', '');
   }
 
-  bool match(Link link) {
+  Future<bool> match(Link link) async {
     if (allowedUser != [''] && !allowedUser.contains(link.userID)) {
       return false;
+    }
+    String ip = '';
+    if (link.targetAddress.type == 'domain') {
+      String domain = link.targetAddress.address;
+      if (cachedDNS.containsKey(domain)) {
+        ip = cachedDNS[domain];
+      } else {
+      var record =  await doh.lookupHttps('');
+      record.toString();
+      }
+    } else {
+      ip = link.targetAddress.address;
     }
     return true;
   }

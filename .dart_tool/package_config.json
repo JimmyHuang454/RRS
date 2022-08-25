@@ -56,8 +56,26 @@
       "languageVersion": "2.14"
     },
     {
+      "name": "dns_client",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/dns_client-0.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "extendedip",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/extendedip-1.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "file",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/file-6.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "freezed_annotation",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/freezed_annotation-0.14.3",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -110,6 +128,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "json_annotation",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/json_annotation-4.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "lints",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/lints-2.0.0",
       "packageUri": "lib/",
@@ -124,6 +148,12 @@
     {
       "name": "matcher",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/matcher-0.12.12",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "maxminddb",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/maxminddb-1.2.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -302,7 +332,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-08-24T17:11:49.555093Z",
+  "generated": "2022-08-25T06:38:54.136812Z",
   "generator": "pub",
   "generatorVersion": "2.17.6"
 }

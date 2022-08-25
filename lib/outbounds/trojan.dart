@@ -91,7 +91,7 @@ class TrojanOut extends OutboundStruct {
     realOutPort = balanceInfo['realOutPort'];
     if (balanceInfo.contains('testAddress')) {
       try {
-        var response = await http
+        await http
             .get(balanceInfo['testAddress'])
             .timeout(Duration(seconds: 3));
       } catch (_) {
