@@ -103,6 +103,9 @@
     "proxy": {
       "rules": [{
         "outbound": "endPoint",
+        "domain": ["regex:.*.cn", "pornhub.com"]
+      }, {
+        "outbound": "endPoint",
         "chinaOnly": true
       }, {
         "outbound": "trojanProxy"

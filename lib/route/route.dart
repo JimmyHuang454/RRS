@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
 
@@ -9,11 +11,18 @@ import 'package:proxy/obj_list.dart';
 Map<String, dynamic> domainLocation = {}; // CN or not.
 var doh = DnsOverHttps('https://doh.pub/dns-query');
 
+class DomainPattern {
+  String type = 'substring';
+  String pattern;
+  DomainPattern(this.type, this.pattern);
+}
+
 class RouteRule {
   late String outbound;
-  late List<String> domain;
-  late List<String> ips;
-  late List<String> allowedUser;
+  late List<dynamic> domain;
+  late List<dynamic> ips;
+  late List<dynamic> allowedUser;
+  List<DomainPattern> domainPattern = [];
   bool chinaOnly = false;
 
   Map<String, dynamic> config;
@@ -29,13 +38,31 @@ class RouteRule {
     }
 
     domain = getValue(config, 'domain', ['']);
-    if (listsEqual(domain, [''])) {
-      domain = [];
-    }
+    buildDomainPattern();
 
     ips = getValue(config, 'ip', ['']);
     if (listsEqual(ips, [''])) {
       ips = [];
+    }
+  }
+
+  void buildDomainPattern() {
+    if (listsEqual(domain, [''])) {
+      domain = [];
+    }
+
+    for (var i = 0, len = domain.length; i < len; ++i) {
+      var pos = domain.indexOf(':');
+      DomainPattern dp;
+      if (pos == -1) {
+        dp = DomainPattern('substring', domain[i]);
+      } else {
+        var str = domain[i] as String;
+        var type = str.substring(0, pos);
+        var pattern = str.substring(pos + 1);
+        dp = DomainPattern(type, pattern);
+      }
+      domainPattern.add(dp);
     }
   }
 
@@ -47,7 +74,13 @@ class RouteRule {
 
     var ip = address;
     if (link.targetAddress.type == 'domain') {
-      var record = await doh.lookup(address);
+      List<InternetAddress> record;
+      try {
+        record = await doh.lookup(address);
+      } catch (e) {
+        domainLocation[address] = true;
+        return true;
+      }
       if (record.isEmpty) {
         return false;
       }
@@ -73,10 +106,14 @@ class RouteRule {
     return false;
   }
 
-  bool checkDomain(Link link) {
-    for (var i = 0, len = domain.length; i < len; ++i) {
-      var re = RegExp(domain[i]);
-      if (re.hasMatch(link.targetAddress.address)) {
+  bool checkDomain(String str) {
+    for (var i = 0, len = domainPattern.length; i < len; ++i) {
+      var temp = domainPattern[i];
+      if (temp.type == 'substring' && str.contains(temp.pattern)) {
+        return true;
+      } else if (temp.type == 'regex' && RegExp(temp.pattern).hasMatch(str)) {
+        return true;
+      } else if (temp.type == 'full' && temp.pattern == str) {
         return true;
       }
     }
@@ -93,7 +130,7 @@ class RouteRule {
       return false;
     }
 
-    if (domain.isNotEmpty && !checkDomain(link)) {
+    if (domain.isNotEmpty && !checkDomain(link.targetAddress.address)) {
       return false;
     }
 
@@ -129,7 +166,7 @@ class Route {
     }
   }
 
-  Future<String> _match(Link link) async {
+  Future<String> match2(Link link) async {
     for (var i = 0, len = rules.length; i < len; ++i) {
       if (await rules[i].match(link)) {
         return rules[i].outbound;
@@ -140,7 +177,7 @@ class Route {
 
   Future<String> match(Link link) async {
     Stopwatch stopwatch = Stopwatch()..start();
-    var outbound = await _match(link);
+    var outbound = await match2(link);
     if (!outboundsList.containsKey(outbound)) {
       throw 'There are no route tag named "$outbound".';
     }
