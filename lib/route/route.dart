@@ -52,7 +52,7 @@ class RouteRule {
     }
 
     for (var i = 0, len = domain.length; i < len; ++i) {
-      var pos = domain.indexOf(':');
+      var pos = domain[i].indexOf(':');
       DomainPattern dp;
       if (pos == -1) {
         dp = DomainPattern('substring', domain[i]);
