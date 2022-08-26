@@ -81,13 +81,14 @@ class Link {
     } catch (e) {
       print(e);
     }
+    print('${toMetric(outboundStruct.upLinkByte)}B/${toMetric(outboundStruct.downLinkByte)}B');
 
     server.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      await closeAll();
+      // await closeAll();
     }, onError: (e) async {
-      await closeAll();
+      // await closeAll();
     });
 
     server.done.then((value) async {

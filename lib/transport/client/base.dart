@@ -196,6 +196,8 @@ class TransportClient {
   late int connectionTimeout;
   late List<String> supportedProtocols;
 
+  bool compress = false;
+
   TransportClient({required this.protocolName, required this.config}) {
     tag = config['tag'];
     useTLS = getValue(config, 'tls.enabled', false);
@@ -204,6 +206,7 @@ class TransportClient {
     supportedProtocols =
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
+    compress = getValue(config, 'compress.enabled', false);
   }
 
   Future<void> connect(host, int port) async {
