@@ -28,16 +28,18 @@ class Link {
   InboundStruct inboundStruct;
   late OutboundStruct outboundStruct; // assign after routing.
 
+  Stopwatch createdTime = Stopwatch()..start();
+
   Link({required this.client, required this.inboundStruct});
 
-  void closeAll() {
+  Future<void> closeAll() async {
     try {
-      client.close();
+      await client.close();
     } catch (e) {
       // devPrint(e);
     }
     try {
-      server.close();
+      await server.close();
     } catch (e) {
       // devPrint(e);
     }
@@ -69,22 +71,29 @@ class Link {
       await server.connect();
     } catch (e) {
       print(e);
-      closeAll();
+      await closeAll();
       return false;
+    }
+
+    try {
+      print(
+          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${server.realOutAddress}:${server.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})");
+    } catch (e) {
+      print(e);
     }
 
     server.listen((event) {
       clientAdd(event);
-    }, onDone: () {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
+    }, onDone: () async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
     });
 
-    server.done.then((value) {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
+    server.done.then((value) async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
     });
     return true;
   }
@@ -132,14 +141,7 @@ abstract class InboundStruct {
       throw 'There are no route named "$route"';
     }
     var outbound = await routeList[route]!.match(link);
-    var res = outboundsList[outbound]!();
-    link.outboundStruct = res;
-    try {
-      print(
-          "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress.address}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
-    } catch (e) {
-      print(e);
-    }
-    return res;
+    link.outboundStruct = outboundsList[outbound]!;
+    return link.outboundStruct;
   }
 }

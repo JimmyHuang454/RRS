@@ -11,10 +11,10 @@ class HTTPRequest extends Link {
   List<int> content = [];
 
   HTTPRequest({required super.client, required super.inboundStruct}) {
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 3), () async {
       if (!isParsed) {
         // timeout
-        closeAll();
+        await closeAll();
       }
     });
 
@@ -24,10 +24,10 @@ class HTTPRequest extends Link {
       } else {
         await parse(data);
       }
-    }, onError: (e) {
-      closeAll();
-    }, onDone: () {
-      closeAll();
+    }, onError: (e) async {
+      await closeAll();
+    }, onDone: () async {
+      await closeAll();
     });
   }
 
@@ -44,7 +44,7 @@ class HTTPRequest extends Link {
     var firstLine = utf8.decode(content.sublist(0, pos2));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
-      closeAll();
+      await closeAll();
       return;
     }
     method = temp2[0];

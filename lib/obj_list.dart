@@ -7,7 +7,7 @@ import 'package:proxy/route/route.dart';
 Map<String, TransportClient Function()> outStreamList = {};
 Map<String, TransportServer Function()> inStreamList = {};
 
-Map<String, OutboundStruct Function()> outboundsList = {};
+Map<String, OutboundStruct> outboundsList = {};
 Map<String, InboundStruct> inboundsList = {};
 
 Map<String, Route> routeList = {};

@@ -176,12 +176,10 @@ class Route {
   }
 
   Future<String> match(Link link) async {
-    Stopwatch stopwatch = Stopwatch()..start();
     var outbound = await match2(link);
     if (!outboundsList.containsKey(outbound)) {
       throw 'There are no route tag named "$outbound".';
     }
-    print('route ${stopwatch.elapsed}');
     return outbound;
   }
 }

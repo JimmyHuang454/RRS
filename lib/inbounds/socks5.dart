@@ -13,10 +13,10 @@ class Socks5Request extends Link {
   List<int> content = [];
 
   Socks5Request({required super.client, required super.inboundStruct}) {
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 3), () async {
       if (!isAuth) {
         // timeout
-        closeAll();
+        await closeAll();
       }
     });
 
@@ -29,10 +29,10 @@ class Socks5Request extends Link {
       } else {
         serverAdd(data);
       }
-    }, onError: (e) {
-      closeAll();
-    }, onDone: () {
-      closeAll();
+    }, onError: (e) async {
+      await closeAll();
+    }, onDone: () async {
+      await closeAll();
     });
   }
 
@@ -63,7 +63,7 @@ class Socks5Request extends Link {
     }
 
     if (content[0] != socks5Version) {
-      closeAll();
+      await closeAll();
       return;
     }
     cmd = content[1];
@@ -80,7 +80,7 @@ class Socks5Request extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      closeAll();
+      await closeAll();
       return;
     }
 
@@ -112,12 +112,12 @@ class Socks5Request extends Link {
     isParseDST = true;
   } //}}}
 
-  void auth(List<int> data) {
+  Future<void> auth(List<int> data) async {
     //{{{
     content += data;
 
     if (content[0] != socks5Version) {
-      closeAll();
+      await closeAll();
       return;
     }
 

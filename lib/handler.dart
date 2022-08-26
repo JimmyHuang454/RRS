@@ -20,7 +20,6 @@ import 'package:proxy/route/route.dart';
 
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
-import 'package:proxy/route/mmdb.dart';
 
 TransportClient Function() _buildOutStream(Map<String, dynamic> config) {
   //{{{
@@ -83,21 +82,21 @@ Future<InboundStruct> buildInbounds(
   return res;
 } //}}}
 
-OutboundStruct Function() _buildOutbounds(Map<String, dynamic> config) {
+OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'http');
 
   if (protocol == 'http') {
-    return () => HTTPOut(config: config);
+    return HTTPOut(config: config);
   } else if (protocol == 'block') {
-    return () => BlockOut(config: config);
+    return BlockOut(config: config);
   } else if (protocol == 'trojan') {
-    return () => TrojanOut(config: config);
+    return TrojanOut(config: config);
   }
-  return () => FreedomOut(config: config);
+  return FreedomOut(config: config);
 } //}}}
 
-OutboundStruct Function() buildOutbounds(
+OutboundStruct buildOutbounds(
     String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
