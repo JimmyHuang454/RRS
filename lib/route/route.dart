@@ -11,7 +11,8 @@ var doh = DnsOverHttps('https://doh.pub/dns-query');
 
 class RouteRule {
   late String outbound;
-  late String matchAddress;
+  late List<String> domain;
+  late List<String> ips;
   late List<String> allowedUser;
   bool chinaOnly = false;
 
@@ -20,9 +21,22 @@ class RouteRule {
   RouteRule({required this.config}) {
     outbound = config['outbound'];
 
-    allowedUser = getValue(config, 'allowedUser', ['']);
-    matchAddress = getValue(config, 'address', '');
     chinaOnly = getValue(config, 'chinaOnly', false);
+
+    allowedUser = getValue(config, 'allowedUser', ['']);
+    if (listsEqual(allowedUser, [''])) {
+      allowedUser = [];
+    }
+
+    domain = getValue(config, 'domain', ['']);
+    if (listsEqual(domain, [''])) {
+      domain = [];
+    }
+
+    ips = getValue(config, 'ip', ['']);
+    if (listsEqual(ips, [''])) {
+      ips = [];
+    }
   }
 
   Future<bool> isChinaIP(Link link) async {
@@ -50,10 +64,43 @@ class RouteRule {
     return domainLocation[address];
   }
 
+  bool checkAllowedUser(Link link) {
+    for (var i = 0, len = allowedUser.length; i < len; ++i) {
+      if (listsEqual(allowedUser[i].codeUnits, link.userID)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool checkDomain(Link link) {
+    for (var i = 0, len = domain.length; i < len; ++i) {
+      var re = RegExp(domain[i]);
+      if (re.hasMatch(link.targetAddress.address)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool checkIP(Link link) {
+    // TODO
+    return true;
+  }
+
   Future<bool> match(Link link) async {
-    // if (allowedUser != [''] && !allowedUser.contains(link.userID)) {
-    //   return false;
-    // }
+    if (allowedUser.isNotEmpty && !checkAllowedUser(link)) {
+      return false;
+    }
+
+    if (domain.isNotEmpty && !checkDomain(link)) {
+      return false;
+    }
+
+    if (ips.isNotEmpty && !checkIP(link)) {
+      return false;
+    }
+
     if (chinaOnly && !await isChinaIP(link)) {
       return false;
     }
