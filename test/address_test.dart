@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:maxminddb/maxminddb.dart';
+import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:test/test.dart';
+
 import 'package:proxy/utils/utils.dart';
 
 void main() {
@@ -10,6 +12,11 @@ void main() {
     var res = Address('https://trojan-gfw.github.io/trojan/protocol');
     expect(res.address, 'https://trojan-gfw.github.io/trojan/protocol');
     expect(res.type, 'domain');
+
+    res = Address('255.255.255.255');
+    expect(res.address, '255.255.255.255');
+    expect(res.type, 'ipv4');
+    expect(listsEqual(res.rawAddress, [255, 255, 255, 255]), true);
   });
 
   test('geoip', () async {
@@ -28,5 +35,23 @@ void main() {
       expect(res == null, false);
       expect(res['country']['geoname_id'], 1814991);
     }
+  });
+
+  test('regex', () async {
+    var re = RegExp('.baidu.com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('abaidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), false);
+
+    re = RegExp('baidu.*com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('abaidu.com'), true);
+    expect(re.hasMatch('abaidu1com'), true);
+
+    re = RegExp('baidu\.com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), true);
   });
 }

@@ -62,7 +62,7 @@ class Link {
   }
 
   Future<bool> bindServer() async {
-    outboundStruct = inboundStruct.doRoute(this);
+    outboundStruct = await inboundStruct.doRoute(this);
     try {
       await outboundStruct.connect(this);
     } catch (e) {
@@ -125,15 +125,19 @@ abstract class InboundStruct {
     return inStreamList[inStream]!;
   }
 
-  OutboundStruct doRoute(Link link) {
+  Future<OutboundStruct> doRoute(Link link) async {
     if (!routeList.containsKey(route)) {
       throw 'There are no route named "$route"';
     }
-    var outbound = routeList[route]!.match(link);
+    var outbound = await routeList[route]!.match(link);
     var res = outboundsList[outbound]!();
     link.outboundStruct = res;
-    print(
-        "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress.address}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
+    try {
+      print(
+          "{${link.client.remoteAddress.address}:${link.client.remotePort}} [${link.inboundStruct.tag}:${link.inboundStruct.protocolName}] (${link.targetAddress.address}:${link.targetport}) --> [${res.tag}:${res.protocolName}]");
+    } catch (e) {
+      print(e);
+    }
     return res;
   }
 }

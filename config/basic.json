@@ -102,7 +102,9 @@
     },
     "proxy": {
       "rules": [{
-        "user": ["1"],
+        "outbound": "endPoint",
+        "chinaOnly": true
+      }, {
         "outbound": "trojanProxy"
       }]
     }

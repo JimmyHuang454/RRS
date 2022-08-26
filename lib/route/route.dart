@@ -1,17 +1,19 @@
-import 'dart:io';
-
-import 'package:proxy/utils/utils.dart';
+import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
+
+import 'package:proxy/route/mmdb.dart';
+import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
-Map<String, dynamic> cachedDNS = {};
+Map<String, dynamic> domainLocation = {}; // CN or not.
 var doh = DnsOverHttps('https://doh.pub/dns-query');
 
 class RouteRule {
   late String outbound;
   late String matchAddress;
   late List<String> allowedUser;
+  bool chinaOnly = false;
 
   Map<String, dynamic> config;
 
@@ -20,23 +22,40 @@ class RouteRule {
 
     allowedUser = getValue(config, 'allowedUser', ['']);
     matchAddress = getValue(config, 'address', '');
+    chinaOnly = getValue(config, 'chinaOnly', false);
+  }
+
+  Future<bool> isChinaIP(Link link) async {
+    String address = link.targetAddress.address;
+    if (domainLocation.containsKey(address)) {
+      return domainLocation[address];
+    }
+
+    var ip = address;
+    if (link.targetAddress.type == 'domain') {
+      var record = await doh.lookup(address);
+      if (record.isEmpty) {
+        return false;
+      }
+      ip = record[0].address; // resolve to IP.
+    }
+
+    var geo = await loadGeoIP();
+    var res = await geo.search(ip);
+    if (res == null) {
+      domainLocation[address] = false;
+    } else {
+      domainLocation[address] = true; // CN
+    }
+    return domainLocation[address];
   }
 
   Future<bool> match(Link link) async {
-    if (allowedUser != [''] && !allowedUser.contains(link.userID)) {
+    // if (allowedUser != [''] && !allowedUser.contains(link.userID)) {
+    //   return false;
+    // }
+    if (chinaOnly && !await isChinaIP(link)) {
       return false;
-    }
-    String ip = '';
-    if (link.targetAddress.type == 'domain') {
-      String domain = link.targetAddress.address;
-      if (cachedDNS.containsKey(domain)) {
-        ip = cachedDNS[domain];
-      } else {
-      var record =  await doh.lookupHttps('');
-      record.toString();
-      }
-    } else {
-      ip = link.targetAddress.address;
     }
     return true;
   }
@@ -63,20 +82,22 @@ class Route {
     }
   }
 
-  String _match(Link link) {
+  Future<String> _match(Link link) async {
     for (var i = 0, len = rules.length; i < len; ++i) {
-      if (rules[i].match(link)) {
+      if (await rules[i].match(link)) {
         return rules[i].outbound;
       }
     }
     return rules[rules.length - 1].outbound;
   }
 
-  String match(Link link) {
-    var outbound = _match(link);
+  Future<String> match(Link link) async {
+    Stopwatch stopwatch = Stopwatch()..start();
+    var outbound = await _match(link);
     if (!outboundsList.containsKey(outbound)) {
       throw 'There are no route tag named "$outbound".';
     }
+    print('route ${stopwatch.elapsed}');
     return outbound;
   }
 }

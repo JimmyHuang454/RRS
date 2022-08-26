@@ -20,6 +20,7 @@ import 'package:proxy/route/route.dart';
 
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/route/mmdb.dart';
 
 TransportClient Function() _buildOutStream(Map<String, dynamic> config) {
   //{{{
@@ -119,7 +120,8 @@ Route buildRoute(String tag, Map<String, dynamic> config) {
   return res;
 } //}}}
 
-void entry(Map<String, dynamic> allConfig) {
+Future<void> entry(Map<String, dynamic> allConfig) async {
+  // await loadGeoIP();
   var item = {
     'inStream': buildInStream,
     'outStream': buildOutStream,

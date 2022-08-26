@@ -9,5 +9,5 @@ void main(List<String> arguments) async {
   var config = await configFile.readAsString();
   var configJson = (jsonDecode(config) as Map<String, dynamic>);
 
-  entry(configJson);
+  await entry(configJson);
 }

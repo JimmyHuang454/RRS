@@ -1,8 +1,7 @@
 import 'dart:typed_data';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:collection/collection.dart';
+import 'package:quiver/collection.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:crypto/crypto.dart';
@@ -117,14 +116,14 @@ class TrojanRequest extends Link {
 
     var pwd = content.sublist(0, 56);
     var tempCrlf = content.sublist(56, 58);
-    if (!ListEquality().equals(pwd, pwdSHA224)) {
+    if (!listsEqual(pwd, pwdSHA224)) {
       isTunnel = true;
       passToTunnel([]);
       return;
     }
     content = content.sublist(58);
 
-    if (ListEquality().equals(tempCrlf, [0, 0])) {
+    if (listsEqual(tempCrlf, [0, 0])) {
       isGetRRSID = 1; // need to get.
     }
     isAuth = true;
