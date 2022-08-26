@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -9,43 +8,24 @@ import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 
-Map<String, dynamic> trojanBalance = {};
+class TrojanConnect extends Connect {
+  List<int> passwordSha224;
+  List<int> userIDSha224;
 
-class TrojanOut extends OutboundStruct {
-  String password = '';
-  String userID = '';
-  List<int> passwordSha224 = [];
-  List<int> userIDSha224 = [];
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
-  bool isReceiveResponse = false;
-  bool isBalancer = false;
-  bool redirected = false;
-  late Link link;
-  List<int> content = [];
-  String realOutAddress = '';
-  int realOutPort = 0;
 
-  TrojanOut({required super.config})
-      : super(protocolName: 'trojan', protocolVersion: '1') {
-    password = getValue(config, 'setting.password', '');
-    userID = getValue(config, 'setting.userID', '');
-    isBalancer = getValue(config, 'setting.balance.enable', false);
-
-    if (outAddress == '' || outPort == 0 || password == '') {
-      throw '"address", "port" and "password" can not be empty in trojan setting.';
-    }
-
-    realOutAddress = outAddress;
-    realOutPort = outPort;
-
-    passwordSha224 = sha224.convert(password.codeUnits).toString().codeUnits;
-    if (userID != '') {
-      userIDSha224 = sha224.convert(userID.codeUnits).toString().codeUnits;
-    }
-  }
+  TrojanConnect(
+      {required super.transportClient,
+      required super.outboundStruct,
+      required super.link,
+      required super.realOutAddress,
+      required super.realOutPort,
+      required this.passwordSha224,
+      this.userIDSha224 = const []});
 
   List<int> _buildRequest() {
+    //{{{
     List<int> header, request;
     if (userIDSha224.isEmpty) {
       header = passwordSha224 + crlf;
@@ -72,21 +52,67 @@ class TrojanOut extends OutboundStruct {
       ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
     var res = header + request + crlf;
     return res;
+  } //}}}
+
+  @override
+  void add(List<int> data) {
+    if (isSendHeader) {
+      super.add(data);
+    } else {
+      super.add(_buildRequest() + data);
+      isSendHeader = true;
+    }
+  }
+}
+
+class TrojanOut extends OutboundStruct {
+  String password = '';
+  String userID = '';
+  List<int> passwordSha224 = [];
+  List<int> userIDSha224 = [];
+
+  bool isBalancer = false;
+  bool redirected = false;
+  late Link link;
+  late String realOutAddress;
+  late int realOutPort;
+
+  TrojanOut({required super.config})
+      : super(protocolName: 'trojan', protocolVersion: '1') {
+    password = getValue(config, 'setting.password', '');
+    userID = getValue(config, 'setting.userID', '');
+    isBalancer = getValue(config, 'setting.balance.enable', false);
+
+    if (outAddress == '' || outPort == 0 || password == '') {
+      throw '"address", "port" and "password" can not be empty in trojan setting.';
+    }
+
+    passwordSha224 = sha224.convert(password.codeUnits).toString().codeUnits;
+    if (userID != '') {
+      userIDSha224 = sha224.convert(userID.codeUnits).toString().codeUnits;
+    }
   }
 
   Future<void> handleBalance() async {
-    if (!trojanBalance.containsValue(tag)) {
-      var params = {
-        'userID': userID,
-        'password': password,
-        'config': getValue(config, 'setting.balance', {})
-      };
-      var url = Uri(host: outAddress, queryParameters: params);
-      var response = await http.get(url);
-      var res = jsonDecode(response.body);
-      trojanBalance[tag] = res;
+    //{{{
+    if (!isBalancer) {
+      realOutAddress = outAddress;
+      realOutPort = outPort;
+      return;
     }
-    var balanceInfo = trojanBalance[tag];
+
+    if (redirected) {
+      return;
+    }
+
+    var params = {
+      'userID': userIDSha224,
+      'password': passwordSha224,
+      'config': getValue(config, 'setting.balance', {})
+    };
+    var url = Uri(host: outAddress, queryParameters: params);
+    var response = await http.get(url);
+    var balanceInfo = jsonDecode(response.body);
     realOutAddress = balanceInfo['realOutAddress'];
     realOutPort = balanceInfo['realOutPort'];
     if (balanceInfo.contains('testAddress')) {
@@ -98,24 +124,18 @@ class TrojanOut extends OutboundStruct {
         throw "Balance server assign a node that can not be used. Please connect your service provider to fix this.";
       }
     }
-  }
+  } //}}}
 
   @override
-  Future<void> connect(Link l) async {
-    link = l;
-    if (isBalancer) {
-      await handleBalance();
-    }
-    await transportClient.connect(realOutAddress, realOutPort);
-  }
-
-  @override
-  void add(List<int> data) {
-    if (isSendHeader) {
-      super.add(data);
-    } else {
-      super.add(_buildRequest() + data);
-      isSendHeader = true;
-    }
+  Future<Connect> newConnect(Link l) async {
+    await handleBalance(); // init realOutAddress and realOutPort.
+    return TrojanConnect(
+        transportClient: newClient(),
+        outboundStruct: this,
+        userIDSha224: userIDSha224,
+        link: l,
+        realOutAddress: realOutAddress,
+        realOutPort: realOutPort,
+        passwordSha224: passwordSha224);
   }
 }

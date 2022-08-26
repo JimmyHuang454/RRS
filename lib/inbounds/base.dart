@@ -7,6 +7,7 @@ import 'package:proxy/utils/utils.dart';
 
 class Link {
   Socket client; // in
+  late Connect server; // out
 
   late Uri targetUri; // if it's a HTTP request.
   String method = 'GET';
@@ -36,7 +37,7 @@ class Link {
       // devPrint(e);
     }
     try {
-      outboundStruct.close();
+      server.close();
     } catch (e) {
       // devPrint(e);
     }
@@ -55,7 +56,7 @@ class Link {
 
   void serverAdd(List<int> data) {
     try {
-      outboundStruct.add(data);
+      server.add(data);
     } catch (e) {
       devPrint(e);
     }
@@ -64,14 +65,15 @@ class Link {
   Future<bool> bindServer() async {
     outboundStruct = await inboundStruct.doRoute(this);
     try {
-      await outboundStruct.connect(this);
+      server = await outboundStruct.newConnect(this);
+      await server.connect();
     } catch (e) {
       print(e);
       closeAll();
       return false;
     }
 
-    outboundStruct.listen((event) {
+    server.listen((event) {
       clientAdd(event);
     }, onDone: () {
       closeAll();
@@ -79,7 +81,7 @@ class Link {
       closeAll();
     });
 
-    outboundStruct.done.then((value) {
+    server.done.then((value) {
       closeAll();
     }, onError: (e) {
       closeAll();

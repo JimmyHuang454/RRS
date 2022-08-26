@@ -6,11 +6,19 @@ import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 
+class HTTPConnect extends Connect {
+  HTTPConnect(
+      {required super.transportClient,
+      required super.outboundStruct,
+      required super.link,
+      required super.realOutAddress,
+      required super.realOutPort});
+}
+
 class HTTPOut extends OutboundStruct {
   String userAccount = '';
   String userPassword = '';
   bool isBuildConnection = false;
-  late Link link;
 
   HTTPOut({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
@@ -22,20 +30,18 @@ class HTTPOut extends OutboundStruct {
     }
   }
 
-  List<int> _buildConnectionRequest() {
-    return '${link.method} ${link.targetUri.toString()} ${link.protocolVersion}\r\n\r\n'
-        .codeUnits;
-  }
-
   @override
-  Future<void> connect(Link l) async {
-    link = l;
-    var conn = await transportClient.connect(outAddress, outPort);
-
-    if (link.method == 'CONNECT') {
+  Future<Connect> newConnect(Link l) async {
+    var conn = HTTPConnect(
+        transportClient: newClient(),
+        outboundStruct: this,
+        link: l,
+        realOutAddress: outAddress,
+        realOutPort: outPort);
+    if (l.method == 'CONNECT') {
       var streamController = StreamController<int>();
       var w = StreamQueue<int>(streamController.stream);
-      super.listen((data) {
+      conn.listen((data) {
         var pos = indexOfElements(data, '\r\n\r\n'.codeUnits);
         if (pos == -1) {
           streamController.add(0); // failed.
@@ -45,32 +51,19 @@ class HTTPOut extends OutboundStruct {
       }, onError: (e) {
         streamController.add(0);
       });
-      super.add(_buildConnectionRequest());
+      conn.add(
+          '${l.method} ${l.targetUri.toString()} ${l.protocolVersion}\r\n\r\n'
+              .codeUnits);
       var res = await w.next;
       await w.cancel();
       await streamController.close();
-      transportClient.clearListen();
+      conn.transportClient.clearListen();
 
       if (res != 1) {
-        await super.close();
+        await conn.close();
         throw 'failed to build http tunnel.';
       }
-      isBuildConnection = true;
     }
     return conn;
-  }
-
-  @override
-  void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
-    super.listen((data) {
-      if (link.method == 'CONNECT') {
-        if (isBuildConnection) {
-          onData!(data);
-        }
-      } else {
-        onData!(data);
-      }
-    }, onError: onError, onDone: onDone);
   }
 }

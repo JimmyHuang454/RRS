@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/utils/utils.dart';
 

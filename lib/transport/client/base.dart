@@ -183,9 +183,8 @@ class TransportClient {
   late String tag;
   Map<String, dynamic> config;
 
-  bool islisten = false;
   late Socket socket;
-  late dynamic streamSubscription;
+  List<dynamic> streamSubscription = [];
   // void Function(Uint8List event)? onData;
   // Function? onError;
   // void Function()? onDone;
@@ -239,10 +238,9 @@ class TransportClient {
   }
 
   void clearListen() {
-    if (islisten) {
-      streamSubscription.cancel();
+    for (var i = 0, len = streamSubscription.length; i < len; ++i) {
+      streamSubscription[i].cancel();
     }
-    islisten = false;
   }
 
   void add(List<int> data) {
@@ -261,10 +259,10 @@ class TransportClient {
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    clearListen();
-    streamSubscription = socket.listen(onData,
+    var temp = socket.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: true);
-    islisten = true;
+
+    streamSubscription.add(temp);
   }
 
   Future get done => socket.done;

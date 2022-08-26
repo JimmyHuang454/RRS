@@ -48,9 +48,9 @@ class Socks5Request extends Link {
     var res = [5, rep, 0];
     // res.add(server.remoteAddress.address.codeUnits.length);
     res.add(1); // ipv4
-    res += outboundStruct.remoteAddress.rawAddress;
+    res += server.remoteAddress.rawAddress;
     res += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, outboundStruct.remotePort, Endian.big);
+      ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
     clientAdd(res);
     isValidRequest = true;
   } //}}}

@@ -45,8 +45,7 @@ class WSClient extends TransportClient {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    clearListen();
-    streamSubscription = ws.listen(
+    var temp = ws.listen(
         (data) {
           onData!(data);
         },
@@ -56,13 +55,13 @@ class WSClient extends TransportClient {
           onDone!();
         },
         cancelOnError: true);
-    islisten = true;
+    streamSubscription.add(temp);
   }
 
   @override
   Future close() {
-    clearListen();
     return ws.close().then((value) {
+      clearListen();
       return value;
     });
   }
