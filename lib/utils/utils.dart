@@ -42,7 +42,7 @@ void devPrint(msg) {
   print(msg);
 }
 
-String toMetric(int nr) {
+String toMetric(int nr, [int round = 0]) {
   var temp = nr.toString();
   var len = temp.length;
   var i = 0;
@@ -58,6 +58,9 @@ String toMetric(int nr) {
   }
   var j = temp.length - (i * 3);
   var k = temp.substring(0, j);
+  if (round != 0) {
+    k += '.${temp.substring(j, j + round)}';
+  }
   final map = {1: 'K', 2: 'M', 3: 'G', 4: 'T', 5: 'P'};
   return '$k${map[i]}';
 }

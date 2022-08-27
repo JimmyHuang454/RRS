@@ -81,7 +81,7 @@ class Link {
     } catch (e) {
       print(e);
     }
-    print('${toMetric(outboundStruct.upLinkByte)}B/${toMetric(outboundStruct.downLinkByte)}B');
+    print('${toMetric(outboundStruct.upLinkByte, 2)}B/${toMetric(outboundStruct.downLinkByte, 2)}B');
 
     server.listen((event) {
       clientAdd(event);

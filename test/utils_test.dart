@@ -41,7 +41,11 @@ void main() {
 
   test('toMetric', () {
     expect(toMetric(100), '100');
+    expect(toMetric(100, 1), '100');
     expect(toMetric(1000), '1K');
+    expect(toMetric(1000, 1), '1.0K');
+    expect(toMetric(1400, 1), '1.4K');
+    expect(toMetric(1400, 2), '1.40K');
     expect(toMetric(2001), '2K');
     expect(toMetric(22001), '22K');
     expect(toMetric(122001), '122K');
@@ -50,8 +54,11 @@ void main() {
     expect(toMetric(333122001), '333M');
     expect(toMetric(4333122001), '4G');
     expect(toMetric(14333122001), '14G');
+    expect(toMetric(14333122001, 2), '14.33G');
+    expect(toMetric(14123122001, 2), '14.12G');
     expect(toMetric(5444333122001), '5T');
     expect(toMetric(555444333122001), '555T');
+    expect(toMetric(555444333122001, 2), '555.44T');
   });
 
   test('translateTo', () {
