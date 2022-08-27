@@ -70,6 +70,50 @@ Future<int> getUnusedPort(InternetAddress address) {
   });
 }
 
+void translateTo(List<int> input) {
+  var start = 0;
+  var pos = -1;
+  while (true) {
+    pos = input.indexOf(200, start);
+    if (pos == -1) {
+      break;
+    }
+    start = pos + 2;
+    input.insert(pos, 200);
+  }
+}
+
+void translateFrom(List<int> input) {
+  var start = 0;
+  var pos = -1;
+  while (true) {
+    pos = input.indexOf(200, start);
+    if (pos == -1) {
+      break;
+    }
+    start = pos + 1;
+    input.removeAt(pos);
+  }
+}
+
+List<int> findEnd(List<int> input) {
+  var meet = false;
+  var i = 0;
+  for (var len = input.length; i < len; ++i) {
+    if (input[i] == 200) {
+      if (meet) {
+        meet = false;
+      } else {
+        meet = true;
+      }
+    } else if (meet) {
+      return input.sublist(0, i - 1);
+    }
+  }
+
+  return input.sublist(0, i);
+}
+
 class Address {
   late InternetAddress internetAddress;
 

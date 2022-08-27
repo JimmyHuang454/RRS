@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -53,6 +54,54 @@ void main() {
     expect(toMetric(555444333122001), '555T');
   });
 
-  test('compress', () {
+  test('translateTo', () {
+    var input = [200, 2];
+    translateTo(input);
+    expect(listsEqual(input, [200, 200, 2]), true);
+
+    input = [1, 2];
+    translateTo(input);
+    expect(listsEqual(input, [1, 2]), true);
+
+    input = [200, 200, 200];
+    translateTo(input);
+    expect(listsEqual(input, [200, 200, 200, 200, 200, 200]), true);
+
+    input = [10, 200, 200];
+    translateTo(input);
+    expect(listsEqual(input, [10, 200, 200, 200, 200]), true);
+
+    input = [10, 201, 200];
+    translateTo(input);
+    expect(listsEqual(input, [10, 201, 200, 200]), true);
+
+    input = [10, 200, 200];
+    translateFrom(input);
+    expect(listsEqual(input, [10, 200]), true);
+
+    input = [200, 200, 200, 200, 200, 200];
+    translateFrom(input);
+    expect(listsEqual(input, [200, 200, 200]), true);
+
+    input = [200, 200, 200, 200, 200, 200];
+    translateTo(input);
+    translateFrom(input);
+    expect(listsEqual(input, input), true);
+
+    input = [200, 200];
+    input = findEnd(input);
+    expect(listsEqual(input, [200, 200]), true);
+
+    input = [200, 200, 200];
+    input = findEnd(input);
+    expect(listsEqual(input, [200, 200, 200]), true);
+
+    input = [200, 200, 200, 200, 200, 0];
+    input = findEnd(input);
+    expect(listsEqual(input, [200, 200, 200, 200]), true);
+
+    input = [1, 2, 200, 0];
+    input = findEnd(input);
+    expect(listsEqual(input, [1, 2]), true);
   });
 }
