@@ -7,7 +7,7 @@ import 'package:proxy/utils/utils.dart';
 
 class Link {
   TransportClient client; // in
-  late Connect server; // out
+  late TransportClient server; // out
 
   late Uri targetUri; // if it's a HTTP request.
   String method = 'GET';
@@ -35,6 +35,14 @@ class Link {
 
   Future<void> closeAll() async {
     try {
+      await server.clearListen();
+    } catch (_) {}
+
+    try {
+      await client.clearListen();
+    } catch (_) {}
+
+    try {
       await server.close();
     } catch (e) {
       // devPrint(e);
@@ -46,14 +54,14 @@ class Link {
       // devPrint(e);
     }
     try {
-      devPrint('${targetAddress.address} closed');
+      devPrint(
+          '${targetAddress.address} closed [${toMetric(traffic.uplink, 2)}B/${toMetric(traffic.downlink, 2)}B]');
     } catch (_) {}
   }
 
   void clientAdd(List<int> data) {
     try {
       client.add(data);
-      traffic.downlink += data.length;
     } catch (e) {
       // devPrint(e);
     }
@@ -62,7 +70,6 @@ class Link {
   void serverAdd(List<int> data) {
     try {
       server.add(data);
-      traffic.uplink += data.length;
     } catch (e) {
       devPrint(e);
     }
@@ -72,7 +79,6 @@ class Link {
     outboundStruct = await inboundStruct.doRoute(this);
     try {
       server = await outboundStruct.newConnect(this);
-      await server.connect();
     } catch (e) {
       print(e);
       await closeAll();
@@ -81,9 +87,7 @@ class Link {
 
     try {
       print(
-          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${server.realOutAddress}:${server.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})");
-      print(
-          '${toMetric(outboundStruct.upLinkByte, 2)}B/${toMetric(outboundStruct.downLinkByte, 2)}B');
+          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${server.remoteAddress}:${server.remotePort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})");
     } catch (e) {
       print(e);
     }
@@ -96,11 +100,11 @@ class Link {
       await closeAll();
     });
 
-    // server.done.then((value) async {
-    //   await closeAll();
-    // }, onError: (e) async {
-    //   await closeAll();
-    // });
+    server.done.then((value) async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
+    });
     return true;
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
@@ -17,11 +18,8 @@ class TrojanConnect extends Connect {
 
   TrojanConnect(
       {required super.transportClient,
-      required super.outboundStruct,
-      required super.link,
-      required super.realOutAddress,
-      required super.realOutPort,
       required this.passwordSha224,
+      required super.link,
       this.userIDSha224 = const []});
 
   List<int> _buildRequest() {
@@ -127,15 +125,15 @@ class TrojanOut extends OutboundStruct {
   } //}}}
 
   @override
-  Future<Connect> newConnect(Link l) async {
+  Future<TransportClient> newConnect(Link l) async {
     await handleBalance(); // init realOutAddress and realOutPort.
-    return TrojanConnect(
+    var res = TrojanConnect(
         transportClient: newClient(),
-        outboundStruct: this,
         userIDSha224: userIDSha224,
         link: l,
-        realOutAddress: realOutAddress,
-        realOutPort: realOutPort,
         passwordSha224: passwordSha224);
+    await res.connect(realOutAddress, realOutPort);
+    return res;
   }
 }
+

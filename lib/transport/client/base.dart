@@ -33,7 +33,7 @@ class TransportClient {
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);
-    securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
+    // securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
   }
 
   void load(s) {

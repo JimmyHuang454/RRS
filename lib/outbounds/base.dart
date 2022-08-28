@@ -7,43 +7,43 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
-class Connect {
+class Connect extends TransportClient {
   TransportClient transportClient;
-  OutboundStruct outboundStruct;
   Link link;
-  String realOutAddress;
-  int realOutPort;
 
-  Connect(
-      {required this.transportClient,
-      required this.outboundStruct,
-      required this.link,
-      required this.realOutAddress,
-      required this.realOutPort});
+  Connect({required this.transportClient, required this.link})
+      : super(protocolName: 'connecting', config: {});
 
-  Future<void> connect() async {
-    await transportClient.connect(realOutAddress, realOutPort);
+  @override
+  Future<void> connect(host, int port) async {
+    await transportClient.connect(host, port);
   }
 
+  @override
   void add(List<int> data) {
-    outboundStruct.upLinkByte += data.length;
     transportClient.add(data);
+    link.traffic.uplink += data.length;
   }
 
-  Future close() {
-    return transportClient.close();
+  @override
+  Future close() async {
+    await transportClient.close();
   }
 
+  @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     transportClient.listen((data) {
-      outboundStruct.downLinkByte += data.length;
+      link.traffic.downlink += data.length;
       onData!(data);
-    }, onError: onError, onDone: onDone);
+    }, onDone: onDone, onError: onError);
   }
 
+  @override
   Future get done => transportClient.done;
+  @override
   InternetAddress get remoteAddress => transportClient.remoteAddress;
+  @override
   int get remotePort => transportClient.remotePort;
 }
 
@@ -77,12 +77,9 @@ abstract class OutboundStruct {
     return outStreamList[outStreamTag]!();
   }
 
-  Future<Connect> newConnect(Link l) async {
-    return Connect(
-        transportClient: newClient(),
-        outboundStruct: this,
-        link: l,
-        realOutAddress: l.targetAddress.address,
-        realOutPort: l.targetport);
+  Future<TransportClient> newConnect(Link l) async {
+    var temp = newClient();
+    await temp.connect(l.targetAddress.address, l.targetport);
+    return temp;
   }
 }

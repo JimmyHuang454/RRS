@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/utils/utils.dart';
-import 'dart:io';
 
 class Socks5Request extends Link {
   bool isAuth = false;
@@ -158,10 +157,12 @@ class Socks5In extends InboundStruct {
     server.listen((client) async {
       totalClient += 1;
       Socks5Request(client: client, inboundStruct: this);
-      // try {
-      //   await client.done;
-      // } catch (_) {}
-      // totalClient -= 1;
+      try {
+        await client.done;
+      } catch (_) {}
+      totalClient -= 1;
+    }, onError: (e) {
+      print(e);
     });
   }
 }

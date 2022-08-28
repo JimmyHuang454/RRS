@@ -1,19 +1,10 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:async/async.dart';
+import 'package:proxy/transport/client/base.dart';
 
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
-
-class HTTPConnect extends Connect {
-  HTTPConnect(
-      {required super.transportClient,
-      required super.outboundStruct,
-      required super.link,
-      required super.realOutAddress,
-      required super.realOutPort});
-}
 
 class HTTPOut extends OutboundStruct {
   String userAccount = '';
@@ -31,13 +22,9 @@ class HTTPOut extends OutboundStruct {
   }
 
   @override
-  Future<Connect> newConnect(Link l) async {
-    var conn = HTTPConnect(
-        transportClient: newClient(),
-        outboundStruct: this,
-        link: l,
-        realOutAddress: outAddress,
-        realOutPort: outPort);
+  Future<TransportClient> newConnect(Link l) async {
+    var conn = newClient();
+
     if (l.method == 'CONNECT') {
       var streamController = StreamController<int>();
       var w = StreamQueue<int>(streamController.stream);
@@ -57,7 +44,6 @@ class HTTPOut extends OutboundStruct {
       var res = await w.next;
       await w.cancel();
       await streamController.close();
-      await conn.transportClient.clearListen();
 
       if (res != 1) {
         await conn.close();
