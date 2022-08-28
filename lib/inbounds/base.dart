@@ -2,6 +2,7 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
 class Link {
@@ -28,6 +29,7 @@ class Link {
   late OutboundStruct outboundStruct; // assign after routing.
 
   Stopwatch createdTime = Stopwatch()..start();
+  Traffic traffic = Traffic();
 
   Link({required this.client, required this.inboundStruct});
 
@@ -51,6 +53,7 @@ class Link {
   void clientAdd(List<int> data) {
     try {
       client.add(data);
+      traffic.downlink += data.length;
     } catch (e) {
       // devPrint(e);
     }
@@ -59,6 +62,7 @@ class Link {
   void serverAdd(List<int> data) {
     try {
       server.add(data);
+      traffic.uplink += data.length;
     } catch (e) {
       devPrint(e);
     }
@@ -104,6 +108,10 @@ class Link {
 abstract class InboundStruct {
   String protocolName;
   String protocolVersion;
+
+  int upLinkByte = 0;
+  int downLinkByte = 0;
+
   late String inAddress;
   late int inPort;
   late String tag;
@@ -129,7 +137,7 @@ abstract class InboundStruct {
     }
   }
 
-  Future<void> bind2();
+  Future<void> bind();
 
   TransportServer getServer() {
     if (!inStreamList.containsKey(inStream)) {

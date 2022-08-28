@@ -94,7 +94,7 @@ class HTTPIn extends InboundStruct {
   }
 
   @override
-  Future<void> bind2() async {
+  Future<void> bind() async {
     var server = getServer();
 
     await server.bind(inAddress, inPort);

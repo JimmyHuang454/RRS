@@ -1,5 +1,10 @@
 import 'package:uuid/uuid.dart';
 
+class Traffic {
+  int uplink = 0;
+  int downlink = 0;
+}
+
 class User {
   String id;
 
@@ -14,7 +19,7 @@ class User {
     }
   }
 
-  String getAllInfo(){
+  String getAllInfo() {
     return '';
   }
 

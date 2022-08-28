@@ -69,7 +69,7 @@ Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   } else {
     res = HTTPIn(config: config);
   }
-  await res.bind2();
+  await res.bind();
   return res;
 } //}}}
 

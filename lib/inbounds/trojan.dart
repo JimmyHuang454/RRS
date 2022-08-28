@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-import 'dart:io';
 
 import 'package:quiver/collection.dart';
 import 'package:proxy/utils/utils.dart';
@@ -50,7 +49,7 @@ class TrojanRequest extends Link {
       if (content.length < 56) {
         return;
       }
-      userID = content.sublist(0, 56);
+      userID += content.sublist(0, 56);
       content = content.sublist(56);
       isGetRRSID = 2; // got it.
     }
@@ -126,6 +125,7 @@ class TrojanRequest extends Link {
     if (listsEqual(tempCrlf, [0, 0])) {
       isGetRRSID = 1; // need to get.
     }
+    userID = pwdSHA224;
     isAuth = true;
     await parseDST([]);
   } //}}}
@@ -156,7 +156,7 @@ class TrojanIn extends InboundStruct {
   }
 
   @override
-  Future<void> bind2() async {
+  Future<void> bind() async {
     var server = getServer();
 
     await server.bind(inAddress, inPort);

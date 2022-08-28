@@ -93,6 +93,7 @@ class TransportServer {
   late bool useTLS;
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
+  late SecurityContext securityContext;
 
   List<dynamic> streamSubscription = [];
 
@@ -105,11 +106,11 @@ class TransportServer {
     requireClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
+    securityContext = SecurityContext(withTrustedRoots: useTLS);
   }
 
   Future<void> bind(address, int port) async {
     if (useTLS) {
-      var securityContext = SecurityContext(withTrustedRoots: useTLS);
       secureServerSocket = await SecureServerSocket.bind(
           address, port, securityContext,
           requireClientCertificate: requireClientCertificate,
@@ -118,10 +119,6 @@ class TransportServer {
     } else {
       serverSocket = await ServerSocket.bind(address, port, shared: false);
     }
-  }
-
-  InternetAddress get address {
-    return useTLS ? secureServerSocket.address : serverSocket.address;
   }
 
   Future<void> close() async {
@@ -176,5 +173,9 @@ class TransportServer {
 
   int get port {
     return useTLS ? secureServerSocket.port : serverSocket.port;
+  }
+
+  InternetAddress get address {
+    return useTLS ? secureServerSocket.address : serverSocket.address;
   }
 } //}}}

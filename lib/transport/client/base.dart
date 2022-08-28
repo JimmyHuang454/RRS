@@ -13,9 +13,6 @@ class TransportClient {
 
   late Socket socket;
   List<dynamic> streamSubscription = [];
-  // void Function(Uint8List event)? onData;
-  // Function? onError;
-  // void Function()? onDone;
 
   // TLS
   late bool useTLS;
@@ -24,6 +21,8 @@ class TransportClient {
   late List<String> supportedProtocols;
 
   late int connectionTimeout;
+  late Duration timeout;
+  late SecurityContext securityContext;
 
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
@@ -33,6 +32,8 @@ class TransportClient {
     supportedProtocols =
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
+    timeout = Duration(seconds: connectionTimeout);
+    securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
   }
 
   void load(s) {
@@ -40,16 +41,14 @@ class TransportClient {
   }
 
   Future<void> connect(host, int port) async {
-    var tempDuration = Duration(seconds: connectionTimeout);
     if (useTLS) {
-      var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
       socket = await SecureSocket.connect(host, port,
           context: securityContext,
           supportedProtocols: supportedProtocols,
           onBadCertificate: onBadCertificate,
-          timeout: tempDuration);
+          timeout: timeout);
     } else {
-      socket = await Socket.connect(host, port, timeout: tempDuration);
+      socket = await Socket.connect(host, port, timeout: timeout);
     }
     status = 'created';
   }
@@ -77,8 +76,10 @@ class TransportClient {
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = socket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: true);
+    var temp = socket.listen(onData, onError: onError, onDone: () async {
+      await clearListen();
+      onDone!();
+    }, cancelOnError: true);
 
     streamSubscription.add(temp);
   }
