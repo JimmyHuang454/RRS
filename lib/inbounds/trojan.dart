@@ -156,8 +156,8 @@ class TrojanIn extends InboundStruct {
   }
 
   @override
-  Future<ServerSocket> bind2() async {
-    var server = getServer()();
+  Future<void> bind2() async {
+    var server = getServer();
 
     await server.bind(inAddress, inPort);
 
@@ -169,6 +169,5 @@ class TrojanIn extends InboundStruct {
       } catch (_) {}
       totalClient -= 1;
     });
-    return server;
   }
 }

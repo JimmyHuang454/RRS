@@ -57,7 +57,7 @@ class HTTPOut extends OutboundStruct {
       var res = await w.next;
       await w.cancel();
       await streamController.close();
-      conn.transportClient.clearListen();
+      await conn.transportClient.clearListen();
 
       if (res != 1) {
         await conn.close();

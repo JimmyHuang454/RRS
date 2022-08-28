@@ -43,6 +43,11 @@ class WSClient extends TransportClient {
   }
 
   @override
+  void load(s) {
+    ws = s;
+  }
+
+  @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     var temp = ws.listen(
@@ -50,8 +55,8 @@ class WSClient extends TransportClient {
           onData!(data);
         },
         onError: onError,
-        onDone: () {
-          clearListen();
+        onDone: () async {
+          await clearListen();
           onDone!();
         },
         cancelOnError: true);
@@ -59,11 +64,9 @@ class WSClient extends TransportClient {
   }
 
   @override
-  Future close() {
-    return ws.close().then((value) {
-      clearListen();
-      return value;
-    });
+  Future close() async {
+    await clearListen();
+    return await ws.close();
   }
 
   @override

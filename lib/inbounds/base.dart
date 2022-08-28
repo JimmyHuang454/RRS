@@ -1,12 +1,11 @@
-import 'dart:io';
-
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/utils/utils.dart';
 
 class Link {
-  Socket client; // in
+  TransportClient client; // in
   late Connect server; // out
 
   late Uri targetUri; // if it's a HTTP request.
@@ -34,12 +33,13 @@ class Link {
 
   Future<void> closeAll() async {
     try {
-      await client.close();
+      await server.close();
     } catch (e) {
       // devPrint(e);
     }
+
     try {
-      await server.close();
+      await client.close();
     } catch (e) {
       // devPrint(e);
     }
@@ -78,24 +78,25 @@ class Link {
     try {
       print(
           "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${server.realOutAddress}:${server.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})");
+      print(
+          '${toMetric(outboundStruct.upLinkByte, 2)}B/${toMetric(outboundStruct.downLinkByte, 2)}B');
     } catch (e) {
       print(e);
     }
-    print('${toMetric(outboundStruct.upLinkByte, 2)}B/${toMetric(outboundStruct.downLinkByte, 2)}B');
 
     server.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      // await closeAll();
+      await closeAll();
     }, onError: (e) async {
-      // await closeAll();
+      await closeAll();
     });
 
-    server.done.then((value) async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
-    });
+    // server.done.then((value) async {
+    //   await closeAll();
+    // }, onError: (e) async {
+    //   await closeAll();
+    // });
     return true;
   }
 }
@@ -128,13 +129,13 @@ abstract class InboundStruct {
     }
   }
 
-  Future<ServerSocket> bind2();
+  Future<void> bind2();
 
-  TransportServer Function() getServer() {
+  TransportServer getServer() {
     if (!inStreamList.containsKey(inStream)) {
       throw "wrong inStream tag.";
     }
-    return inStreamList[inStream]!;
+    return inStreamList[inStream]!();
   }
 
   Future<OutboundStruct> doRoute(Link link) async {
