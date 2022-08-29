@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';

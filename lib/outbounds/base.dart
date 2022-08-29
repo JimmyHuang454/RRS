@@ -50,22 +50,22 @@ class Connect extends TransportClient {
 abstract class OutboundStruct {
   String protocolName;
   String protocolVersion;
-  late String tag;
-
-  int upLinkByte = 0;
-  int downLinkByte = 0;
-  late String outAddress;
-  late int outPort;
-  late String outStreamTag;
-
   Map<String, dynamic> config;
+
+  String tag = '';
+  String outStreamTag = '';
+  String outAddress = '';
+  int outPort = 0;
+
+  late String realOutAddress;
+  late int realOutPort;
 
   OutboundStruct(
       {required this.protocolName,
       required this.protocolVersion,
       required this.config}) {
-    tag = config['tag'];
-    outStreamTag = config['outStream'];
+    tag = getValue(config, 'tag', '');
+    outStreamTag = getValue(config, 'outStream', '');
     outAddress = getValue(config, 'setting.address', '');
     outPort = getValue(config, 'setting.port', 0);
   }
@@ -78,8 +78,10 @@ abstract class OutboundStruct {
   }
 
   Future<TransportClient> newConnect(Link l) async {
-    var temp = newClient();
-    await temp.connect(l.targetAddress.address, l.targetport);
+    realOutAddress = l.targetAddress.address;
+    realOutPort = l.targetport;
+    var temp = Connect(transportClient: newClient(), link: l);
+    await temp.connect(realOutAddress, realOutPort);
     return temp;
   }
 }

@@ -19,7 +19,7 @@ void main() {
     config['outbounds']['TrojanOut']['setting']['port'] = port2;
     entry(config);
 
-    var client = TCPClient(config: {'tag': 'test_client'});
+    var client = TCPClient(config: {});
     await client.connect(listen, port1);
 
     client.add('GET http://uif02.xyz/test HTTP/1.1\r\nHost: uif02.xyz\r\n\r\n'
@@ -32,6 +32,8 @@ void main() {
         // print(res);
       },
     );
+    await Future.delayed(Duration(seconds: 2));
+    await client.close();
     await Future.delayed(Duration(seconds: 2));
     expect(res.contains('Hello world'), true);
   });

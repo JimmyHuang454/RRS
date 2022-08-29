@@ -2,9 +2,7 @@ import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
 import 'package:proxy/obj_list.dart';
-import 'package:proxy/route/route.dart';
-
-import 'package:dns_client/dns_client.dart';
+import 'package:quiver/pattern.dart';
 
 void main() {
   test('route match', () async {
@@ -41,5 +39,48 @@ void main() {
     // var doh2 = DnsOverHttps('https://doh.pub/dns-query');
     // var record = await doh2.lookupHttps('tsinghua.edu.cn');
     // record = await doh2.lookupHttps('sgu.edu.cn');
+  });
+
+  test('regex', () async {
+    var re = RegExp('.baidu.com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('abaidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('.baiducom'), false);
+    expect(re.hasMatch('baidu1com'), false);
+    expect(re.hasMatch('.baidu1com'), true);
+    expect(re.hasMatch('.baidu1.com'), false);
+    expect(re.hasMatch('.baidu2com'), true);
+
+    re = RegExp('baidu.*com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('abaidu.com'), true);
+    expect(re.hasMatch('abaidu1com'), true);
+    expect(re.hasMatch('abaidu12com'), true);
+
+    re = RegExp('baidu.com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), true);
+
+    re = RegExp(r'baidu\.com');
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), false);
+    expect(re.hasMatch('2baidu1com'), false);
+
+    var res2 = escapeRegex('baidu.com');
+    re = RegExp(res2);
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), false);
+    expect(re.hasMatch('2baidu1com'), false);
+
+    res2 = escapeRegex('baidu.com');
+    re = RegExp(res2);
+    expect(re.hasMatch('www.baidu.com'), true);
+    expect(re.hasMatch('baiducom'), false);
+    expect(re.hasMatch('baidu1com'), false);
+    expect(re.hasMatch('2baidu1com'), false);
   });
 }

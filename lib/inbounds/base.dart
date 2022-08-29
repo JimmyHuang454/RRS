@@ -24,12 +24,14 @@ class Link {
   bool isBitcont = false;
   int timeout = 100;
   bool isValidRequest = false;
+  bool isClosedAll = false;
 
   InboundStruct inboundStruct;
   late OutboundStruct outboundStruct; // assign after routing.
 
   Stopwatch createdTime = Stopwatch()..start();
   Traffic traffic = Traffic();
+  String linkInfo = '';
 
   Link({required this.client, required this.inboundStruct});
 
@@ -54,9 +56,14 @@ class Link {
       // devPrint(e);
     }
     try {
-      devPrint(
-          '${targetAddress.address} closed [${toMetric(traffic.uplink, 2)}B/${toMetric(traffic.downlink, 2)}B]');
-    } catch (_) {}
+      if (!isClosedAll) {
+        devPrint(
+            'Closed: ${buildLinkInfo()} [${toMetric(traffic.uplink, 2)}B/${toMetric(traffic.downlink, 2)}B]');
+      }
+      isClosedAll = true;
+    } catch (e) {
+      devPrint(e);
+    }
   }
 
   void clientAdd(List<int> data) {
@@ -80,16 +87,15 @@ class Link {
     try {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
-      print(e);
+      devPrint(e);
       await closeAll();
       return false;
     }
 
     try {
-      print(
-          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${server.remoteAddress}:${server.remotePort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})");
+      devPrint('Created: ${buildLinkInfo()}');
     } catch (e) {
-      print(e);
+      devPrint(e);
     }
 
     server.listen((event) {
@@ -106,6 +112,14 @@ class Link {
       await closeAll();
     });
     return true;
+  }
+
+  String buildLinkInfo() {
+    if (linkInfo == '') {
+      linkInfo =
+          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})";
+    }
+    return linkInfo;
   }
 }
 

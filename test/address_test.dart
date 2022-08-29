@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:maxminddb/maxminddb.dart';
 import 'package:quiver/collection.dart';
-import 'package:quiver/pattern.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:test/test.dart';
 
@@ -36,48 +35,5 @@ void main() {
       expect(res == null, false);
       expect(res['country']['geoname_id'], 1814991);
     }
-  });
-
-  test('regex', () async {
-    var re = RegExp('.baidu.com');
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('abaidu.com'), true);
-    expect(re.hasMatch('baiducom'), false);
-    expect(re.hasMatch('.baiducom'), false);
-    expect(re.hasMatch('baidu1com'), false);
-    expect(re.hasMatch('.baidu1com'), true);
-    expect(re.hasMatch('.baidu1.com'), false);
-    expect(re.hasMatch('.baidu2com'), true);
-
-    re = RegExp('baidu.*com');
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('abaidu.com'), true);
-    expect(re.hasMatch('abaidu1com'), true);
-    expect(re.hasMatch('abaidu12com'), true);
-
-    re = RegExp('baidu.com');
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('baiducom'), false);
-    expect(re.hasMatch('baidu1com'), true);
-
-    re = RegExp(r'baidu\.com');
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('baiducom'), false);
-    expect(re.hasMatch('baidu1com'), false);
-    expect(re.hasMatch('2baidu1com'), false);
-
-    var res2 = escapeRegex('baidu.com');
-    re = RegExp(res2);
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('baiducom'), false);
-    expect(re.hasMatch('baidu1com'), false);
-    expect(re.hasMatch('2baidu1com'), false);
-
-    res2 = escapeRegex('baidu.com');
-    re = RegExp(res2);
-    expect(re.hasMatch('www.baidu.com'), true);
-    expect(re.hasMatch('baiducom'), false);
-    expect(re.hasMatch('baidu1com'), false);
-    expect(re.hasMatch('2baidu1com'), false);
   });
 }
