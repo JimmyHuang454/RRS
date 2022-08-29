@@ -117,9 +117,9 @@ class Link {
   String buildLinkInfo() {
     if (linkInfo == '') {
       linkInfo =
-          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}] (${createdTime.elapsed})";
+          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
     }
-    return linkInfo;
+    return '$linkInfo (${createdTime.elapsed})';
   }
 }
 

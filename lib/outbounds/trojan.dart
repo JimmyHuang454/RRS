@@ -20,6 +20,7 @@ class TrojanConnect extends Connect {
       {required super.transportClient,
       required this.passwordSha224,
       required super.link,
+      required super.outboundStruct,
       this.userIDSha224 = const []});
 
   List<int> _buildRequest() {
@@ -129,9 +130,9 @@ class TrojanOut extends OutboundStruct {
         transportClient: newClient(),
         userIDSha224: userIDSha224,
         link: l,
+        outboundStruct: this,
         passwordSha224: passwordSha224);
     await res.connect(realOutAddress, realOutPort);
     return res;
   }
 }
-

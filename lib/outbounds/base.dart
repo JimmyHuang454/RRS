@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
@@ -9,9 +10,13 @@ import 'package:proxy/obj_list.dart';
 
 class Connect extends TransportClient {
   TransportClient transportClient;
+  OutboundStruct outboundStruct;
   Link link;
 
-  Connect({required this.transportClient, required this.link})
+  Connect(
+      {required this.transportClient,
+      required this.link,
+      required this.outboundStruct})
       : super(protocolName: 'connecting', config: {});
 
   @override
@@ -22,6 +27,7 @@ class Connect extends TransportClient {
   @override
   void add(List<int> data) {
     transportClient.add(data);
+    outboundStruct.traffic.uplink += data.length;
     link.traffic.uplink += data.length;
   }
 
@@ -35,6 +41,7 @@ class Connect extends TransportClient {
       {Function? onError, void Function()? onDone}) {
     transportClient.listen((data) {
       link.traffic.downlink += data.length;
+      outboundStruct.traffic.downlink += data.length;
       onData!(data);
     }, onDone: onDone, onError: onError);
   }
@@ -56,6 +63,7 @@ abstract class OutboundStruct {
   String outStreamTag = '';
   String outAddress = '';
   int outPort = 0;
+  Traffic traffic = Traffic();
 
   late String realOutAddress;
   late int realOutPort;
@@ -80,7 +88,8 @@ abstract class OutboundStruct {
   Future<TransportClient> newConnect(Link l) async {
     realOutAddress = l.targetAddress.address;
     realOutPort = l.targetport;
-    var temp = Connect(transportClient: newClient(), link: l);
+    var temp =
+        Connect(transportClient: newClient(), link: l, outboundStruct: this);
     await temp.connect(realOutAddress, realOutPort);
     return temp;
   }
