@@ -36,5 +36,17 @@ void main() {
     await client.close();
     await Future.delayed(Duration(seconds: 2));
     expect(res.contains('Hello world'), true);
+
+    var client2 = TCPClient(config: {});
+    await client2.connect(listen, port1);
+    client2.add('GET http://baidu.com HTTP/1.1\r\n\r\n'.codeUnits);
+    var isClosed = false;
+    client2.listen((event) {
+      print(res);
+    }, onDone: () {
+      isClosed = true;
+    });
+    await Future.delayed(Duration(seconds: 2));
+    expect(isClosed, true);
   });
 }

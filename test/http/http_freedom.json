@@ -1,4 +1,3 @@
-// get proxy request from 127.0.0.1:5454 then transmit it to 127.0.0.1:5453 by http outbound.
 {
   "outStream": {
     "tcp": {
@@ -11,22 +10,22 @@
     }
   },
   "inbounds": {
-    "HTTPIn1": {
+    "HTTPIn": {
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
         "port": 5455
       },
-      "route": "httpout",
+      "route": "freedom",
       "inStream": "tcp"
     },
-    "HTTPIn2": {
+    "HTTPIn_block": {
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 5454
+        "port": 5457
       },
-      "route": "freedom",
+      "route": "block",
       "inStream": "tcp"
     }
   },
@@ -35,13 +34,8 @@
       "protocol": "freedom",
       "outStream": "tcp"
     },
-    "http_with_no_tls": {
-      "protocol": "http",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5454
-      },
-      "outStream": "tcp"
+    "block": {
+      "protocol": "block"
     }
   },
   "route": {
@@ -50,9 +44,9 @@
         "outbound": "freedom"
       }]
     },
-    "httpout": {
+    "block": {
       "rules": [{
-        "outbound": "http_with_no_tls"
+        "outbound": "block"
       }]
     }
   }

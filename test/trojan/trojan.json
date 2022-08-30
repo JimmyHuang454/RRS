@@ -38,6 +38,9 @@
       "protocol": "freedom",
       "outStream": "tcp"
     },
+    "block": {
+      "protocol": "block"
+    },
     "TrojanOut": {
       "protocol": "trojan",
       "setting": {
@@ -51,6 +54,9 @@
   "route": {
     "freedom": {
       "rules": [{
+        "domain": ["baidu.com"],
+        "outbound": "block"
+      }, {
         "outbound": "freedom"
       }]
     },

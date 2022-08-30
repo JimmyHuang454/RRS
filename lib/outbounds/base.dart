@@ -65,8 +65,8 @@ abstract class OutboundStruct {
   int outPort = 0;
   Traffic traffic = Traffic();
 
-  late String realOutAddress;
-  late int realOutPort;
+  String realOutAddress = '';
+  int realOutPort = 0;
 
   OutboundStruct(
       {required this.protocolName,
@@ -76,6 +76,9 @@ abstract class OutboundStruct {
     outStreamTag = getValue(config, 'outStream', '');
     outAddress = getValue(config, 'setting.address', '');
     outPort = getValue(config, 'setting.port', 0);
+
+    realOutAddress = outAddress;
+    realOutPort = outPort;
   }
 
   TransportClient newClient() {

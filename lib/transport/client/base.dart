@@ -78,7 +78,9 @@ class TransportClient {
       {Function? onError, void Function()? onDone}) {
     var temp = socket.listen(onData, onError: onError, onDone: () async {
       await clearListen();
-      onDone!();
+      if (onDone != null) {
+        onDone();
+      }
     }, cancelOnError: true);
 
     streamSubscription.add(temp);
