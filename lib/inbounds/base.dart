@@ -55,10 +55,13 @@ class Link {
     } catch (e) {
       // devPrint(e);
     }
+
     try {
       if (!isClosedAll) {
         devPrint(
             'Closed: ${buildLinkInfo()} [${toMetric(traffic.uplink, 2)}B/${toMetric(traffic.downlink, 2)}B]');
+        devPrint(
+            '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B]');
       }
       isClosedAll = true;
     } catch (e) {

@@ -69,19 +69,15 @@ class TransportClient {
   }
 
   Future close() async {
-    await clearListen();
     status = 'closed';
-    return await socket.close();
+    await socket.close();
+    await clearListen();
   }
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = socket.listen(onData, onError: onError, onDone: () async {
-      await clearListen();
-      if (onDone != null) {
-        onDone();
-      }
-    }, cancelOnError: true);
+    var temp = socket.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: true);
 
     streamSubscription.add(temp);
   }

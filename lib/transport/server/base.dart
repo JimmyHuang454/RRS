@@ -122,8 +122,6 @@ class TransportServer {
   }
 
   Future<void> close() async {
-    await clearListen();
-
     if (useTLS) {
       await secureServerSocket.close();
     } else {
@@ -142,31 +140,17 @@ class TransportServer {
       {Function? onError, void Function()? onDone}) {
     dynamic res;
     if (useTLS) {
-      res = secureServerSocket.listen(
-          (client) {
-            var temp = TCPClient(config: {});
-            temp.load(client);
-            onData!(temp);
-          },
-          onError: onError,
-          onDone: () async {
-            await clearListen();
-            onDone!();
-          },
-          cancelOnError: true);
+      res = secureServerSocket.listen((client) {
+        var temp = TCPClient(config: {});
+        temp.load(client);
+        onData!(temp);
+      }, onError: onError, onDone: onDone, cancelOnError: true);
     } else {
-      res = serverSocket.listen(
-          (client) {
-            var temp = TCPClient(config: {});
-            temp.load(client);
-            onData!(temp);
-          },
-          onError: onError,
-          onDone: () async {
-            await clearListen();
-            onDone!();
-          },
-          cancelOnError: true);
+      res = serverSocket.listen((client) {
+        var temp = TCPClient(config: {});
+        temp.load(client);
+        onData!(temp);
+      }, onError: onError, onDone: onDone, cancelOnError: true);
     }
     streamSubscription.add(res);
   }
