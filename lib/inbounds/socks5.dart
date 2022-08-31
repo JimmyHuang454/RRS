@@ -22,11 +22,13 @@ class Socks5Request extends Link {
     client.listen((data) async {
       if (!isAuth) {
         auth(data);
-        await parseDST([]);
+        await parseRequest([]);
       } else if (!isParseDST) {
-        await parseDST(data);
-      } else {
+        await parseRequest(data);
+      } else if (streamType == 'TCP') {
         serverAdd(data);
+      } else {
+        handleUDP(data);
       }
     }, onError: (e) async {
       await closeAll();
@@ -37,24 +39,70 @@ class Socks5Request extends Link {
 
   Future<void> handleCMD() async {
     //{{{
-    if (cmd == 1) {}
-
-    if (!await bindServer()) {
-      return;
+    if (cmd == 1) {
+      // CONNECTING
+      var isConnectedServer = await bindServer();
+      int rep = isConnectedServer ? 0 : 1;
+      var res = [5, rep, 0];
+      res.add(1); // ipv4
+      res += server.remoteAddress.rawAddress;
+      res += Uint8List(2)
+        ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
+      clientAdd(res);
+      isValidRequest = true;
+    } else if (cmd == 3) {
+      // UDP
+      streamType = 'UDP';
+    } else if (cmd == 2) {
+      // BIND
+      // TODO
     }
-
-    int rep = 0;
-    var res = [5, rep, 0];
-    // res.add(server.remoteAddress.address.codeUnits.length);
-    res.add(1); // ipv4
-    res += server.remoteAddress.rawAddress;
-    res += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
-    clientAdd(res);
-    isValidRequest = true;
   } //}}}
 
-  Future<void> parseDST(List<int> data) async {
+  Future<int> parseAddress(List<int> data)  async{
+    //{{{
+    if (data.length < 5) {
+      return -1;
+    }
+
+    int addressEnd = 4;
+    var atyp = data[3];
+    bool isDomain = false;
+
+    if (atyp == 1) {
+      addressEnd += 4;
+    } else if (atyp == 3) {
+      addressEnd += data[4] + 1;
+      isDomain = true;
+    } else if (atyp == 4) {
+      addressEnd += 16;
+    } else {
+      await closeAll();
+      return -1;
+    }
+
+    var addressAndPortLength = addressEnd + 2;
+    if (data.length < addressAndPortLength) {
+      return -1;
+    }
+
+    if (isDomain) {
+      targetAddress =
+          Address.fromRawAddress(data.sublist(5, addressEnd), 'domain');
+    } else {
+      targetAddress =
+          Address.fromRawAddress(data.sublist(4, addressEnd), 'ip');
+    }
+
+    Uint8List byteList =
+        Uint8List.fromList(data.sublist(addressEnd, addressAndPortLength));
+    ByteData byteData = ByteData.sublistView(byteList);
+    targetport = byteData.getUint16(0, Endian.big);
+
+    return addressAndPortLength;
+  } //}}}
+
+  Future<void> parseRequest(List<int> data) async {
     //{{{
     content += data;
     if (content.length < 5) {
@@ -67,48 +115,23 @@ class Socks5Request extends Link {
     }
     cmd = content[1];
 
-    int addressEnd = 4;
-    var atyp = content[3];
-    bool isDomain = false;
-
-    if (atyp == 1) {
-      addressEnd += 4;
-    } else if (atyp == 3) {
-      addressEnd += content[4] + 1;
-      isDomain = true;
-    } else if (atyp == 4) {
-      addressEnd += 16;
-    } else {
-      await closeAll();
+    var addressAndPortLength = await parseAddress(content);
+    if (addressAndPortLength == -1) {
       return;
     }
-
-    var addressAndPortLength = addressEnd + 2;
-    if (content.length < addressAndPortLength) {
-      return;
-    }
-
-    if (isDomain) {
-      targetAddress =
-          Address.fromRawAddress(content.sublist(5, addressEnd), 'domain');
-    } else {
-      targetAddress =
-          Address.fromRawAddress(content.sublist(4, addressEnd), 'ip');
-    }
-
-    Uint8List byteList =
-        Uint8List.fromList(content.sublist(addressEnd, addressAndPortLength));
-    ByteData byteData = ByteData.sublistView(byteList);
-    targetport = byteData.getUint16(0, Endian.big);
 
     content = content.sublist(addressAndPortLength);
     await handleCMD();
-
-    if (content.isNotEmpty) {
-      serverAdd(content);
-    }
-    content = [];
     isParseDST = true;
+
+    if (streamType == 'TCP') {
+      if (content.isNotEmpty) {
+        serverAdd(content);
+      }
+      content = [];
+    } else {
+      handleUDP([]);
+    }
   } //}}}
 
   Future<void> auth(List<int> data) async {
@@ -138,6 +161,22 @@ class Socks5Request extends Link {
     content = content.sublist(authLength);
   } //}}}
 
+  Future<void> handleUDP(List<int> data) async {
+    //{{{
+    content += data;
+
+    var addressAndPortLength = await parseAddress(content);
+    if (addressAndPortLength == -1) {
+      return;
+    }
+
+    var frag = content[2];
+    var atyp = content[3];
+
+    content = content.sublist(addressAndPortLength);
+
+    serverAdd(content);
+  } //}}}
 }
 
 class Socks5In extends InboundStruct {
