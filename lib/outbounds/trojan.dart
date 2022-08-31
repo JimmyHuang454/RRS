@@ -14,7 +14,7 @@ class TrojanConnect extends Connect {
   List<int> userIDSha224;
 
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
-  bool isSendHeader = false;
+  bool isSendHeader = true;
 
   TrojanConnect(
       {required super.transportClient,
@@ -53,14 +53,40 @@ class TrojanConnect extends Connect {
     return res;
   } //}}}
 
+  List<int> _buildUDPHeade(int payloadLen) {
+    //{{{
+    List<int> request = [];
+
+    if (link.targetAddress.type == 'domain') {
+      request.add(3);
+      request.add(link.targetAddress.rawAddress.lengthInBytes);
+    } else if (link.targetAddress.type == 'ipv4') {
+      request.add(1);
+    } else {
+      request.add(4);
+    }
+    request += link.targetAddress.rawAddress;
+    request += Uint8List(2)
+      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
+
+    request += Uint8List(2)
+      ..buffer.asByteData().setInt16(0, payloadLen, Endian.big);
+    var res = request + crlf;
+    return res;
+  } //}}}
+
   @override
   void add(List<int> data) {
-    if (isSendHeader) {
-      super.add(data);
-    } else {
-      super.add(_buildRequest() + data);
-      isSendHeader = true;
+    if (link.streamType == 'UDP') {
+      data = _buildUDPHeade(data.length) + data;
     }
+
+    if (isSendHeader) {
+      data = _buildRequest() + data;
+      isSendHeader = false;
+    }
+
+    super.add(data);
   }
 }
 

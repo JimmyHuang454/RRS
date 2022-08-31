@@ -170,8 +170,8 @@ class Socks5Request extends Link {
       return;
     }
 
-    var frag = content[2];
-    var atyp = content[3];
+    // var frag = content[2];
+    // var atyp = content[3];
 
     content = content.sublist(addressAndPortLength);
 
