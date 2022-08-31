@@ -11,6 +11,9 @@ class WSClient extends TransportClient {
   late WebSocket ws;
   late Map<String, String> header;
 
+  String outAddress = '';
+  int outPort = 0;
+
   WSClient({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
     // header = getValue(config, 'setting.header', {});
@@ -19,20 +22,15 @@ class WSClient extends TransportClient {
 
   @override
   Future<void> connect(host, int port) async {
-    // var securityContext = SecurityContext(withTrustedRoots: useSystemRoot);
-    // var client = HttpClient(context: securityContext);
+    outAddress = host;
+    outPort = port;
+
     var address = '';
     if (port == 443 || port == 80) {
       address = '$host/$path';
     } else {
       address = '$host:$port/$path';
     }
-    // client.badCertificateCallback = (cert, host, port) {
-    //   return super.onBadCertificate(cert);
-    // };
-    // var tempDuration = Duration(seconds: connectionTimeout);
-    // client.connectionTimeout = tempDuration;
-    // client.userAgent = userAgent;
 
     if (useTLS) {
       address = 'wss://$address';
@@ -70,8 +68,8 @@ class WSClient extends TransportClient {
   Future get done => ws.done;
 
   @override
-  InternetAddress get remoteAddress => InternetAddress('127.0.0.1');
+  InternetAddress get remoteAddress => InternetAddress(outAddress);
 
   @override
-  int get remotePort => 1;
+  int get remotePort => outPort;
 }

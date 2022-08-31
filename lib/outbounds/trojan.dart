@@ -53,7 +53,7 @@ class TrojanConnect extends Connect {
     return res;
   } //}}}
 
-  List<int> _buildUDPHeade(int payloadLen) {
+  List<int> _buildUDPHead(int payloadLen) {
     //{{{
     List<int> request = [];
 
@@ -78,7 +78,7 @@ class TrojanConnect extends Connect {
   @override
   void add(List<int> data) {
     if (link.streamType == 'UDP') {
-      data = _buildUDPHeade(data.length) + data;
+      data = _buildUDPHead(data.length) + data;
     }
 
     if (isSendHeader) {

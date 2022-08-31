@@ -18,23 +18,15 @@ class WSServerClient extends TransportClient {
 
   @override
   Future<void> close() async {
-    await clearListen();
     await ws.close();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = ws.listen(
-        (data) {
-          onData!(data as Uint8List);
-        },
-        onError: onError,
-        onDone: () async {
-          await clearListen();
-          onDone!();
-        },
-        cancelOnError: true);
+    var temp = ws.listen((data) {
+      onData!(data as Uint8List);
+    }, onError: onError, onDone: onDone, cancelOnError: true);
 
     streamSubscription.add(temp);
   }
@@ -61,25 +53,17 @@ class WSServer extends TransportServer {
 
   @override
   Future<void> close() async {
-    await clearListen();
     await httpServer.close(force: true);
   }
 
   @override
   void listen(void Function(TransportClient event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var l = httpServer.listen(
-        (httpClient) async {
-          onData!(WSServerClient(
-              ws: await WebSocketTransformer.upgrade(httpClient),
-              httpServer: httpServer));
-        },
-        onError: onError,
-        onDone: () async {
-          await clearListen();
-          onDone!();
-        },
-        cancelOnError: true);
+    var l = httpServer.listen((httpClient) async {
+      onData!(WSServerClient(
+          ws: await WebSocketTransformer.upgrade(httpClient),
+          httpServer: httpServer));
+    }, onError: onError, onDone: onDone, cancelOnError: true);
     streamSubscription.add(l);
   }
 
