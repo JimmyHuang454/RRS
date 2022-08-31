@@ -43,13 +43,15 @@ class Socks5Request extends Link {
       // CONNECTING
       var isConnectedServer = await bindServer();
       int rep = isConnectedServer ? 0 : 1;
-      var res = [5, rep, 0];
-      res.add(1); // ipv4
-      res += server.remoteAddress.rawAddress;
-      res += Uint8List(2)
-        ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
+      var res = [5, rep, 0, 1, 0, 0, 0, 0, 0, 0];
+      // res.add(1); // ipv4
+      // res += Uint8List(2)
+      //   ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
       clientAdd(res);
       isValidRequest = true;
+      if (!isConnectedServer) {
+        await closeAll();
+      }
     } else if (cmd == 3) {
       // UDP
       streamType = 'UDP';
@@ -59,7 +61,7 @@ class Socks5Request extends Link {
     }
   } //}}}
 
-  Future<int> parseAddress(List<int> data)  async{
+  Future<int> parseAddress(List<int> data) async {
     //{{{
     if (data.length < 5) {
       return -1;
@@ -90,8 +92,7 @@ class Socks5Request extends Link {
       targetAddress =
           Address.fromRawAddress(data.sublist(5, addressEnd), 'domain');
     } else {
-      targetAddress =
-          Address.fromRawAddress(data.sublist(4, addressEnd), 'ip');
+      targetAddress = Address.fromRawAddress(data.sublist(4, addressEnd), 'ip');
     }
 
     Uint8List byteList =
