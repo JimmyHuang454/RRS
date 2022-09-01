@@ -109,18 +109,13 @@ class Link {
       await closeAll();
     });
 
-    server.done.then((value) async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
-    });
     return true;
   }
 
   String buildLinkInfo() {
     if (linkInfo == '') {
       linkInfo =
-          "{${client.remoteAddress.address}:${client.remotePort}} [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

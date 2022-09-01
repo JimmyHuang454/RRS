@@ -51,6 +51,16 @@ class WSClient extends TransportClient {
     var temp = ws.listen((data) {
       onData!(data);
     }, onError: onError, onDone: onDone, cancelOnError: true);
+
+    ws.done.then((value) {
+      if (onDone != null) {
+        onDone();
+      }
+    }, onError: (e) {
+      if (onError != null) {
+        onError(e);
+      }
+    });
     streamSubscription.add(temp);
   }
 
@@ -63,13 +73,4 @@ class WSClient extends TransportClient {
   void add(List<int> data) {
     ws.add(data);
   }
-
-  @override
-  Future get done => ws.done;
-
-  @override
-  InternetAddress get remoteAddress => InternetAddress(outAddress);
-
-  @override
-  int get remotePort => outPort;
 }

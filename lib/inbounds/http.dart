@@ -100,12 +100,7 @@ class HTTPIn extends InboundStruct {
     await server.bind(inAddress, inPort);
 
     server.listen((client) async {
-      totalClient += 1;
       HTTPRequest(client: client, inboundStruct: this);
-      try {
-        await client.done;
-      } catch (_) {}
-      totalClient -= 1;
     });
   }
 }

@@ -96,12 +96,18 @@ class TransportClient {
     var temp = socket.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: true);
 
+    socket.done.then((value) {
+      if (onDone != null) {
+        onDone();
+      }
+    }, onError: (e) {
+      if (onError != null) {
+        onError(e);
+      }
+    });
+
     streamSubscription.add(temp);
   }
-
-  Future get done => socket.done;
-  InternetAddress get remoteAddress => socket.remoteAddress;
-  int get remotePort => socket.remotePort;
 } //}}}
 
 class RawtransportClientMux extends TransportClient {
@@ -213,41 +219,6 @@ class RawtransportClientMux extends TransportClient {
   }
 } //}}}
 
-class TransportClientMux extends TransportClient {
-  //{{{
-  TransportClient Function() newTransportClient;
-  late TransportClient transportClient;
-
-  TransportClientMux({required this.newTransportClient})
-      : super(protocolName: '', config: {}) {
-    if (isMux) {
-      transportClient = RawtransportClientMux(
-          config: config,
-          protocolName: protocolName,
-          newTransportClient: newTransportClient);
-    } else {
-      transportClient = newTransportClient();
-    }
-  }
-
-  @override
-  Future<void> connect(host, int port) async =>
-      await transportClient.connect(host, port);
-
-  @override
-  void add(List<int> data) {
-    if (isMux) {
-    } else {}
-  }
-
-  @override
-  void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
-    if (isMux) {
-    } else {}
-  }
-} //}}}
-
 class Connect extends TransportClient {
   //{{{
   TransportClient transportClient;
@@ -314,13 +285,4 @@ class Connect extends TransportClient {
       streamSubscription.add(temp);
     }
   }
-
-  @override
-  Future get done => transportClient.done;
-
-  @override
-  InternetAddress get remoteAddress => transportClient.remoteAddress;
-
-  @override
-  int get remotePort => transportClient.remotePort;
 } //}}}

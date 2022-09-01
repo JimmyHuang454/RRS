@@ -162,12 +162,7 @@ class TrojanIn extends InboundStruct {
     await server.bind(inAddress, inPort);
 
     server.listen((client) async {
-      totalClient += 1;
       TrojanRequest(client: client, inboundStruct: this, pwdSHA224: pwdSHA224);
-      try {
-        await client.done;
-      } catch (_) {}
-      totalClient -= 1;
     });
   }
 }
