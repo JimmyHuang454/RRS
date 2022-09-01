@@ -1,5 +1,13 @@
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
+
+class FreedomConnect extends Connect {
+  FreedomConnect(
+      {required super.transportClient,
+      required super.link,
+      required super.outboundStruct});
+}
 
 class FreedomOut extends OutboundStruct {
   String outStrategy = 'default'; // OS default.

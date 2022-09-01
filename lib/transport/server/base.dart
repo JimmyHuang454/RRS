@@ -106,7 +106,7 @@ class TransportServer {
     requireClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
-    securityContext = SecurityContext(withTrustedRoots: useTLS);
+    // securityContext = SecurityContext(withTrustedRoots: useTLS);
   }
 
   Future<void> bind(address, int port) async {
