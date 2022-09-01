@@ -4,6 +4,22 @@ import 'dart:typed_data';
 
 import 'package:proxy/utils/utils.dart';
 
+Map<String, MuxInfo> mux = {};
+
+class MuxInfo {
+  int linkID = 0;
+  int currentLinkID = 0;
+  int currentLen = 0;
+  int addedLen = 0;
+  TransportClient transportClient;
+  bool isListened = false;
+  Map<int, TransportClientMux> transportClientMuxList = {};
+
+  List<int> content = [];
+
+  MuxInfo({required this.transportClient});
+}
+
 class TransportClient {
   //{{{
   String status = 'init';
@@ -86,3 +102,68 @@ class TransportClient {
   InternetAddress get remoteAddress => socket.remoteAddress;
   int get remotePort => socket.remotePort;
 } //}}}
+
+class TransportClientMux extends TransportClient {
+  late MuxInfo muxInfo;
+  TransportClient Function() newTransportClient;
+  bool isListened = false;
+
+  late void Function(Uint8List event) onData;
+  late Function onError;
+  late void Function() onDone;
+
+  TransportClientMux(
+      {required super.config,
+      required super.protocolName,
+      required this.newTransportClient});
+
+  @override
+  Future<void> connect(host, int port) async {
+    String dst = host + port;
+    if (!mux.containsKey(dst)) {
+      var temp = newTransportClient();
+      mux[dst] = MuxInfo(transportClient: temp);
+      await temp.connect(host, port);
+    }
+    muxInfo = mux[dst]!;
+    muxInfo.linkID += 1;
+  }
+
+  @override
+  void add(List<int> data) {
+    if (data.isEmpty) {
+      return;
+    }
+    var temp = [muxInfo.linkID];
+    temp += Uint8List(8)
+      ..buffer.asByteData().setUint64(0, data.length, Endian.big);
+    muxInfo.transportClient.add(temp + data);
+  }
+
+  @override
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    onData = onData;
+    onError = onError;
+    onDone = onDone;
+    isListened = true;
+    if (!muxInfo.isListened) {
+      muxInfo.transportClient.listen(
+        (event) {
+          muxInfo.content += event;
+          if (muxInfo.content.length < 9) {
+            return;
+          }
+          if (muxInfo.currentLinkID == 0) {
+            muxInfo.currentLinkID = muxInfo.content[0];
+          }
+
+          Uint8List byteList =
+              Uint8List.fromList(muxInfo.content.sublist(1, 9));
+          ByteData byteData = ByteData.sublistView(byteList);
+          muxInfo.currentLen = byteData.getUint64(0, Endian.big);
+        },
+      );
+    }
+  }
+}
