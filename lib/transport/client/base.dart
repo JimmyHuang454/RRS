@@ -6,20 +6,7 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
-
-class MuxInfo {
-  int id = 0;
-  int currentThreadID = 0;
-  int currentLen = 0;
-  int addedLen = 0;
-  bool isListened = false;
-  dynamic socket;
-  Map<int, RRSSocketMux> usingList = {};
-
-  MuxInfo({required this.socket});
-
-  List<int> content = [];
-}
+import 'package:proxy/transport/mux.dart';
 
 class RRSSocket {
   //{{{
@@ -75,11 +62,14 @@ class RRSSocket {
 class RRSSocketMux extends RRSSocket {
   //{{{
   int threadID;
+  MuxInfo muxInfo;
+
   void Function(Uint8List event)? onData2;
   Function? onError2;
   void Function()? onDone2;
 
-  RRSSocketMux({required super.socket, required this.threadID});
+  RRSSocketMux(
+      {required super.socket, required this.threadID, required this.muxInfo});
 
   @override
   void add(List<int> data) {
@@ -152,6 +142,51 @@ class TransportClient1 {
 
   bool onBadCertificate(X509Certificate certificate) {
     return allowInsecure;
+  }
+} //}}}
+
+class TransportClient2 extends TransportClient1 {
+  //{{{
+  Map<String, List<MuxInfo>> mux = {};
+
+  late int maxThread;
+
+  TransportClient2({required super.protocolName, required super.config}) {
+    maxThread = getValue(config, 'mux.maxThread', 8);
+  }
+
+  @override
+  Future<RRSSocket> connect(host, int port) async {
+    if (!super.isMux) {
+      return await super.connect(host, port);
+    }
+
+    String dst = host + ":" + port.toString();
+    late MuxInfo muxInfo;
+    var isAssigned = false;
+
+    if (!mux.containsKey(dst)) {
+      mux[dst] = [];
+    }
+
+    for (var i = 0, len = mux[dst]!.length; i < len; ++i) {
+      if (mux[dst]![i].usingList.length < maxThread) {
+        muxInfo = mux[dst]![i];
+        isAssigned = true;
+        break;
+      }
+    }
+
+    if (!isAssigned) {
+      muxInfo = MuxInfo(socket: await super.connect(host, port));
+      mux[dst]!.add(muxInfo);
+    }
+
+    muxInfo.id += 1;
+    var temp = RRSSocketMux(
+        socket: muxInfo.socket, threadID: muxInfo.id, muxInfo: muxInfo);
+    muxInfo.usingList[muxInfo.id] = temp;
+    return temp;
   }
 } //}}}
 
@@ -240,46 +275,6 @@ class TransportClient {
     });
 
     streamSubscription.add(temp);
-  }
-} //}}}
-
-class TransportClient2 extends TransportClient1 {
-  //{{{
-  Map<String, List<MuxInfo>> mux = {};
-
-  int maxThread = 8;
-
-  TransportClient2({required super.protocolName, required super.config}) {
-    maxThread = getValue(config, 'mux.maxThread', 8);
-  }
-
-  @override
-  Future<RRSSocket> connect(host, int port) async {
-    if (!super.isMux) {
-      return await super.connect(host, port);
-    }
-
-    String dst = host + port;
-
-    late MuxInfo muxInfo;
-    var isAssigned = false;
-    if (mux.containsKey(dst)) {
-      for (var i = 0, len = mux[dst]!.length; i < len; ++i) {
-        if (mux[dst]![i].usingList.length < maxThread) {
-          muxInfo = mux[dst]![i];
-          isAssigned = true;
-          break;
-        }
-      }
-    }
-
-    if (!isAssigned) {
-      muxInfo = MuxInfo(socket: await super.connect(host, port));
-      mux[dst]!.add(muxInfo);
-    }
-
-    muxInfo.id += 1;
-    return RRSSocketMux(socket: muxInfo.socket, threadID: muxInfo.id);
   }
 } //}}}
 
