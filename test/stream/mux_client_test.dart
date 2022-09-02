@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:proxy/transport/mux.dart';
 import 'package:test/test.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/server/tcp.dart';
@@ -10,9 +11,7 @@ void main() {
   test('tcp mux', () async {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
-    var client = TCPClient2(config: {
-      'mux': {'enabled': true}
-    });
+    var client = MuxClient(transportClient1: TCPClient2(config: {}));
     var server = TCPServer(config: {});
 
     var msg = '1';

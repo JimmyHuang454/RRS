@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:proxy/transport/mux.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -156,36 +157,5 @@ class TransportServer1 {
     }
 
     return RRSServerSocket(serverSocket: serverSocket);
-  }
-} //}}}
-
-class RRSServerSocketMux extends RRSServerSocket {
-  //{{{
-  RRSServerSocketMux({required super.serverSocket});
-
-  @override
-  void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
-    var temp = serverSocket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: true);
-
-    streamSubscription.add(temp);
-  }
-} //}}}
-
-class TransportServer2 extends TransportServer1 {
-  //{{{
-  TransportServer2({
-    required super.protocolName,
-    required super.config,
-  });
-
-  @override
-  Future<RRSServerSocket> bind(address, int port) async {
-    var res = await super.bind(address, port);
-    if (!isMux) {
-      return res;
-    }
-    return RRSServerSocket(serverSocket: res);
   }
 } //}}}
