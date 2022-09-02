@@ -4,82 +4,6 @@ import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 
-abstract class TransportServer2 extends Stream<Socket> implements ServerSocket {
-  //{{{
-  String protocolName;
-  late ServerSocket serverSocket;
-  late SecureServerSocket secureServerSocket;
-  late String tag;
-  Map<String, dynamic> config;
-
-  // TLS
-  late bool useTLS;
-  late bool requireClientCertificate;
-  late List<String> supportedProtocols;
-
-  TransportServer2({
-    required this.protocolName,
-    required this.config,
-  }) {
-    tag = config['tag'];
-    useTLS = getValue(config, 'tls.enabled', false);
-    requireClientCertificate =
-        getValue(config, 'tls.requireClientCertificate', true);
-    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
-  }
-
-  Future<ServerSocket> bind(address, int port) {
-    if (useTLS) {
-      var securityContext = SecurityContext(withTrustedRoots: useTLS);
-      return SecureServerSocket.bind(address, port, securityContext,
-              requireClientCertificate: requireClientCertificate,
-              supportedProtocols: supportedProtocols,
-              shared: false)
-          .then((value) {
-        secureServerSocket = value;
-        return this;
-      });
-    }
-    return ServerSocket.bind(address, port, shared: false).then((value) {
-      serverSocket = value;
-      return serverSocket;
-    });
-  }
-
-  @override
-  InternetAddress get address {
-    return useTLS ? secureServerSocket.address : serverSocket.address;
-  }
-
-  @override
-  Future<ServerSocket> close() {
-    if (useTLS) {
-      return secureServerSocket.close().then(
-        (value) {
-          return this;
-        },
-      );
-    }
-    return serverSocket.close();
-  }
-
-  @override
-  StreamSubscription<Socket> listen(void Function(Socket event)? onData,
-      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    if (useTLS) {
-      return secureServerSocket.listen(onData,
-          onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-    }
-    return serverSocket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-
-  @override
-  int get port {
-    return useTLS ? secureServerSocket.port : serverSocket.port;
-  }
-} //}}}
-
 class TransportServer {
   //{{{
   String protocolName;
@@ -161,5 +85,107 @@ class TransportServer {
 
   InternetAddress get address {
     return useTLS ? secureServerSocket.address : serverSocket.address;
+  }
+} //}}}
+
+class RRSServerSocket {
+  //{{{
+  dynamic serverSocket;
+  List<dynamic> streamSubscription = [];
+  bool isClosed = false;
+
+  RRSServerSocket({required this.serverSocket});
+
+  Future<void> close() async {
+    await serverSocket.close();
+    await clearListen();
+    isClosed = true;
+  }
+
+  Future<void> clearListen() async {
+    for (var i = 0, len = streamSubscription.length; i < len; ++i) {
+      await streamSubscription[i].cancel();
+    }
+    streamSubscription = [];
+  }
+
+  void listen(void Function(RRSSocket event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    var temp = serverSocket.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: true);
+
+    streamSubscription.add(temp);
+  }
+} //}}}
+
+class TransportServer1 {
+  //{{{
+  String protocolName;
+  String tag = '';
+  Map<String, dynamic> config;
+
+  late bool useTLS;
+  late bool requireClientCertificate;
+  late List<String> supportedProtocols;
+  late SecurityContext securityContext;
+
+  late bool isMux;
+
+  TransportServer1({
+    required this.protocolName,
+    required this.config,
+  }) {
+    tag = getValue(config, 'tag', '');
+    useTLS = getValue(config, 'tls.enabled', false);
+    requireClientCertificate =
+        getValue(config, 'tls.requireClientCertificate', true);
+    supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
+    // securityContext = SecurityContext(withTrustedRoots: useTLS);
+
+    isMux = getValue(config, 'mux.enabled', false);
+  }
+
+  Future<RRSServerSocket> bind(address, int port) async {
+    dynamic serverSocket;
+    if (useTLS) {
+      serverSocket = await SecureServerSocket.bind(
+          address, port, securityContext,
+          shared: false);
+    } else {
+      serverSocket = await ServerSocket.bind(address, port, shared: false);
+    }
+
+    return RRSServerSocket(serverSocket: serverSocket);
+  }
+} //}}}
+
+class RRSServerSocketMux extends RRSServerSocket {
+  //{{{
+  RRSServerSocketMux({required super.serverSocket});
+
+  @override
+  void listen(void Function(RRSSocket event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    var temp = serverSocket.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: true);
+
+    streamSubscription.add(temp);
+  }
+} //}}}
+
+class TransportServer2 extends TransportServer1 {
+  //{{{
+  TransportServer2({
+    required super.protocolName,
+    required super.config,
+  });
+
+  @override
+  Future<RRSServerSocket> bind(address, int port) async {
+    var res = await super.bind(address, port);
+    if (!isMux) {
+      return res;
+    }
+    return RRSServerSocket(serverSocket: res);
   }
 } //}}}

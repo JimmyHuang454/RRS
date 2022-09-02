@@ -40,3 +40,29 @@ class WSServer extends TransportServer {
     return httpServer.address;
   }
 }
+
+class WSRRSServerScoket extends RRSServerSocket {
+  WSRRSServerScoket({super.serverSocket});
+
+  @override
+  void listen(void Function(RRSSocket event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    var temp = serverSocket.listen((httpClient) async {
+      onData!(
+          RRSSocket(socket: await WebSocketTransformer.upgrade(httpClient)));
+    }, onError: onError, onDone: onDone, cancelOnError: true);
+    streamSubscription.add(temp);
+  }
+}
+
+class WSServer1 extends TransportServer1 {
+  WSServer1({required super.config}) : super(protocolName: 'ws');
+
+  late HttpServer httpServer;
+
+  @override
+  Future<RRSServerSocket> bind(address, int port) async {
+    httpServer = await HttpServer.bind(address, port);
+    return WSRRSServerScoket(serverSocket: httpServer);
+  }
+}
