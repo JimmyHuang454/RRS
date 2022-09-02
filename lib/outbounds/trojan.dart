@@ -152,6 +152,8 @@ class TrojanOut extends OutboundStruct {
   @override
   Future<TransportClient> newConnect(Link l) async {
     await handleBalance(); // init realOutAddress and realOutPort.
+    RawtransportClientMux(
+        config: {}, protocolName: '', newTransportClient: newClient);
     var res = TrojanConnect(
         transportClient: newClient(),
         userIDSha224: userIDSha224,
