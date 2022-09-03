@@ -75,7 +75,7 @@ class WSClient extends TransportClient {
   }
 }
 
-class WSClient2 extends TransportClient2 {
+class WSClient2 extends TransportClient1 {
   late String path;
   late String userAgent;
   late WebSocket ws;

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:proxy/transport/mux.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -99,7 +98,7 @@ class RRSServerSocket {
 
   Future<void> close() async {
     await serverSocket.close();
-    await clearListen();
+    // await clearListen();
     isClosed = true;
   }
 
@@ -112,8 +111,9 @@ class RRSServerSocket {
 
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = serverSocket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: true);
+    var temp = serverSocket.listen((client) {
+      onData!(RRSSocket(socket: client));
+    }, onError: onError, onDone: onDone, cancelOnError: true);
 
     streamSubscription.add(temp);
   }

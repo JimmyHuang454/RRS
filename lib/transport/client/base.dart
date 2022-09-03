@@ -31,7 +31,7 @@ class RRSSocket {
 
   Future close() async {
     await socket.close();
-    await clearListen();
+    // await clearListen();
     isClosed = true;
   }
 

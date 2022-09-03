@@ -4,28 +4,73 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/server/base.dart';
 
 class MuxInfo {
+  //{{{
   int id = 0;
   int currentThreadID = 0;
+
   int currentLen = 0;
   int addedLen = 0;
-  bool isListened = false;
+
   RRSSocket rrsSocket;
+  void Function(RRSSocket rrsSocket)? newConnection;
   Map<int, RRSSocketMux> usingList = {};
-
-  MuxInfo({required this.rrsSocket});
-
   List<int> content = [];
-}
 
-class ServerMuxInfo {
-  bool isListened = false;
-  RRSServerSocket rrsServerSocket;
-  Map<int, RRSServerSocketMux> usingList = {};
+  MuxInfo({required this.rrsSocket}) {
+    rrsSocket.listen(
+      (event) async {
+        content += event;
+        if (content.length < 9) {
+          return;
+        }
 
-  ServerMuxInfo({required this.rrsServerSocket});
+        RRSSocketMux dstSocket;
+        if (currentThreadID == 0) {
+          var inThreadID = content[0];
+          currentThreadID = inThreadID;
+          if (!usingList.containsKey(inThreadID)) {
+            var temp = RRSSocketMux(threadID: inThreadID, muxInfo: this);
+            usingList[inThreadID] = temp;
+            newConnection!(temp);
+          }
+          dstSocket = usingList[inThreadID]!;
 
-  List<int> content = [];
-}
+          Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
+          ByteData byteData = ByteData.sublistView(byteList);
+          currentLen = byteData.getUint64(0, Endian.big);
+          addedLen = 0;
+
+          content = content.sublist(9);
+        } else {
+          dstSocket = usingList[currentThreadID]!;
+        }
+
+        if (currentLen == 0) {
+          close(currentThreadID);
+        } else {
+          dstSocket.onData2!(Uint8List.fromList(content));
+        }
+
+        addedLen += content.length;
+        content = [];
+        if (addedLen == currentLen) {
+          currentThreadID = 0;
+        }
+      },
+    );
+  }
+
+  void close(int inThreadID) {
+    if (!usingList.containsKey(inThreadID)) {
+      return;
+    }
+    RRSSocketMux dstSocket;
+    dstSocket = usingList[inThreadID]!;
+    dstSocket.onDone2!();
+
+    usingList.remove(inThreadID);
+  }
+} //}}}
 
 class RRSSocketMux extends RRSSocket {
   //{{{
@@ -36,12 +81,8 @@ class RRSSocketMux extends RRSSocket {
   Function? onError2;
   void Function()? onDone2;
 
-  RRSSocketMux(
-      {required super.socket, required this.threadID, required this.muxInfo});
-
-  RRSSocketMux getByThreadID(int threadID) {
-    return muxInfo.usingList[threadID]!;
-  }
+  RRSSocketMux({required this.threadID, required this.muxInfo})
+      : super(socket: muxInfo.rrsSocket.socket) ;
 
   @override
   void add(List<int> data) {
@@ -49,7 +90,7 @@ class RRSSocketMux extends RRSSocket {
     temp += Uint8List(8)
       ..buffer.asByteData().setUint64(0, data.length, Endian.big);
     temp += data;
-    socket.add(temp);
+    super.add(temp);
   }
 
   @override
@@ -64,48 +105,6 @@ class RRSSocketMux extends RRSSocket {
     onData2 = onData;
     onDone2 = onDone;
     onError2 = onError2;
-    if (muxInfo.isListened) {
-      return;
-    }
-    muxInfo.isListened = true;
-
-    muxInfo.rrsSocket.listen(
-      (event) async {
-        muxInfo.content += event;
-        if (muxInfo.content.length < 9) {
-          return;
-        }
-
-        RRSSocketMux dstSocket;
-        if (muxInfo.currentThreadID == 0) {
-          var inThreadID = muxInfo.content[0];
-          muxInfo.currentThreadID = inThreadID;
-          dstSocket = muxInfo.usingList[inThreadID]!;
-
-          Uint8List byteList =
-              Uint8List.fromList(muxInfo.content.sublist(1, 9));
-          ByteData byteData = ByteData.sublistView(byteList);
-          muxInfo.currentLen = byteData.getUint64(0, Endian.big);
-          muxInfo.addedLen = 0;
-
-          muxInfo.content = muxInfo.content.sublist(9);
-        } else {
-          dstSocket = muxInfo.usingList[muxInfo.currentThreadID]!;
-        }
-
-        if (muxInfo.currentLen == 0) {
-          dstSocket.onDone2!();
-        } else {
-          dstSocket.onData2!(Uint8List.fromList(muxInfo.content));
-        }
-
-        muxInfo.addedLen += muxInfo.content.length;
-        muxInfo.content = [];
-        if (muxInfo.addedLen == muxInfo.currentLen) {
-          muxInfo.currentThreadID = 0;
-        }
-      },
-    );
   }
 } //}}}
 
@@ -144,8 +143,7 @@ class MuxClient {
     }
 
     muxInfo.id += 1;
-    var temp = RRSSocketMux(
-        socket: muxInfo.rrsSocket, threadID: muxInfo.id, muxInfo: muxInfo);
+    var temp = RRSSocketMux(threadID: muxInfo.id, muxInfo: muxInfo);
     muxInfo.usingList[muxInfo.id] = temp;
     return temp;
   }
@@ -154,12 +152,15 @@ class MuxClient {
 class RRSServerSocketMux extends RRSServerSocket {
   //{{{
   RRSServerSocketMux({required super.serverSocket});
+  // List<MuxInfo> mux = [];
 
   @override
-  void listen(void Function(RRSSocket event)? onData,
+  void listen(void Function(RRSSocket rrsSocket)? onData,
       {Function? onError, void Function()? onDone}) {
-    super.listen((event) {
-      onData!(event);
+    super.listen((rrsSocket) {
+      var muxInfo = MuxInfo(rrsSocket: rrsSocket);
+      muxInfo.newConnection = onData;
+      // mux.add(muxInfo);
     }, onError: onError, onDone: onDone);
   }
 } //}}}
@@ -177,6 +178,6 @@ class MuxServer {
     if (!transportServer1.isMux) {
       return res;
     }
-    return RRSServerSocket(serverSocket: res);
+    return RRSServerSocketMux(serverSocket: res.serverSocket);
   }
 } //}}}
