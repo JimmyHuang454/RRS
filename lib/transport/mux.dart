@@ -78,7 +78,7 @@ class RRSSocketMux extends RRSSocket {
   int threadID;
   MuxInfo muxInfo;
 
-  late RRSSocket _rrsSocket;
+  late RRSSocket rrsSocket;
 
   void Function(Uint8List event)? onData2;
   Function? onError2;
@@ -86,7 +86,7 @@ class RRSSocketMux extends RRSSocket {
 
   RRSSocketMux({required this.threadID, required this.muxInfo})
       : super(socket: muxInfo.rrsSocket.socket) {
-    _rrsSocket = muxInfo.rrsSocket;
+    rrsSocket = muxInfo.rrsSocket;
   }
 
   @override
@@ -95,13 +95,13 @@ class RRSSocketMux extends RRSSocket {
     temp += Uint8List(8)
       ..buffer.asByteData().setUint64(0, data.length, Endian.big);
     temp += data;
-    _rrsSocket.add(temp);
+    rrsSocket.add(temp);
   }
 
   @override
   Future close() async {
     add([]);
-    await _rrsSocket.close();
+    await rrsSocket.close();
   }
 
   @override
@@ -113,20 +113,20 @@ class RRSSocketMux extends RRSSocket {
   }
 
   @override
-  bool get isClosed => _rrsSocket.isClosed;
+  bool get isClosed => rrsSocket.isClosed;
 
   @override
-  dynamic get socket => _rrsSocket.socket;
+  dynamic get socket => rrsSocket.socket;
 
   @override
-  List get streamSubscription => _rrsSocket.streamSubscription;
+  List get streamSubscription => rrsSocket.streamSubscription;
 
   @override
-  Traffic get traffic => _rrsSocket.traffic;
+  Traffic get traffic => rrsSocket.traffic;
 
   @override
   Future<void> clearListen() async {
-    await _rrsSocket.clearListen();
+    await rrsSocket.clearListen();
   }
 } //}}}
 

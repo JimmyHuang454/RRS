@@ -31,7 +31,7 @@ class RRSSocket {
 
   Future close() async {
     await socket.close();
-    // await clearListen();
+    await clearListen();
     isClosed = true;
   }
 
@@ -43,11 +43,11 @@ class RRSSocket {
     }, onError: onError, onDone: onDone, cancelOnError: true);
 
     try {
-      socket.done.then((value) {
+      socket.done.then((value) async {
         if (onDone != null) {
           onDone();
         }
-      }, onError: (e) {
+      }, onError: (e) async {
         if (onError != null) {
           onError(e);
         }

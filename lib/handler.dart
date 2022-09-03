@@ -21,6 +21,8 @@ import 'package:proxy/route/route.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
 
+import 'transport/mux.dart';
+
 TransportClient1 _buildOutStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
@@ -31,11 +33,11 @@ TransportClient1 _buildOutStream(Map<String, dynamic> config) {
   return TCPClient2(config: config);
 } //}}}
 
-TransportClient1 buildOutStream(
+MuxClient buildOutStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = _buildOutStream(config);
+  var res = MuxClient(transportClient1: _buildOutStream(config));
   outStreamList[tag] = res;
   return res;
 } //}}}

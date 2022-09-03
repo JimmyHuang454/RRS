@@ -1,10 +1,11 @@
 import 'package:proxy/transport/server/base.dart';
-import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/route.dart';
 
-Map<String, TransportClient1> outStreamList = {};
+import 'transport/mux.dart';
+
+Map<String, MuxClient> outStreamList = {};
 Map<String, TransportServer Function()> inStreamList = {};
 
 Map<String, OutboundStruct> outboundsList = {};

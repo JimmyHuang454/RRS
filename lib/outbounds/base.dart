@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:proxy/transport/mux.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -33,7 +34,7 @@ abstract class OutboundStruct {
     realOutPort = outPort;
   }
 
-  TransportClient1 newClient() {
+  MuxClient newClient() {
     if (!outStreamList.containsKey(outStreamTag)) {
       throw "wrong outStreamTag.";
     }
