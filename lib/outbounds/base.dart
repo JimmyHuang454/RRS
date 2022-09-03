@@ -33,19 +33,20 @@ abstract class OutboundStruct {
     realOutPort = outPort;
   }
 
-  TransportClient newClient() {
+  TransportClient1 newClient() {
     if (!outStreamList.containsKey(outStreamTag)) {
       throw "wrong outStreamTag.";
     }
-    return outStreamList[outStreamTag]!();
+    return outStreamList[outStreamTag]!;
   }
 
-  Future<TransportClient> newConnect(Link l) async {
+  Future<RRSSocket> newConnect(Link l) async {
     realOutAddress = l.targetAddress.address;
     realOutPort = l.targetport;
-    var temp =
-        Connect(transportClient: newClient(), link: l, outboundStruct: this);
-    await temp.connect(realOutAddress, realOutPort);
-    return temp;
+    var temp = newClient();
+    return Connect2(
+        rrsSocket: await temp.connect(realOutAddress, realOutPort),
+        link: l,
+        outboundStruct: this);
   }
 }

@@ -2,12 +2,11 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
-import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
 class Link {
   TransportClient client; // in
-  late TransportClient server; // out
+  late RRSSocket server; // out
 
   late Uri targetUri; // if it's a HTTP request.
   String method = 'GET';
@@ -30,7 +29,6 @@ class Link {
   late OutboundStruct outboundStruct; // assign after routing.
 
   Stopwatch createdTime = Stopwatch()..start();
-  Traffic traffic = Traffic();
   String linkInfo = '';
 
   Link({required this.client, required this.inboundStruct});
@@ -59,7 +57,7 @@ class Link {
     try {
       if (!isClosedAll) {
         devPrint(
-            'Closed: ${buildLinkInfo()} [${toMetric(traffic.uplink, 2)}B/${toMetric(traffic.downlink, 2)}B]');
+            'Closed: ${buildLinkInfo()} [${toMetric(server.traffic.uplink, 2)}B/${toMetric(server.traffic.downlink, 2)}B]');
         devPrint(
             '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B]');
       }

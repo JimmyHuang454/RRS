@@ -9,7 +9,7 @@ import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 
-class TrojanConnect extends Connect {
+class TrojanConnect extends Connect2 {
   List<int> passwordSha224;
   List<int> userIDSha224;
 
@@ -17,9 +17,9 @@ class TrojanConnect extends Connect {
   bool isSendHeader = true;
 
   TrojanConnect(
-      {required super.transportClient,
-      required this.passwordSha224,
+      {required this.passwordSha224,
       required super.link,
+      required super.rrsSocket,
       required super.outboundStruct,
       this.userIDSha224 = const []});
 
@@ -150,15 +150,15 @@ class TrojanOut extends OutboundStruct {
   } //}}}
 
   @override
-  Future<TransportClient> newConnect(Link l) async {
+  Future<RRSSocket> newConnect(Link l) async {
     await handleBalance(); // init realOutAddress and realOutPort.
+    var temp = await newClient().connect(realOutAddress, realOutPort);
     var res = TrojanConnect(
-        transportClient: newClient(),
+        rrsSocket: temp,
         userIDSha224: userIDSha224,
         link: l,
         outboundStruct: this,
         passwordSha224: passwordSha224);
-    await res.connect(realOutAddress, realOutPort);
     return res;
   }
 }

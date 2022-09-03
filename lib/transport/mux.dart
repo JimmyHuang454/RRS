@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/user.dart';
 
 class MuxInfo {
   //{{{
@@ -77,12 +78,16 @@ class RRSSocketMux extends RRSSocket {
   int threadID;
   MuxInfo muxInfo;
 
+  late RRSSocket _rrsSocket;
+
   void Function(Uint8List event)? onData2;
   Function? onError2;
   void Function()? onDone2;
 
   RRSSocketMux({required this.threadID, required this.muxInfo})
-      : super(socket: muxInfo.rrsSocket.socket) ;
+      : super(socket: muxInfo.rrsSocket.socket) {
+    _rrsSocket = muxInfo.rrsSocket;
+  }
 
   @override
   void add(List<int> data) {
@@ -90,13 +95,13 @@ class RRSSocketMux extends RRSSocket {
     temp += Uint8List(8)
       ..buffer.asByteData().setUint64(0, data.length, Endian.big);
     temp += data;
-    super.add(temp);
+    _rrsSocket.add(temp);
   }
 
   @override
   Future close() async {
     add([]);
-    await super.close();
+    await _rrsSocket.close();
   }
 
   @override
@@ -105,6 +110,23 @@ class RRSSocketMux extends RRSSocket {
     onData2 = onData;
     onDone2 = onDone;
     onError2 = onError2;
+  }
+
+  @override
+  bool get isClosed => _rrsSocket.isClosed;
+
+  @override
+  dynamic get socket => _rrsSocket.socket;
+
+  @override
+  List get streamSubscription => _rrsSocket.streamSubscription;
+
+  @override
+  Traffic get traffic => _rrsSocket.traffic;
+
+  @override
+  Future<void> clearListen() async {
+    await _rrsSocket.clearListen();
   }
 } //}}}
 
@@ -151,8 +173,10 @@ class MuxClient {
 
 class RRSServerSocketMux extends RRSServerSocket {
   //{{{
-  RRSServerSocketMux({required super.serverSocket});
-  // List<MuxInfo> mux = [];
+  late RRSServerSocket rrsServerSocket;
+
+  RRSServerSocketMux({required this.rrsServerSocket})
+      : super(serverSocket: rrsServerSocket.serverSocket);
 
   @override
   void listen(void Function(RRSSocket rrsSocket)? onData,
@@ -160,8 +184,23 @@ class RRSServerSocketMux extends RRSServerSocket {
     super.listen((rrsSocket) {
       var muxInfo = MuxInfo(rrsSocket: rrsSocket);
       muxInfo.newConnection = onData;
-      // mux.add(muxInfo);
     }, onError: onError, onDone: onDone);
+  }
+
+  @override
+  bool get isClosed => rrsServerSocket.isClosed;
+
+  @override
+  List get streamSubscription => rrsServerSocket.streamSubscription;
+
+  @override
+  Future<void> clearListen() async {
+    await rrsServerSocket.clearListen();
+  }
+
+  @override
+  Future<void> close() async {
+    await rrsServerSocket.close();
   }
 } //}}}
 
@@ -178,6 +217,6 @@ class MuxServer {
     if (!transportServer1.isMux) {
       return res;
     }
-    return RRSServerSocketMux(serverSocket: res.serverSocket);
+    return RRSServerSocketMux(rrsServerSocket: res);
   }
 } //}}}

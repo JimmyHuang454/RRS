@@ -9,7 +9,7 @@ class BlockOut extends OutboundStruct {
       : super(protocolName: 'block', protocolVersion: '1');
 
   @override
-  Future<TransportClient> newConnect(Link l) async {
+  Future<RRSSocket> newConnect(Link l) async {
     throw 'block this.';
   }
 }

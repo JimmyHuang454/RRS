@@ -21,17 +21,17 @@ import 'package:proxy/route/route.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
 
-TransportClient Function() _buildOutStream(Map<String, dynamic> config) {
+TransportClient1 _buildOutStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
 
   if (protocol == 'ws') {
-    return () => WSClient(config: config);
+    return WSClient2(config: config);
   }
-  return () => TCPClient(config: config);
+  return TCPClient2(config: config);
 } //}}}
 
-TransportClient Function() buildOutStream(
+TransportClient1 buildOutStream(
     String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;

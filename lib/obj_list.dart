@@ -4,7 +4,7 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/route.dart';
 
-Map<String, TransportClient Function()> outStreamList = {};
+Map<String, TransportClient1> outStreamList = {};
 Map<String, TransportServer Function()> inStreamList = {};
 
 Map<String, OutboundStruct> outboundsList = {};

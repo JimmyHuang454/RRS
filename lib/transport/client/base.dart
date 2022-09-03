@@ -200,70 +200,50 @@ class TransportClient {
   }
 } //}}}
 
-class Connect extends TransportClient {
+class Connect2 extends RRSSocket {
   //{{{
-  TransportClient transportClient;
+  RRSSocket rrsSocket;
   OutboundStruct outboundStruct;
   Link link;
-  late RawDatagramSocket udpClient;
 
-  Connect(
-      {required this.transportClient,
+  Connect2(
+      {required this.rrsSocket,
       required this.link,
       required this.outboundStruct})
-      : super(protocolName: 'connecting', config: {});
+      : super(socket: rrsSocket.socket);
 
   @override
-  Future<void> connect(host, int port) async {
-    if (link.streamType == 'TCP') {
-      await transportClient.connect(host, port);
-    } else {
-      udpClient = await RawDatagramSocket.bind(host, port);
-    }
+  bool get isClosed => rrsSocket.isClosed;
+
+  @override
+  dynamic get socket => rrsSocket.socket;
+
+  @override
+  List get streamSubscription => rrsSocket.streamSubscription;
+
+  @override
+  Traffic get traffic => rrsSocket.traffic;
+
+  @override
+  Future<void> clearListen() async {
+    await rrsSocket.clearListen();
   }
 
   @override
   void add(List<int> data) {
-    if (link.streamType == 'TCP') {
-      transportClient.add(data);
-    } else {
-      udpClient.send(
-          data, InternetAddress(link.targetAddress.address), link.targetport);
-    }
-    outboundStruct.traffic.uplink += data.length;
-    link.traffic.uplink += data.length;
+    rrsSocket.add(data);
   }
 
   @override
   Future close() async {
-    if (link.streamType == 'TCP') {
-      await transportClient.close();
-    } else {
-      udpClient.close();
-    }
+    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
+    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
+    await rrsSocket.close();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    if (link.streamType == 'TCP') {
-      transportClient.listen((data) {
-        link.traffic.downlink += data.length;
-        outboundStruct.traffic.downlink += data.length;
-        onData!(data);
-      }, onDone: onDone, onError: onError);
-    } else {
-      var temp = udpClient.listen((event) {
-        Datagram? d = udpClient.receive();
-        if (d == null) {
-          return;
-        }
-        var data = d.data;
-        link.traffic.downlink += data.length;
-        outboundStruct.traffic.downlink += data.length;
-        onData!(data);
-      }, onError: onError, onDone: onDone, cancelOnError: true);
-      streamSubscription.add(temp);
-    }
+    rrsSocket.listen(onData, onError: onError, onDone: onDone);
   }
 } //}}}
