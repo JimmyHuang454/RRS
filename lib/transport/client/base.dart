@@ -43,14 +43,16 @@ class RRSSocket {
     }, onError: onError, onDone: onDone, cancelOnError: true);
 
     try {
-      socket.done.then((value) async {
+      socket.done.then((value) {
         if (onDone != null) {
           onDone();
         }
-      }, onError: (e) async {
+        isClosed = true;
+      }, onError: (e) {
         if (onError != null) {
           onError(e);
         }
+        isClosed = true;
       });
     } catch (_) {}
 
@@ -78,6 +80,7 @@ class TransportClient1 {
   late SecurityContext securityContext;
   late bool isMux;
   late int maxThread;
+  late int maxIdle;
 
   TransportClient1({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
@@ -89,6 +92,7 @@ class TransportClient1 {
 
     isMux = getValue(config, 'mux.enabled', false);
     maxThread = getValue(config, 'mux.maxThread', 8);
+    maxIdle = getValue(config, 'mux.maxIdle', 8);
 
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);

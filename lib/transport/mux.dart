@@ -6,6 +6,8 @@ import 'package:proxy/user.dart';
 
 class MuxInfo {
   //{{{
+  int muxInfoID;
+
   int id = 0;
   int currentThreadID = 0;
 
@@ -17,59 +19,80 @@ class MuxInfo {
   Map<int, RRSSocketMux> usingList = {};
   List<int> content = [];
 
-  MuxInfo({required this.rrsSocket}) {
-    rrsSocket.listen(
-      (event) async {
-        content += event;
-        if (content.length < 9) {
-          return;
+  MuxInfo({required this.rrsSocket, required this.muxInfoID}) {
+    rrsSocket.listen((event) async {
+      content += event;
+      if (content.length < 9) {
+        return;
+      }
+
+      RRSSocketMux dstSocket;
+      if (currentThreadID == 0) {
+        var inThreadID = content[0];
+        currentThreadID = inThreadID;
+        if (!usingList.containsKey(inThreadID)) {
+          var temp = RRSSocketMux(threadID: inThreadID, muxInfo: this);
+          usingList[inThreadID] = temp;
+          newConnection!(temp);
         }
+        dstSocket = usingList[inThreadID]!;
 
-        RRSSocketMux dstSocket;
-        if (currentThreadID == 0) {
-          var inThreadID = content[0];
-          currentThreadID = inThreadID;
-          if (!usingList.containsKey(inThreadID)) {
-            var temp = RRSSocketMux(threadID: inThreadID, muxInfo: this);
-            usingList[inThreadID] = temp;
-            newConnection!(temp);
-          }
-          dstSocket = usingList[inThreadID]!;
+        Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
+        ByteData byteData = ByteData.sublistView(byteList);
+        currentLen = byteData.getUint64(0, Endian.big);
+        addedLen = 0;
 
-          Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
-          ByteData byteData = ByteData.sublistView(byteList);
-          currentLen = byteData.getUint64(0, Endian.big);
-          addedLen = 0;
+        content = content.sublist(9);
+      } else {
+        dstSocket = usingList[currentThreadID]!;
+      }
 
-          content = content.sublist(9);
-        } else {
-          dstSocket = usingList[currentThreadID]!;
-        }
+      if (currentLen == 0) {
+        await close(currentThreadID);
+      } else {
+        dstSocket.onData2!(Uint8List.fromList(content));
+      }
 
-        if (currentLen == 0) {
-          close(currentThreadID);
-        } else {
-          dstSocket.onData2!(Uint8List.fromList(content));
-        }
+      addedLen += content.length;
+      content = [];
+      if (addedLen == currentLen) {
+        currentThreadID = 0;
+      }
+    }, onDone: () async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
+    });
+  }
 
-        addedLen += content.length;
-        content = [];
-        if (addedLen == currentLen) {
-          currentThreadID = 0;
-        }
+  Future<void> closeAll() async {
+    usingList.forEach(
+      (key, value) async {
+        await close(key);
       },
     );
   }
 
-  void close(int inThreadID) {
+  Future<void> close(int inThreadID) async {
     if (!usingList.containsKey(inThreadID)) {
       return;
     }
     RRSSocketMux dstSocket;
     dstSocket = usingList[inThreadID]!;
-    dstSocket.onDone2!();
+
+    if (dstSocket.onDone2 != null) {
+      dstSocket.onDone2!();
+    }
 
     usingList.remove(inThreadID);
+
+    if (usingList.isEmpty) {
+      try {
+        await rrsSocket.close();
+      } catch (e) {
+        print(e);
+      }
+    }
   }
 } //}}}
 
@@ -100,16 +123,16 @@ class RRSSocketMux extends RRSSocket {
 
   @override
   Future close() async {
-    add([]);
-    await rrsSocket.close();
+    add([]); // send a empty datagram.
+    muxInfo.close(threadID);
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     onData2 = onData;
-    onDone2 = onDone;
     onError2 = onError2;
+    onDone2 = onDone;
   }
 
   @override
@@ -132,11 +155,31 @@ class RRSSocketMux extends RRSSocket {
 
 class MuxClient {
   //{{{
-  Map<String, List<MuxInfo>> mux = {};
+  Map<String, Map<int, MuxInfo>> mux = {};
+
+  int muxInfoID = 0;
 
   TransportClient1 transportClient1;
 
   MuxClient({required this.transportClient1});
+
+  void clearEmpty() {
+    mux.forEach(
+      (dst, value) {
+        value.removeWhere(
+          (key, value) {
+            return value.usingList.isEmpty;
+          },
+        );
+      },
+    );
+
+    mux.removeWhere(
+      (key, value) {
+        return value.isEmpty;
+      },
+    );
+  }
 
   Future<RRSSocket> connect(host, int port) async {
     if (!transportClient1.isMux) {
@@ -145,23 +188,31 @@ class MuxClient {
 
     String dst = host + ":" + port.toString();
     late MuxInfo muxInfo;
+
     var isAssigned = false;
 
-    if (!mux.containsKey(dst)) {
-      mux[dst] = [];
-    }
+    clearEmpty();
 
-    for (var i = 0, len = mux[dst]!.length; i < len; ++i) {
-      if (mux[dst]![i].usingList.length < transportClient1.maxThread) {
-        muxInfo = mux[dst]![i];
-        isAssigned = true;
-        break;
-      }
+    if (mux.containsKey(dst)) {
+      mux[dst]!.forEach(
+        (key, value) {
+          if (value.usingList.length < transportClient1.maxThread) {
+            muxInfo = value;
+            isAssigned = true;
+            return;
+          }
+        },
+      );
+    } else {
+      mux[dst] = {};
     }
 
     if (!isAssigned) {
-      muxInfo = MuxInfo(rrsSocket: await transportClient1.connect(host, port));
-      mux[dst]!.add(muxInfo);
+      muxInfoID += 1;
+      muxInfo = MuxInfo(
+          rrsSocket: await transportClient1.connect(host, port),
+          muxInfoID: muxInfoID);
+      mux[dst]![muxInfoID] = muxInfo;
     }
 
     muxInfo.id += 1;
@@ -182,7 +233,7 @@ class RRSServerSocketMux extends RRSServerSocket {
   void listen(void Function(RRSSocket rrsSocket)? onData,
       {Function? onError, void Function()? onDone}) {
     super.listen((rrsSocket) {
-      var muxInfo = MuxInfo(rrsSocket: rrsSocket);
+      var muxInfo = MuxInfo(rrsSocket: rrsSocket, muxInfoID: 0);
       muxInfo.newConnection = onData;
     }, onError: onError, onDone: onDone);
   }

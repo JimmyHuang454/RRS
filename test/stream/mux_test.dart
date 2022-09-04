@@ -24,7 +24,7 @@ void main() {
     server.listen((inClient) {
       inClient.listen((event) {
         expect(utf8.decode(event), msg);
-        isRecieve = true;
+        inClient.add(event);
       }, onDone: () async {
         clientClosed = true;
       });
@@ -33,6 +33,13 @@ void main() {
     });
 
     var rrssocket = await client.connect(host, port);
+
+    rrssocket.listen(
+      (event) {
+        expect(listsEqual(event, msg.codeUnits), true);
+        isRecieve = true;
+      },
+    );
 
     rrssocket.add(msg.codeUnits);
 
@@ -71,7 +78,7 @@ void main() {
     server.listen((inClient) {
       inClient.listen((event) {
         expect(utf8.decode(event), msg);
-        isRecieve = true;
+        inClient.add(event);
       }, onDone: () async {
         clientClosed = true;
       });
@@ -81,10 +88,15 @@ void main() {
 
     server2.listen((inClient) {
       inClient.listen((event) {
-        var temp = [1, 0, 0, 0, 0, 0, 0, 0, 1];
-        temp += msg.codeUnits;
-        expect(listsEqual(temp, event), true);
-        isRecieve2 = true;
+        if (isRecieve2) {
+          var temp = [1, 0, 0, 0, 0, 0, 0, 0, 0];
+          expect(listsEqual(temp, event), true);
+        } else {
+          var temp = [1, 0, 0, 0, 0, 0, 0, 0, 1];
+          temp += msg.codeUnits;
+          expect(listsEqual(temp, event), true);
+          isRecieve2 = true;
+        }
       }, onDone: () async {
         clientClosed2 = true;
       });
@@ -95,19 +107,51 @@ void main() {
     var rrssocket = await client.connect(host, port);
     rrssocket.add(msg.codeUnits);
 
+    rrssocket.listen(
+      (event) {
+        expect(listsEqual(event, msg.codeUnits), true);
+        isRecieve = true;
+      },
+    );
+
     var rrssocket2 = await client.connect(host, port2);
     rrssocket2.add(msg.codeUnits);
 
     await Future.delayed(Duration(seconds: 2));
 
+    expect(client.mux.length, 2);
+    client.mux.forEach(
+      (key, value) {
+        expect(value.length, 1);
+      },
+    );
+
     await rrssocket.close();
+    client.clearEmpty();
+    expect(client.mux.length, 1);
+    client.mux.forEach(
+      (key, value) {
+        expect(value.length, 1);
+        value.forEach(
+          (key2, value2) {
+            expect(value2.usingList.length, 1);
+          },
+        );
+      },
+    );
+
     await server.close();
+
+    await rrssocket2.close();
+    client.clearEmpty();
+    expect(client.mux.length, 0);
+
     await Future.delayed(Duration(seconds: 2));
     expect(clientClosed, true);
     expect(serverClosed, true);
     expect(isRecieve, true);
 
-    expect(clientClosed2, false); // TODO
+    expect(clientClosed2, true);
     expect(serverClosed2, false);
     expect(isRecieve2, true);
   });
