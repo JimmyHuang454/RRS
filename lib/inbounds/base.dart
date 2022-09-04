@@ -6,7 +6,7 @@ import 'package:proxy/utils/utils.dart';
 
 class Link {
   TransportClient client; // in
-  late RRSSocket server; // out
+  RRSSocket? server; // out
 
   late Uri targetUri; // if it's a HTTP request.
   String method = 'GET';
@@ -34,6 +34,10 @@ class Link {
   Link({required this.client, required this.inboundStruct});
 
   Future<void> closeClient() async {
+    if (server != null) {
+      await server!.clearListen();
+    }
+
     try {
       await client.close();
     } catch (e) {
@@ -42,39 +46,20 @@ class Link {
   }
 
   Future<void> closeServer() async {
-    try {
-      await server.close();
-    } catch (e) {
-      // devPrint(e);
+    await client.clearListen();
+
+    if (server != null) {
+      try {
+        await server!.close();
+      } catch (e) {
+        // devPrint(e);
+      }
     }
   }
 
   Future<void> closeAll() async {
-    try {
-      await server.clearListen();
-    } catch (_) {}
-
-    try {
-      await client.clearListen();
-    } catch (_) {}
-
-    try {
-      await server.close();
-    } catch (e) {
-      // devPrint(e);
-    }
-
-    try {
-      await client.close();
-    } catch (e) {
-      // devPrint(e);
-    }
-
-    try {
-      isClosedAll = true;
-    } catch (e) {
-      devPrint(e);
-    }
+    await closeServer();
+    await closeClient();
   }
 
   void clientAdd(List<int> data) {
@@ -87,7 +72,7 @@ class Link {
 
   void serverAdd(List<int> data) {
     try {
-      server.add(data);
+      server!.add(data);
     } catch (e) {
       devPrint(e);
     }
@@ -98,7 +83,6 @@ class Link {
     try {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
-      devPrint(e);
       await closeAll();
       return false;
     }
@@ -109,17 +93,17 @@ class Link {
       devPrint(e);
     }
 
-    server.listen((event) {
+    server!.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      await client.close();
+      await closeAll();
     }, onError: (e) async {
-      await client.close();
+      await closeAll();
     });
 
-    server.done.then((e) {
+    server!.done.then((e) {
       devPrint(
-          'Closed: ${buildLinkInfo()} [${toMetric(server.traffic.uplink, 2)}B/${toMetric(server.traffic.downlink, 2)}B]');
+          'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
       devPrint(
           '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B]');
     });
