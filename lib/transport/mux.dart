@@ -151,6 +151,9 @@ class RRSSocketMux extends RRSSocket {
   Future<void> clearListen() async {
     await rrsSocket.clearListen();
   }
+
+  @override
+  Future<dynamic> get done => rrsSocket.done;
 } //}}}
 
 class MuxClient {

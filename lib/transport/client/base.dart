@@ -31,7 +31,6 @@ class RRSSocket {
 
   Future close() async {
     await socket.close();
-    await clearListen();
     isClosed = true;
   }
 
@@ -42,22 +41,16 @@ class RRSSocket {
       traffic.downlink += (data as Uint8List).length;
     }, onError: onError, onDone: onDone, cancelOnError: true);
 
-    try {
-      socket.done.then((value) {
-        if (onDone != null) {
-          onDone();
-        }
-        isClosed = true;
-      }, onError: (e) {
-        if (onError != null) {
-          onError(e);
-        }
-        isClosed = true;
-      });
-    } catch (_) {}
+    socket.done.then((value) async {
+      await clearListen();
+    }, onError: (e) async {
+      await clearListen();
+    });
 
     streamSubscription.add(temp);
   }
+
+  Future<dynamic> get done => socket.done;
 } //}}}
 
 class TransportClient1 {
@@ -250,4 +243,7 @@ class Connect2 extends RRSSocket {
       {Function? onError, void Function()? onDone}) {
     rrsSocket.listen(onData, onError: onError, onDone: onDone);
   }
+
+  @override
+  Future<dynamic> get done => rrsSocket.done;
 } //}}}

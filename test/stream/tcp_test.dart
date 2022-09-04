@@ -39,4 +39,44 @@ void main() {
     expect(clientClosed, true);
     expect(serverClosed, true);
   });
+
+  test('normal tcp', () async {
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var listenDone = false;
+    var clientDone = false;
+    var serverListenDone = false;
+
+    var server = await ServerSocket.bind(host, port);
+    server.listen(
+      (client) async {
+        client.listen((event) async {
+          client.add(event);
+        }, onDone: () async {
+          serverListenDone = true;
+          await client.close();
+        });
+      },
+    );
+
+    var client = await Socket.connect(host, port);
+    client.listen((event) {
+      print(1);
+    }, onDone: () {
+      listenDone = true;
+    });
+
+    client.done.then((v) {
+      clientDone = true;
+    });
+
+    client.add([1]);
+    await client.close();
+
+    await delay(3);
+
+    expect(listenDone, true);
+    expect(clientDone, true);
+    expect(serverListenDone, true);
+  });
 }

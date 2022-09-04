@@ -17,6 +17,10 @@ dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
   return deep;
 }
 
+Future<void> delay(int seconds) async {
+  await Future.delayed(Duration(seconds: seconds));
+}
+
 int indexOfElements(List<int> content, List<int> pattern, [int start = 0]) {
   if (start == -1) {
     return -1;
