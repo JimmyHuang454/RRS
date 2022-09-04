@@ -131,6 +131,7 @@ class TransportServer1 {
   late SecurityContext securityContext;
 
   late bool isMux;
+  late String muxPassword;
 
   TransportServer1({
     required this.protocolName,
@@ -144,6 +145,7 @@ class TransportServer1 {
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
     isMux = getValue(config, 'mux.enabled', false);
+    muxPassword = getValue(config, 'mux.maxIdle', '');
   }
 
   Future<RRSServerSocket> bind(address, int port) async {

@@ -73,7 +73,7 @@ class TransportClient1 {
   late SecurityContext securityContext;
   late bool isMux;
   late int maxThread;
-  late int maxIdle;
+  late String muxPassword;
 
   TransportClient1({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
@@ -85,7 +85,7 @@ class TransportClient1 {
 
     isMux = getValue(config, 'mux.enabled', false);
     maxThread = getValue(config, 'mux.maxThread', 8);
-    maxIdle = getValue(config, 'mux.maxIdle', 8);
+    muxPassword = getValue(config, 'mux.maxIdle', '');
 
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);

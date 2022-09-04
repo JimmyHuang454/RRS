@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
+import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
+import 'package:quiver/collection.dart';
 
 class MuxInfo {
   //{{{
@@ -18,10 +20,34 @@ class MuxInfo {
   void Function(RRSSocket rrsSocket)? newConnection;
   Map<int, RRSSocketMux> usingList = {};
   List<int> content = [];
+  List<int> muxPasswordSha224;
+  bool isAuth = false;
+  bool isFake = false;
 
-  MuxInfo({required this.rrsSocket, required this.muxInfoID}) {
+  MuxInfo(
+      {required this.rrsSocket,
+      required this.muxInfoID,
+      required this.muxPasswordSha224}) {
     rrsSocket.listen((event) async {
       content += event;
+      if (!isAuth) {
+        if (content.length < 56) {
+          return;
+        }
+        var pwd = content.sublist(0, 56);
+        if (!listsEqual(pwd, muxPasswordSha224)) {
+          isFake = true;
+        } else {
+          content = content.sublist(56);
+        }
+        isAuth = true;
+      }
+
+      if (isFake && isAuth) {
+        // TODO: pass to fake tunnel.
+        return;
+      }
+
       if (content.length < 9) {
         return;
       }
@@ -31,7 +57,10 @@ class MuxInfo {
         var inThreadID = content[0];
         currentThreadID = inThreadID;
         if (!usingList.containsKey(inThreadID)) {
-          var temp = RRSSocketMux(threadID: inThreadID, muxInfo: this);
+          var temp = RRSSocketMux(
+              threadID: inThreadID,
+              muxInfo: this,
+              muxPasswordSha224: muxPasswordSha224);
           usingList[inThreadID] = temp;
           newConnection!(temp);
         }
@@ -100,6 +129,7 @@ class RRSSocketMux extends RRSSocket {
   //{{{
   int threadID;
   MuxInfo muxInfo;
+  List<int> muxPasswordSha224;
 
   late RRSSocket rrsSocket;
 
@@ -107,7 +137,10 @@ class RRSSocketMux extends RRSSocket {
   Function? onError2;
   void Function()? onDone2;
 
-  RRSSocketMux({required this.threadID, required this.muxInfo})
+  RRSSocketMux(
+      {required this.threadID,
+      required this.muxInfo,
+      required this.muxPasswordSha224})
       : super(socket: muxInfo.rrsSocket.socket) {
     rrsSocket = muxInfo.rrsSocket;
   }
@@ -163,8 +196,19 @@ class MuxClient {
   int muxInfoID = 0;
 
   TransportClient1 transportClient1;
+  List<int> muxPasswordSha224 = [];
 
-  MuxClient({required this.transportClient1});
+  MuxClient({required this.transportClient1}) {
+    if (transportClient1.isMux) {
+      if (transportClient1.muxPassword == '') {
+        throw "muxPassword can not be null.";
+      }
+      muxPasswordSha224 = sha224
+          .convert(transportClient1.muxPassword.codeUnits)
+          .toString()
+          .codeUnits;
+    }
+  }
 
   void clearEmpty() {
     mux.forEach(
@@ -214,12 +258,16 @@ class MuxClient {
       muxInfoID += 1;
       muxInfo = MuxInfo(
           rrsSocket: await transportClient1.connect(host, port),
-          muxInfoID: muxInfoID);
+          muxInfoID: muxInfoID,
+          muxPasswordSha224: muxPasswordSha224);
       mux[dst]![muxInfoID] = muxInfo;
     }
 
     muxInfo.id += 1;
-    var temp = RRSSocketMux(threadID: muxInfo.id, muxInfo: muxInfo);
+    var temp = RRSSocketMux(
+        threadID: muxInfo.id,
+        muxInfo: muxInfo,
+        muxPasswordSha224: muxPasswordSha224);
     muxInfo.usingList[muxInfo.id] = temp;
     return temp;
   }
@@ -228,15 +276,20 @@ class MuxClient {
 class RRSServerSocketMux extends RRSServerSocket {
   //{{{
   late RRSServerSocket rrsServerSocket;
+  List<int> muxPasswordSha224;
 
-  RRSServerSocketMux({required this.rrsServerSocket})
+  RRSServerSocketMux(
+      {required this.rrsServerSocket, required this.muxPasswordSha224})
       : super(serverSocket: rrsServerSocket.serverSocket);
 
   @override
   void listen(void Function(RRSSocket rrsSocket)? onData,
       {Function? onError, void Function()? onDone}) {
     super.listen((rrsSocket) {
-      var muxInfo = MuxInfo(rrsSocket: rrsSocket, muxInfoID: 0);
+      var muxInfo = MuxInfo(
+          rrsSocket: rrsSocket,
+          muxInfoID: 0,
+          muxPasswordSha224: muxPasswordSha224);
       muxInfo.newConnection = onData;
     }, onError: onError, onDone: onDone);
   }
@@ -261,16 +314,28 @@ class RRSServerSocketMux extends RRSServerSocket {
 class MuxServer {
   //{{{
   TransportServer1 transportServer1;
+  List<int> muxPasswordSha224 = [];
 
   MuxServer({
     required this.transportServer1,
-  });
+  }) {
+    if (transportServer1.isMux) {
+      if (transportServer1.muxPassword == '') {
+        throw "muxPassword can not be null.";
+      }
+      muxPasswordSha224 = sha224
+          .convert(transportServer1.muxPassword.codeUnits)
+          .toString()
+          .codeUnits;
+    }
+  }
 
   Future<RRSServerSocket> bind(address, int port) async {
     var res = await transportServer1.bind(address, port);
     if (!transportServer1.isMux) {
       return res;
     }
-    return RRSServerSocketMux(rrsServerSocket: res);
+    return RRSServerSocketMux(
+        rrsServerSocket: res, muxPasswordSha224: muxPasswordSha224);
   }
 } //}}}
