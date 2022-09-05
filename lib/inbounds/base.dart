@@ -96,9 +96,9 @@ class Link {
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      await closeAll();
+      await closeClient();
     }, onError: (e) async {
-      await closeAll();
+      await closeClient();
     });
 
     server!.done.then((e) {

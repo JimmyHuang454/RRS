@@ -49,19 +49,22 @@ void main() {
 
     var server = await ServerSocket.bind(host, port);
     server.listen(
-      (client) async {
-        client.listen((event) async {
-          client.add(event);
+      (inclient) async {
+        inclient.listen((event) async {
+          await delay(1);
+          inclient.add(event);
         }, onDone: () async {
           serverListenDone = true;
-          await client.close();
+          await delay(2);
+          await inclient.close();
         });
       },
     );
 
+    var isget = false;
     var client = await Socket.connect(host, port);
     client.listen((event) {
-      print(1);
+      isget = true;
     }, onDone: () {
       listenDone = true;
     });
@@ -75,6 +78,7 @@ void main() {
 
     await delay(3);
 
+    expect(isget, true);
     expect(listenDone, true);
     expect(clientDone, true);
     expect(serverListenDone, true);
