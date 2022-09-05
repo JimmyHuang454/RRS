@@ -92,14 +92,11 @@ class RRSServerSocket {
   //{{{
   dynamic serverSocket;
   List<dynamic> streamSubscription = [];
-  bool isClosed = false;
 
   RRSServerSocket({required this.serverSocket});
 
   Future<void> close() async {
     await serverSocket.close();
-    // await clearListen();
-    isClosed = true;
   }
 
   Future<void> clearListen() async {

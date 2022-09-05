@@ -58,6 +58,10 @@ class Link {
   }
 
   Future<void> closeAll() async {
+    await client.clearListen();
+    if (server != null) {
+      await server!.clearListen();
+    }
     await closeServer();
     await closeClient();
   }
@@ -87,28 +91,32 @@ class Link {
       return false;
     }
 
-    try {
-      devPrint('Created: ${buildLinkInfo()}');
-    } catch (e) {
-      devPrint(e);
-    }
+    outboundStruct.linkNr += 1;
+    devPrint('Created: ${buildLinkInfo()}');
 
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      await closeClient();
+      await closeAll();
     }, onError: (e) async {
-      await closeClient();
+      await closeAll();
     });
 
     server!.done.then((e) {
-      devPrint(
-          'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
-      devPrint(
-          '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B]');
+      serverDone();
+    }, onError: (e) {
+      serverDone();
     });
 
     return true;
+  }
+
+  void serverDone() {
+    outboundStruct.linkNr -= 1;
+    devPrint(
+        'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
+    devPrint(
+        '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B] ${outboundStruct.linkNr}');
   }
 
   String buildLinkInfo() {

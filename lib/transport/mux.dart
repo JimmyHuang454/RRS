@@ -295,9 +295,6 @@ class RRSServerSocketMux extends RRSServerSocket {
   }
 
   @override
-  bool get isClosed => rrsServerSocket.isClosed;
-
-  @override
   List get streamSubscription => rrsServerSocket.streamSubscription;
 
   @override

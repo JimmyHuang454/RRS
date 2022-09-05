@@ -31,9 +31,9 @@ class Socks5Request extends Link {
         handleUDP(data);
       }
     }, onError: (e) async {
-      await closeServer();
+      await closeAll();
     }, onDone: () async {
-      await closeServer();
+      await closeAll();
     });
   }
 

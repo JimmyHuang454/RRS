@@ -36,9 +36,9 @@ class TrojanRequest extends Link {
         serverAdd(data);
       }
     }, onError: (e) async {
-      await closeServer();
+      await closeAll();
     }, onDone: () async {
-      await closeServer();
+      await closeAll();
     });
   }
 
