@@ -33,8 +33,7 @@ TransportClient1 _buildOutStream(Map<String, dynamic> config) {
   return TCPClient2(config: config);
 } //}}}
 
-MuxClient buildOutStream(
-    String tag, Map<String, dynamic> config) {
+MuxClient buildOutStream(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
   var res = MuxClient(transportClient1: _buildOutStream(config));
@@ -42,19 +41,18 @@ MuxClient buildOutStream(
   return res;
 } //}}}
 
-TransportServer Function() _buildInStream(Map<String, dynamic> config) {
+TransportServer1 _buildInStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
 
   if (protocol == 'ws') {}
-  return () => TCPServer(config: config);
+  return TCPServer2(config: config);
 } //}}}
 
-TransportServer Function() buildInStream(
-    String tag, Map<String, dynamic> config) {
+MuxServer buildInStream(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = _buildInStream(config);
+  var res = MuxServer(transportServer1: _buildInStream(config));
   inStreamList[tag] = res;
   return res;
 } //}}}
@@ -98,8 +96,7 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
   return FreedomOut(config: config);
 } //}}}
 
-OutboundStruct buildOutbounds(
-    String tag, Map<String, dynamic> config) {
+OutboundStruct buildOutbounds(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
   var res = _buildOutbounds(config);

@@ -1,11 +1,12 @@
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/transport/mux.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/utils/utils.dart';
 
 class Link {
-  TransportClient client; // in
+  RRSSocket client; // in
   RRSSocket? server; // out
 
   late Uri targetUri; // if it's a HTTP request.
@@ -112,6 +113,7 @@ class Link {
   }
 
   void serverDone() {
+    closeAll();
     outboundStruct.linkNr -= 1;
     devPrint(
         'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
@@ -162,11 +164,11 @@ abstract class InboundStruct {
 
   Future<void> bind();
 
-  TransportServer getServer() {
+  MuxServer getServer() {
     if (!inStreamList.containsKey(inStream)) {
       throw "wrong inStream tag.";
     }
-    return inStreamList[inStream]!();
+    return inStreamList[inStream]!;
   }
 
   Future<OutboundStruct> doRoute(Link link) async {

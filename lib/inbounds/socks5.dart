@@ -190,14 +190,12 @@ class Socks5In extends InboundStruct {
 
   @override
   Future<void> bind() async {
-    var server = getServer();
-
-    await server.bind(inAddress, inPort);
+    var server = await getServer().bind(inAddress, inPort);
 
     server.listen((client) async {
       Socks5Request(client: client, inboundStruct: this);
     }, onError: (e) {
       print(e);
-    });
+    }, onDone: () {});
   }
 }

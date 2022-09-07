@@ -157,12 +157,12 @@ class TrojanIn extends InboundStruct {
 
   @override
   Future<void> bind() async {
-    var server = getServer();
-
-    await server.bind(inAddress, inPort);
+    var server = await getServer().bind(inAddress, inPort);
 
     server.listen((client) async {
       TrojanRequest(client: client, inboundStruct: this, pwdSHA224: pwdSHA224);
-    });
+    }, onError: (e) {
+      print(e);
+    }, onDone: () {});
   }
 }
