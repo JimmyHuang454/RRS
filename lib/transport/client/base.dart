@@ -38,16 +38,23 @@ class RRSSocket {
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = socket.listen((data) {
-      onData!(data);
-      traffic.downlink += (data as Uint8List).length;
-    }, onError: onError, onDone: onDone, cancelOnError: true);
+    var temp = socket.listen(
+        (data) {
+          onData!(data);
+          traffic.downlink += (data as Uint8List).length;
+        },
+        onError: onError,
+        onDone: () async {
+          await clearListen();
+          onDone!();
+        },
+        cancelOnError: true);
 
-    socket.done.then((value) async {
-      await clearListen();
-    }, onError: (e) async {
-      await clearListen();
-    });
+    // socket.done.then((value) async {
+    //   await clearListen();
+    // }, onError: (e) async {
+    //   await clearListen();
+    // });
 
     streamSubscription.add(temp);
   }

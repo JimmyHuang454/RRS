@@ -35,25 +35,16 @@ class Link {
   Link({required this.client, required this.inboundStruct});
 
   Future<void> closeClient() async {
-    if (server != null) {
-      await server!.clearListen();
-    }
     await client.close();
   }
 
   Future<void> closeServer() async {
-    await client.clearListen();
-
     if (server != null) {
       await server!.close();
     }
   }
 
   Future<void> closeAll() async {
-    await client.clearListen();
-    if (server != null) {
-      await server!.clearListen();
-    }
     await closeServer();
     await closeClient();
   }
@@ -94,11 +85,16 @@ class Link {
       await closeClient();
     });
 
-
     server!.done.then((e) {
       serverDone();
     }, onError: (e) {
       serverDone();
+    });
+
+    client.done.then((e) {
+      closeAll();
+    }, onError: (e) {
+      closeAll();
     });
 
     return true;
