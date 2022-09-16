@@ -57,8 +57,9 @@ void main() {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
     var port2 = await getUnusedPort(InternetAddress(host));
+    var muxPWD = '123';
     var temp = {
-      'mux': {'enabled': true}
+      'mux': {'enabled': true, 'password': muxPWD}
     };
     var client = MuxClient(transportClient1: TCPClient2(config: temp));
     var bind = MuxServer(transportServer1: TCPServer2(config: temp));

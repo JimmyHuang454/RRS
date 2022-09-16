@@ -10,13 +10,13 @@ void main() {
   test('tcp', () async {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
-    var client = TCPClient(config: {});
-    var server = TCPServer(config: {});
 
     var msg = 'fuck you';
     bool serverClosed = false;
     bool clientClosed = false;
+    var server = TCPServer(config: {});
     await server.bind(host, port);
+
     server.listen((inClient) {
       inClient.listen((event) {
         expect(utf8.decode(event), msg);
@@ -27,7 +27,7 @@ void main() {
       serverClosed = true;
     });
 
-    await client.connect(host, port);
+    var client = await TCPClient2(config: {}).connect(host, port);
 
     client.add(msg.codeUnits);
 

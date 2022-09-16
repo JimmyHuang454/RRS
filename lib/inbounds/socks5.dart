@@ -31,9 +31,9 @@ class Socks5Request extends Link {
         handleUDP(data);
       }
     }, onError: (e) async {
-      await closeAll();
+      await closeServer();
     }, onDone: () async {
-      await closeAll();
+      await closeServer();
     });
   }
 
@@ -53,11 +53,12 @@ class Socks5Request extends Link {
         await closeAll();
       }
     } else if (cmd == 3) {
-      // UDP
+      // UDP TODO
       streamType = 'UDP';
+      await closeAll();
     } else if (cmd == 2) {
-      // BIND
-      // TODO
+      // BIND TODO
+      await closeAll();
     }
   } //}}}
 

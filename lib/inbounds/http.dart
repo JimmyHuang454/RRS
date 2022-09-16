@@ -24,9 +24,9 @@ class HTTPRequest extends Link {
         await parse(data);
       }
     }, onError: (e) async {
-      await closeAll();
+      await closeServer();
     }, onDone: () async {
-      await closeAll();
+      await closeServer();
     });
   }
 

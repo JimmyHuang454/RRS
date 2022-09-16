@@ -7,17 +7,23 @@ import 'package:proxy/utils/utils.dart';
 
 class WSClient extends TransportClient {
   late String path;
-  late String userAgent;
+  String? userAgent;
   late WebSocket ws;
-  late Map<String, String> header;
+  Map<String, String>? header;
 
   String outAddress = '';
   int outPort = 0;
 
   WSClient({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
-    // header = getValue(config, 'setting.header', {});
-    // userAgent = getValue(config, 'setting.header', '');
+    var temp = getValue(config, 'setting.header', {});
+    if (temp == {}) {
+      header = temp;
+    }
+    temp = getValue(config, 'setting.header', '');
+    if (temp == {}) {
+      userAgent = temp;
+    }
   }
 
   @override
@@ -54,7 +60,7 @@ class WSClient extends TransportClient {
 
     ws.done.then((value) {
       if (onDone != null) {
-        onDone();
+       onDone();
       }
     }, onError: (e) {
       if (onError != null) {

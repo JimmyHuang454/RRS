@@ -38,23 +38,14 @@ class Link {
     if (server != null) {
       await server!.clearListen();
     }
-
-    try {
-      await client.close();
-    } catch (e) {
-      // devPrint(e);
-    }
+    await client.close();
   }
 
   Future<void> closeServer() async {
     await client.clearListen();
 
     if (server != null) {
-      try {
-        await server!.close();
-      } catch (e) {
-        // devPrint(e);
-      }
+      await server!.close();
     }
   }
 
@@ -98,10 +89,11 @@ class Link {
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () async {
-      await closeAll();
+      await closeClient();
     }, onError: (e) async {
-      await closeAll();
+      await closeClient();
     });
+
 
     server!.done.then((e) {
       serverDone();
@@ -124,7 +116,7 @@ class Link {
   String buildLinkInfo() {
     if (linkInfo == '') {
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) --> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) -($streamType)-> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

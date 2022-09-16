@@ -142,7 +142,7 @@ class TransportServer1 {
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
     isMux = getValue(config, 'mux.enabled', false);
-    muxPassword = getValue(config, 'mux.maxIdle', '');
+    muxPassword = getValue(config, 'mux.password', '');
   }
 
   Future<RRSServerSocket> bind(address, int port) async {

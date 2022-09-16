@@ -30,7 +30,9 @@ class RRSSocket {
   }
 
   Future close() async {
-    await socket.close();
+    if (!isClosed) {
+      await socket.close();
+    }
     isClosed = true;
   }
 
@@ -85,7 +87,7 @@ class TransportClient1 {
 
     isMux = getValue(config, 'mux.enabled', false);
     maxThread = getValue(config, 'mux.maxThread', 8);
-    muxPassword = getValue(config, 'mux.maxIdle', '');
+    muxPassword = getValue(config, 'mux.password', '');
 
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);

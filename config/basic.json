@@ -34,7 +34,7 @@
         "port": 8080
       },
       "inStream": "defalut_tcp",
-      "route": "allowUser"
+      "route": "proxy"
     },
     "trojan_inbound": {
       "protocol": "http",
@@ -103,7 +103,7 @@
     "proxy": {
       "rules": [{
         "outbound": "endPoint",
-        "domain": ["regex:.*.cn", "pornhub.com"]
+        "domain": ["regex:.*.cn"]
       }, {
         "outbound": "endPoint",
         "chinaOnly": true
