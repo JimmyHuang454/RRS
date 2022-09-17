@@ -23,11 +23,11 @@ class HTTPRequest extends Link {
       } else {
         await parse(data);
       }
-    }, onError: (e) async {
-      await closeServer();
-    }, onDone: () async {
+    }, onError: (e) {
+      closeServer();
+    }, onDone: () {
       devPrint('client closed');
-      await closeServer();
+      closeServer();
     });
   }
 
@@ -44,7 +44,7 @@ class HTTPRequest extends Link {
     var firstLine = utf8.decode(content.sublist(0, pos2));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
-      await closeAll();
+       closeAll();
       return;
     }
     method = temp2[0];
@@ -68,7 +68,7 @@ class HTTPRequest extends Link {
     }
 
     if (method == 'CONNECT') {
-      await clientAdd(buildConnectionResponse());
+      clientAdd(buildConnectionResponse());
     }
 
     if (content.isNotEmpty) {
@@ -97,7 +97,7 @@ class HTTPIn extends InboundStruct {
   Future<void> bind() async {
     var server = await getServer().bind(inAddress, inPort);
 
-    server.listen((client) async {
+    server.listen((client) {
       HTTPRequest(client: client, inboundStruct: this);
     }, onError: (e) {
       print(e);

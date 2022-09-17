@@ -35,10 +35,10 @@ class TrojanRequest extends Link {
       } else {
         serverAdd(data);
       }
-    }, onError: (e) async {
-      await closeAll();
+    }, onError: (e) {
+      closeAll();
     }, onDone: () async {
-      await closeAll();
+      closeAll();
     });
   }
 
@@ -72,7 +72,7 @@ class TrojanRequest extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      await closeAll();
+      closeAll();
       return;
     }
 

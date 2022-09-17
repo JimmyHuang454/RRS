@@ -33,26 +33,26 @@ class Link {
 
   Link({required this.client, required this.inboundStruct});
 
-  Future<void> closeClient() async {
-    await client.close();
+  void closeClient() {
+    client.close();
   }
 
-  Future<void> closeServer() async {
+  void closeServer() {
     if (server != null) {
-      await server!.close();
+      server!.close();
     }
   }
 
-  Future<void> closeAll() async {
+  void closeAll() {
     // await client.clearListen();
     // if (server != null) {
     //   await server!.clearListen();
     // }
-    await closeServer();
-    await closeClient();
+    closeServer();
+    closeClient();
   }
 
-  Future<void> clientAdd(List<int> data) async {
+  void clientAdd(List<int> data) {
     try {
       client.add(data);
     } catch (e) {
@@ -71,30 +71,30 @@ class Link {
   }
 
   Future<bool> bindServer() async {
-    client.done.then((e) async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
+    client.done.then((e) {
+      closeAll();
+    }, onError: (e) {
+      closeAll();
     });
 
     outboundStruct = await inboundStruct.doRoute(this);
     try {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
-      await closeAll();
+      closeAll();
       return false;
     }
 
     outboundStruct.linkNr += 1;
     devPrint('Created: ${buildLinkInfo()}');
 
-    server!.listen((event) async {
-      await clientAdd(event);
-    }, onDone: () async {
-      await closeClient();
+    server!.listen((event) {
+      clientAdd(event);
+    }, onDone: () {
+      closeClient();
       devPrint('server closed');
-    }, onError: (e) async {
-      await closeClient();
+    }, onError: (e) {
+      closeClient();
     });
 
     server!.done.then((e) {

@@ -102,8 +102,13 @@
     },
     "proxy": {
       "rules": [{
+        "outbound": "trojanProxy"
+      }, {
         "outbound": "endPoint",
         "domain": ["regex:.*.cn"]
+      }, {
+        "outbound": "trojanProxy",
+        "domain": ["google"]
       }, {
         "outbound": "endPoint",
         "chinaOnly": true
