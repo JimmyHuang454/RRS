@@ -35,24 +35,27 @@ class RRSSocket {
 
   Future close() async {
     if (!writeClosed) {
+      writeClosed = true;
       await socket.close();
     }
-    writeClosed = true;
   }
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = socket.listen(
-        (data) {
-          onData!(data);
-          traffic.downlink += (data as Uint8List).length;
-        },
-        onError: onError,
-        onDone: () {
-          readClosed = true;
-          onDone!();
-        },
-        cancelOnError: true);
+    var temp = socket.listen((data) {
+      onData!(data);
+      traffic.downlink += (data as Uint8List).length;
+    }, onError: (e) {
+      writeClosed = true;
+      clearListen();
+
+      onError!(e);
+    }, onDone: () {
+      writeClosed = true;
+      clearListen();
+
+      onDone!();
+    }, cancelOnError: true);
 
     streamSubscription.add(temp);
   }

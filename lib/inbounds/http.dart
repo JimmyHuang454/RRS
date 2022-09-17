@@ -10,12 +10,12 @@ class HTTPRequest extends Link {
   List<int> content = [];
 
   HTTPRequest({required super.client, required super.inboundStruct}) {
-    Future.delayed(Duration(seconds: 3), () async {
-      if (!isParsed) {
-        // timeout
-        await closeAll();
-      }
-    });
+    // Future.delayed(Duration(seconds: 3), () async {
+    //   if (!isParsed) {
+    //     // timeout
+    //     await closeAll();
+    //   }
+    // });
 
     client.listen((data) async {
       if (isParsed) {
@@ -24,9 +24,10 @@ class HTTPRequest extends Link {
         await parse(data);
       }
     }, onError: (e) async {
-      await closeAll();
+      await closeServer();
     }, onDone: () async {
-      await closeAll();
+      devPrint('client closed');
+      await closeServer();
     });
   }
 

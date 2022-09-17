@@ -44,21 +44,39 @@ class Link {
   }
 
   Future<void> closeAll() async {
+    // await client.clearListen();
+    // if (server != null) {
+    //   await server!.clearListen();
+    // }
     await closeServer();
     await closeClient();
   }
 
   Future<void> clientAdd(List<int> data) async {
-    client.add(data);
+    try {
+      client.add(data);
+    } catch (e) {
+      devPrint(e);
+    }
   }
 
   void serverAdd(List<int> data) {
     if (server != null) {
-      server!.add(data);
+      try {
+        server!.add(data);
+      } catch (e) {
+        devPrint(e);
+      }
     }
   }
 
   Future<bool> bindServer() async {
+    client.done.then((e) async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
+    });
+
     outboundStruct = await inboundStruct.doRoute(this);
     try {
       server = await outboundStruct.newConnect(this);
@@ -74,6 +92,7 @@ class Link {
       await clientAdd(event);
     }, onDone: () async {
       await closeClient();
+      devPrint('server closed');
     }, onError: (e) async {
       await closeClient();
     });
@@ -82,12 +101,6 @@ class Link {
       serverDone();
     }, onError: (e) {
       serverDone();
-    });
-
-    client.done.then((e) async {
-      await closeServer();
-    }, onError: (e) async {
-      await closeServer();
     });
 
     return true;

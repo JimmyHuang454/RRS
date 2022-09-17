@@ -12,12 +12,12 @@ class Socks5Request extends Link {
   List<int> content = [];
 
   Socks5Request({required super.client, required super.inboundStruct}) {
-    Future.delayed(Duration(seconds: 3), () async {
-      if (!isAuth) {
-        // timeout
-        await closeAll();
-      }
-    });
+    // Future.delayed(Duration(seconds: 3), () async {
+    //   if (!isAuth) {
+    //     // timeout
+    //     await closeAll();
+    //   }
+    // });
 
     client.listen((data) async {
       if (!isAuth) {
@@ -33,6 +33,7 @@ class Socks5Request extends Link {
     }, onError: (e) async {
       await closeServer();
     }, onDone: () async {
+      devPrint('client closed');
       await closeServer();
     });
   }
