@@ -169,7 +169,10 @@ class RRSSocketMux extends RRSSocket {
   }
 
   @override
-  bool get isClosed => rrsSocket.isClosed;
+  bool get readClosed => rrsSocket.readClosed;
+
+  @override
+  bool get writeClosed => rrsSocket.writeClosed;
 
   @override
   dynamic get socket => rrsSocket.socket;

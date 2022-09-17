@@ -11,7 +11,8 @@ class RRSSocket {
   //{{{
   dynamic socket;
   List<dynamic> streamSubscription = [];
-  bool isClosed = false;
+  bool writeClosed = false;
+  bool readClosed = false;
 
   Traffic traffic = Traffic();
 
@@ -25,15 +26,18 @@ class RRSSocket {
   }
 
   void add(List<int> data) {
+    if (writeClosed) {
+      return;
+    }
     socket.add(data);
     traffic.uplink += data.length;
   }
 
   Future close() async {
-    if (!isClosed) {
+    if (!writeClosed) {
       await socket.close();
     }
-    isClosed = true;
+    writeClosed = true;
   }
 
   void listen(void Function(Uint8List event)? onData,
@@ -44,17 +48,11 @@ class RRSSocket {
           traffic.downlink += (data as Uint8List).length;
         },
         onError: onError,
-        onDone: () async {
-          await clearListen();
+        onDone: () {
+          readClosed = true;
           onDone!();
         },
         cancelOnError: true);
-
-    // socket.done.then((value) async {
-    //   await clearListen();
-    // }, onError: (e) async {
-    //   await clearListen();
-    // });
 
     streamSubscription.add(temp);
   }
@@ -219,7 +217,10 @@ class Connect2 extends RRSSocket {
       : super(socket: rrsSocket.socket);
 
   @override
-  bool get isClosed => rrsSocket.isClosed;
+  bool get readClosed => rrsSocket.readClosed;
+
+  @override
+  bool get writeClosed => rrsSocket.writeClosed;
 
   @override
   dynamic get socket => rrsSocket.socket;

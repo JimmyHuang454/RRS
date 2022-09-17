@@ -36,7 +36,7 @@ abstract class OutboundStruct {
     realOutPort = outPort;
   }
 
-  MuxClient newClient() {
+  MuxClient getClient() {
     if (!outStreamList.containsKey(outStreamTag)) {
       throw "wrong outStreamTag.";
     }
@@ -46,7 +46,7 @@ abstract class OutboundStruct {
   Future<RRSSocket> newConnect(Link l) async {
     realOutAddress = l.targetAddress.address;
     realOutPort = l.targetport;
-    var temp = newClient();
+    var temp = getClient();
     return Connect2(
         rrsSocket: await temp.connect(realOutAddress, realOutPort),
         link: l,

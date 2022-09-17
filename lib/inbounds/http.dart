@@ -24,9 +24,9 @@ class HTTPRequest extends Link {
         await parse(data);
       }
     }, onError: (e) async {
-      await closeServer();
+      await closeAll();
     }, onDone: () async {
-      await closeServer();
+      await closeAll();
     });
   }
 
@@ -67,8 +67,7 @@ class HTTPRequest extends Link {
     }
 
     if (method == 'CONNECT') {
-      // ??? why we can not response befor bindServer?
-      clientAdd(buildConnectionResponse());
+      await clientAdd(buildConnectionResponse());
     }
 
     if (content.isNotEmpty) {

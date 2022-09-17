@@ -1,6 +1,5 @@
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/mux.dart';
-import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/utils/utils.dart';
@@ -49,19 +48,13 @@ class Link {
     await closeClient();
   }
 
-  void clientAdd(List<int> data) {
-    try {
-      client.add(data);
-    } catch (e) {
-      // devPrint(e);
-    }
+  Future<void> clientAdd(List<int> data) async {
+    client.add(data);
   }
 
   void serverAdd(List<int> data) {
-    try {
+    if (server != null) {
       server!.add(data);
-    } catch (e) {
-      devPrint(e);
     }
   }
 
@@ -77,8 +70,8 @@ class Link {
     outboundStruct.linkNr += 1;
     devPrint('Created: ${buildLinkInfo()}');
 
-    server!.listen((event) {
-      clientAdd(event);
+    server!.listen((event) async {
+      await clientAdd(event);
     }, onDone: () async {
       await closeClient();
     }, onError: (e) async {
@@ -91,10 +84,10 @@ class Link {
       serverDone();
     });
 
-    client.done.then((e) {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
+    client.done.then((e) async {
+      await closeServer();
+    }, onError: (e) async {
+      await closeServer();
     });
 
     return true;
@@ -112,7 +105,7 @@ class Link {
   String buildLinkInfo() {
     if (linkInfo == '') {
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) -($streamType)-> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) -<${outboundStruct.getClient().transportClient1.protocolName}>-> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

@@ -25,7 +25,7 @@ class HTTPOut extends OutboundStruct {
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
-    var conn = await newClient().connect(outAddress, outPort);
+    var conn = await getClient().connect(outAddress, outPort);
 
     if (l.method == 'CONNECT') {
       var streamController = StreamController<int>();
