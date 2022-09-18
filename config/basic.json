@@ -102,8 +102,6 @@
     },
     "proxy": {
       "rules": [{
-        "outbound": "trojanProxy"
-      }, {
         "outbound": "endPoint",
         "domain": ["regex:.*.cn"]
       }, {

@@ -93,14 +93,16 @@ class Link {
     }, onDone: () {
       closeClient();
       devPrint('server closed');
+      serverDone();
     }, onError: (e) {
       closeClient();
+      serverDone();
     });
 
     server!.done.then((e) {
-      serverDone();
+      // serverDone();
     }, onError: (e) {
-      serverDone();
+      // serverDone();
     });
 
     return true;
