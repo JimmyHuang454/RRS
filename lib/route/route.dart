@@ -29,6 +29,9 @@ class RouteRule {
 
   RouteRule({required this.config}) {
     outbound = config['outbound'];
+    if (!outboundsList.containsKey(outbound)) {
+      throw 'There are no route tag named "$outbound".';
+    }
 
     chinaOnly = getValue(config, 'chinaOnly', false);
 
@@ -177,9 +180,6 @@ class Route {
 
   Future<String> match(Link link) async {
     var outbound = await match2(link);
-    if (!outboundsList.containsKey(outbound)) {
-      throw 'There are no route tag named "$outbound".';
-    }
     return outbound;
   }
 }

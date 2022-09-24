@@ -93,7 +93,7 @@
       "protocol": "tcp"
     }
   },
-  "route": {
+  "routes": {
     "allowUser": {
       "rules": [{
         "user": ["1"],

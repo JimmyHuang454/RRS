@@ -119,11 +119,11 @@ Route buildRoute(String tag, Map<String, dynamic> config) {
 } //}}}
 
 Future<void> entry(Map<String, dynamic> allConfig) async {
-  // await loadGeoIP();
   var item = {
     'inStream': buildInStream,
     'outStream': buildOutStream,
-    'route': buildRoute,
+    'routes': buildRoute,
+    'inbounds': buildInbounds,
     'outbounds': buildOutbounds
   };
 
@@ -139,13 +139,4 @@ Future<void> entry(Map<String, dynamic> allConfig) async {
       }
     },
   );
-
-  if (allConfig.containsKey('inbounds')) {
-    var inbounds = (allConfig['inbounds'] as Map<String, dynamic>);
-    inbounds.forEach(
-      (key, value) async {
-        await buildInbounds(key, value);
-      },
-    );
-  }
 }
