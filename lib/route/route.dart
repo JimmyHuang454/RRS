@@ -18,7 +18,7 @@ class DomainPattern {
 }
 
 class RouteRule {
-  late String outbound;
+  List<String> outbound = [];
   late List<dynamic> domain;
   late List<dynamic> ips;
   late List<dynamic> allowedUser;
@@ -28,9 +28,17 @@ class RouteRule {
   Map<String, dynamic> config;
 
   RouteRule({required this.config}) {
-    outbound = config['outbound'];
-    if (!outboundsList.containsKey(outbound)) {
-      throw 'There are no route tag named "$outbound".';
+    var temp = config['outbound'];
+    if (temp.runtimeType == String) {
+      outbound.add(temp);
+    } else if (temp.runtimeType == List) {
+      outbound = List<String>.from(temp);
+    }
+
+    for (var i = 0, len = outbound.length; i < len; ++i) {
+      if (!outboundsList.containsKey(outbound[i])) {
+        throw 'There are no route tag named "${outbound[i]}".';
+      }
     }
 
     chinaOnly = getValue(config, 'chinaOnly', false);
@@ -169,13 +177,18 @@ class Route {
     }
   }
 
+  String selectOut(RouteRule routeRule) {
+    var temp = DateTime.now().millisecond % routeRule.outbound.length;
+    return routeRule.outbound[temp];
+  }
+
   Future<String> match2(Link link) async {
     for (var i = 0, len = rules.length; i < len; ++i) {
       if (await rules[i].match(link)) {
-        return rules[i].outbound;
+        return selectOut(rules[i]);
       }
     }
-    return rules[rules.length - 1].outbound;
+    return selectOut(rules[rules.length - 1]);
   }
 
   Future<String> match(Link link) async {

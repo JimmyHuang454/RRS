@@ -16,6 +16,15 @@
       },
       "outStream": "ws_with_tls"
     },
+    "trojanProxy2": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "uif02.xyz",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "ws_with_tls"
+    },
     "localTrojan": {
       "protocol": "trojan",
       "setting": {
@@ -111,7 +120,7 @@
         "outbound": "endPoint",
         "chinaOnly": true
       }, {
-        "outbound": "trojanProxy"
+        "outbound": ["trojanProxy", "trojanProxy2"]
       }]
     }
   }

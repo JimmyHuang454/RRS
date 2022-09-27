@@ -18,5 +18,10 @@ class FreedomOut extends OutboundStruct {
     if (!['default', 'ipv4', 'ipv6'].contains(outStrategy)) {
       throw "wrong strategy.";
     }
+
+    var temp = getClient();
+    if (temp.transportClient1.isMux) {
+      throw "Freedom outbound should NOT enable mux.";
+    }
   }
 }

@@ -38,7 +38,7 @@
       "protocol": "block"
     }
   },
-  "route": {
+  "routes": {
     "freedom": {
       "rules": [{
         "outbound": "freedom"

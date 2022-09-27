@@ -51,7 +51,7 @@
       "outStream": "tcp"
     }
   },
-  "route": {
+  "routes": {
     "freedom": {
       "rules": [{
         "domain": ["baidu.com"],

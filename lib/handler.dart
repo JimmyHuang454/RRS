@@ -59,15 +59,15 @@ MuxServer buildInStream(String tag, Map<String, dynamic> config) {
 
 Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   //{{{
-  var protocol = getValue(config, 'protocol', 'http');
+  var protocol = getValue(config, 'protocol', 'socks5');
 
   InboundStruct res;
-  if (protocol == 'socks5') {
-    res = Socks5In(config: config);
+  if (protocol == 'http') {
+    res = HTTPIn(config: config);
   } else if (protocol == 'trojan') {
     res = TrojanIn(config: config);
   } else {
-    res = HTTPIn(config: config);
+    res = Socks5In(config: config);
   }
   await res.bind();
   return res;
@@ -84,7 +84,7 @@ Future<InboundStruct> buildInbounds(
 
 OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
   //{{{
-  var protocol = getValue(config, 'protocol', 'http');
+  var protocol = getValue(config, 'protocol', 'trojan');
 
   if (protocol == 'http') {
     return HTTPOut(config: config);
@@ -122,9 +122,9 @@ Future<void> entry(Map<String, dynamic> allConfig) async {
   var item = {
     'inStream': buildInStream,
     'outStream': buildOutStream,
-    'routes': buildRoute,
     'inbounds': buildInbounds,
-    'outbounds': buildOutbounds
+    'outbounds': buildOutbounds,
+    'routes': buildRoute,
   };
 
   item.forEach(

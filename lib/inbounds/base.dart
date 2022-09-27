@@ -120,7 +120,7 @@ class Link {
   String buildLinkInfo() {
     if (linkInfo == '') {
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] (${targetAddress.address}:$targetport) -<${outboundStruct.getClient().transportClient1.protocolName}>-> {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}} [${outboundStruct.tag}:${outboundStruct.protocolName}]";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient1.protocolName}>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

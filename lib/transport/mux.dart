@@ -11,6 +11,7 @@ class MuxInfo {
   int muxInfoID;
 
   int id = 0;
+  int version = 0;
   int currentThreadID = 0;
 
   int currentLen = 0;
@@ -31,14 +32,16 @@ class MuxInfo {
     rrsSocket.listen((event) async {
       content += event;
       if (!isAuth) {
-        if (content.length < 56) {
+        if (content.length < 57) {
+          // 56 + 1
           return;
         }
         var pwd = content.sublist(0, 56);
         if (!listsEqual(pwd, muxPasswordSha224)) {
           isFake = true;
         } else {
-          content = content.sublist(56);
+          version = content[56];
+          content = content.sublist(57);
         }
         isAuth = true;
       }
@@ -48,45 +51,7 @@ class MuxInfo {
         return;
       }
 
-      if (content.length < 9) {
-        return;
-      }
-
-      RRSSocketMux dstSocket;
-      if (currentThreadID == 0) {
-        var inThreadID = content[0];
-        currentThreadID = inThreadID;
-        if (!usingList.containsKey(inThreadID)) {
-          var temp = RRSSocketMux(
-              threadID: inThreadID,
-              muxInfo: this,
-              muxPasswordSha224: muxPasswordSha224);
-          usingList[inThreadID] = temp;
-          newConnection!(temp);
-        }
-        dstSocket = usingList[inThreadID]!;
-
-        Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
-        ByteData byteData = ByteData.sublistView(byteList);
-        currentLen = byteData.getUint64(0, Endian.big);
-        addedLen = 0;
-
-        content = content.sublist(9);
-      } else {
-        dstSocket = usingList[currentThreadID]!;
-      }
-
-      if (currentLen == 0) {
-        await close(currentThreadID);
-      } else {
-        dstSocket.onData2!(Uint8List.fromList(content));
-      }
-
-      addedLen += content.length;
-      content = [];
-      if (addedLen == currentLen) {
-        currentThreadID = 0;
-      }
+      handle();
     }, onDone: () async {
       await closeAll();
     }, onError: (e) async {
@@ -94,15 +59,64 @@ class MuxInfo {
     });
   }
 
-  Future<void> closeAll() async {
-    usingList.forEach(
-      (key, value) async {
-        await close(key);
-      },
-    );
+  void handle() async {
+    if (content.length < 9) {
+      // 1 + 8
+      return;
+    }
+
+    RRSSocketMux dstSocket;
+    if (currentThreadID == 0) {
+      var inThreadID = content[0];
+      currentThreadID = inThreadID;
+      if (!usingList.containsKey(inThreadID)) {
+        var temp = RRSSocketMux(
+            threadID: inThreadID,
+            muxInfo: this,
+            muxPasswordSha224: muxPasswordSha224);
+        usingList[inThreadID] = temp;
+        newConnection!(temp);
+      }
+      dstSocket = usingList[inThreadID]!;
+
+      Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
+      ByteData byteData = ByteData.sublistView(byteList);
+      currentLen = byteData.getUint64(0, Endian.big);
+      addedLen = 0;
+
+      content = content.sublist(9);
+    } else {
+      dstSocket = usingList[currentThreadID]!;
+    }
+
+    if (currentLen == 0) {
+      close(currentThreadID);
+    } else {
+      var handleLen = currentLen - addedLen;
+      if (content.length < handleLen) {
+        handleLen = content.length;
+      }
+      dstSocket.onData2!(Uint8List.fromList(content.sublist(0, handleLen)));
+      addedLen += handleLen;
+      content = content.sublist(handleLen);
+    }
+
+    if (addedLen == currentLen) {
+      currentThreadID = 0;
+    }
+    handle();
   }
 
-  Future<void> close(int inThreadID) async {
+  Future<void> closeAll() async {
+    usingList.forEach(
+      (key, value) {
+        close(key, isClear: false);
+      },
+    );
+    rrsSocket.close();
+  }
+
+  void close(int inThreadID, {bool isClear = true}) {
     if (!usingList.containsKey(inThreadID)) {
       return;
     }
@@ -113,14 +127,11 @@ class MuxInfo {
       dstSocket.onDone2!();
     }
 
-    usingList.remove(inThreadID);
-
+    if (isClear) {
+      usingList.remove(inThreadID);
+    }
     if (usingList.isEmpty) {
-      try {
-        await rrsSocket.close();
-      } catch (e) {
-        print(e);
-      }
+      rrsSocket.close();
     }
   }
 } //}}}
@@ -137,6 +148,8 @@ class RRSSocketMux extends RRSSocket {
   Function? onError2;
   void Function()? onDone2;
 
+  int version = 0;
+
   RRSSocketMux(
       {required this.threadID,
       required this.muxInfo,
@@ -147,7 +160,12 @@ class RRSSocketMux extends RRSSocket {
 
   @override
   void add(List<int> data) {
-    var temp = [threadID];
+    List<int> temp = [threadID];
+    if (!muxInfo.isAuth) {
+      temp = [version, threadID];
+      temp = List.from(muxPasswordSha224)..addAll(temp);
+      muxInfo.isAuth = true;
+    }
     temp += Uint8List(8)
       ..buffer.asByteData().setUint64(0, data.length, Endian.big);
     temp += data;
