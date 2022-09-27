@@ -11,8 +11,7 @@ class RRSSocket {
   //{{{
   dynamic socket;
   List<dynamic> streamSubscription = [];
-  bool writeClosed = false;
-  bool readClosed = false;
+  bool isClosed = false;
 
   Traffic traffic = Traffic();
 
@@ -26,7 +25,7 @@ class RRSSocket {
   }
 
   void add(List<int> data) {
-    if (writeClosed) {
+    if (isClosed) {
       return;
     }
     socket.add(data);
@@ -34,10 +33,11 @@ class RRSSocket {
   }
 
   Future close() async {
-    if (!writeClosed) {
-      writeClosed = true;
-      await socket.close();
+    if (isClosed) {
+      return;
     }
+    isClosed = true;
+    await socket.close();
   }
 
   void listen(void Function(Uint8List event)? onData,
@@ -46,14 +46,12 @@ class RRSSocket {
       onData!(data);
       traffic.downlink += (data as Uint8List).length;
     }, onError: (e) {
-      writeClosed = true;
+      isClosed = true;
       clearListen();
-
       onError!(e);
     }, onDone: () {
-      writeClosed = true;
+      isClosed = true;
       clearListen();
-
       onDone!();
     }, cancelOnError: true);
 
@@ -232,10 +230,7 @@ class RRSSocketBase extends RRSSocket {
   RRSSocketBase({required this.rrsSocket}) : super(socket: rrsSocket.socket);
 
   @override
-  bool get readClosed => rrsSocket.readClosed;
-
-  @override
-  bool get writeClosed => rrsSocket.writeClosed;
+  bool get isClosed => rrsSocket.isClosed;
 
   @override
   dynamic get socket => rrsSocket.socket;
@@ -264,7 +259,7 @@ class RRSSocketBase extends RRSSocket {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    rrsSocket.listen(onData, onError: onError, onDone: onDone);
+    rrsSocket.listen(onData, onDone: onDone, onError: onError);
   }
 
   @override

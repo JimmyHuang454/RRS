@@ -7,38 +7,38 @@ import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  test('tcp', () async {
-    var host = '127.0.0.1';
-    var port = await getUnusedPort(InternetAddress(host));
+  // test('tcp', () async {//{{{
+  //   var host = '127.0.0.1';
+  //   var port = await getUnusedPort(InternetAddress(host));
 
-    var msg = 'fuck you';
-    bool serverClosed = false;
-    bool clientClosed = false;
-    var server = TCPServer(config: {});
-    await server.bind(host, port);
+  //   var msg = 'fuck you';
+  //   bool serverClosed = false;
+  //   bool clientClosed = false;
+  //   var server = TCPServer(config: {});
+  //   await server.bind(host, port);
 
-    server.listen((inClient) {
-      inClient.listen((event) {
-        expect(utf8.decode(event), msg);
-      }, onDone: () async {
-        clientClosed = true;
-      });
-    }, onDone: () async {
-      serverClosed = true;
-    });
+  //   server.listen((inClient) {
+  //     inClient.listen((event) {
+  //       expect(utf8.decode(event), msg);
+  //     }, onDone: () async {
+  //       clientClosed = true;
+  //     });
+  //   }, onDone: () async {
+  //     serverClosed = true;
+  //   });
 
-    var client = await TCPClient2(config: {}).connect(host, port);
+  //   var client = await TCPClient2(config: {}).connect(host, port);
 
-    client.add(msg.codeUnits);
+  //   client.add(msg.codeUnits);
 
-    await Future.delayed(Duration(seconds: 2));
+  //   await Future.delayed(Duration(seconds: 2));
 
-    await client.close();
-    await server.close();
-    await Future.delayed(Duration(seconds: 2));
-    expect(clientClosed, true);
-    expect(serverClosed, true);
-  });
+  //   await client.close();
+  //   await server.close();
+  //   await Future.delayed(Duration(seconds: 2));
+  //   expect(clientClosed, true);
+  //   expect(serverClosed, true);
+  // });//}}}
 
   test('normal tcp', () async {
     var host = '127.0.0.1';
@@ -52,10 +52,10 @@ void main() {
       (inclient) async {
         inclient.listen((event) async {
           inclient.add(event);
-        }, onDone: () async {
-          serverListenDone = true;
           await delay(1);
           await inclient.close();
+        }, onDone: () async {
+          serverListenDone = true;
         });
       },
     );
@@ -78,8 +78,8 @@ void main() {
 
     await client.close();
     await delay(2);
-    expect(serverListenDone, true);
     expect(listenDone, true);
+    expect(serverListenDone, true);
     expect(clientDone, true);
   });
 }

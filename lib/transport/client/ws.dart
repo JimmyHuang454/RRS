@@ -1,13 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:async';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
-
-class wsClient extends RRSSocketBase{
-  wsClient({required super.rrsSocket});
-}
 
 class WSClient2 extends TransportClient1 {
   late String path;
