@@ -207,17 +207,29 @@ class TransportClient {
   }
 } //}}}
 
-class Connect2 extends RRSSocket {
+class Connect2 extends RRSSocketBase {
   //{{{
-  RRSSocket rrsSocket;
   OutboundStruct outboundStruct;
   Link link;
 
   Connect2(
-      {required this.rrsSocket,
+      {required super.rrsSocket,
       required this.link,
-      required this.outboundStruct})
-      : super(socket: rrsSocket.socket);
+      required this.outboundStruct});
+
+  @override
+  Future close() async {
+    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
+    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
+    await rrsSocket.close();
+  }
+} //}}}
+
+class RRSSocketBase extends RRSSocket {
+  //{{{
+  RRSSocket rrsSocket;
+
+  RRSSocketBase({required this.rrsSocket}) : super(socket: rrsSocket.socket);
 
   @override
   bool get readClosed => rrsSocket.readClosed;
@@ -246,8 +258,6 @@ class Connect2 extends RRSSocket {
 
   @override
   Future close() async {
-    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
-    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
     await rrsSocket.close();
   }
 

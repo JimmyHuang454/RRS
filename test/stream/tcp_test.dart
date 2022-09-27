@@ -51,11 +51,10 @@ void main() {
     server.listen(
       (inclient) async {
         inclient.listen((event) async {
-          await delay(1);
           inclient.add(event);
         }, onDone: () async {
           serverListenDone = true;
-          await delay(2);
+          await delay(1);
           await inclient.close();
         });
       },
@@ -74,13 +73,13 @@ void main() {
     });
 
     client.add([1]);
-    await client.close();
-
-    await delay(3);
-
+    await delay(1);
     expect(isget, true);
+
+    await client.close();
+    await delay(2);
+    expect(serverListenDone, true);
     expect(listenDone, true);
     expect(clientDone, true);
-    expect(serverListenDone, true);
   });
 }

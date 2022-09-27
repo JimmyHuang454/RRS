@@ -1,42 +1,40 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:proxy/transport/client/ws.dart';
-import 'package:proxy/transport/server/ws.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  test('ws', () async {
+  test('normal ws', () async {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
-    var client = WSClient(config: {});
-    var server = WSServer(config: {});
+    var httpServer = await HttpServer.bind(host, port);
 
-    var msg = 'fuck you';
-    bool serverClosed = false;
-    bool clientClosed = false;
-    await server.bind(host, port);
-    server.listen((inClient) {
-      inClient.listen((event) {
-        expect(utf8.decode(event), msg);
+    var serverListenDone = false;
+    var clientClosed = false;
+
+    httpServer.listen((httpClient) async {
+      var s = await WebSocketTransformer.upgrade(httpClient);
+      s.listen((event) {
+        print(event);
+        s.close();
+        print('closed');
       }, onDone: () async {
-        clientClosed = true;
+        serverListenDone = true;
+        print('server done.');
       });
-    }, onDone: () async {
-      serverClosed = true;
     });
 
-    await client.connect(host, port);
+    var client = await WebSocket.connect('ws://$host:$port');
+    client.listen((event) {}, onDone: () {
+      clientClosed = true;
+    });
 
-    client.add(msg.codeUnits);
-
-    await Future.delayed(Duration(seconds: 2));
-
-    await client.close();
-    await server.close();
-    await Future.delayed(Duration(seconds: 2));
+    client.add([1]);
+    await delay(1);
     expect(clientClosed, true);
-    expect(serverClosed, true);
+    // expect(serverListenDone, false);
+    client.add([2]);
+    await delay(3);
+    await client.close();
   });
 }

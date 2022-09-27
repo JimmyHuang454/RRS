@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:proxy/transport/client/base.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/server/base.dart';
-import 'package:proxy/user.dart';
 import 'package:quiver/collection.dart';
 
 class MuxInfo {
@@ -73,6 +72,7 @@ class MuxInfo {
         var temp = RRSSocketMux(
             threadID: inThreadID,
             muxInfo: this,
+            rrsSocket: rrsSocket,
             muxPasswordSha224: muxPasswordSha224);
         usingList[inThreadID] = temp;
         newConnection!(temp);
@@ -136,13 +136,11 @@ class MuxInfo {
   }
 } //}}}
 
-class RRSSocketMux extends RRSSocket {
+class RRSSocketMux extends RRSSocketBase {
   //{{{
   int threadID;
   MuxInfo muxInfo;
   List<int> muxPasswordSha224;
-
-  late RRSSocket rrsSocket;
 
   void Function(Uint8List event)? onData2;
   Function? onError2;
@@ -153,10 +151,8 @@ class RRSSocketMux extends RRSSocket {
   RRSSocketMux(
       {required this.threadID,
       required this.muxInfo,
-      required this.muxPasswordSha224})
-      : super(socket: muxInfo.rrsSocket.socket) {
-    rrsSocket = muxInfo.rrsSocket;
-  }
+      required super.rrsSocket,
+      required this.muxPasswordSha224});
 
   @override
   void add(List<int> data) {
@@ -185,29 +181,6 @@ class RRSSocketMux extends RRSSocket {
     onError2 = onError2;
     onDone2 = onDone;
   }
-
-  @override
-  bool get readClosed => rrsSocket.readClosed;
-
-  @override
-  bool get writeClosed => rrsSocket.writeClosed;
-
-  @override
-  dynamic get socket => rrsSocket.socket;
-
-  @override
-  List get streamSubscription => rrsSocket.streamSubscription;
-
-  @override
-  Traffic get traffic => rrsSocket.traffic;
-
-  @override
-  Future<void> clearListen() async {
-    await rrsSocket.clearListen();
-  }
-
-  @override
-  Future<dynamic> get done => rrsSocket.done;
 } //}}}
 
 class MuxClient {
@@ -288,6 +261,7 @@ class MuxClient {
     var temp = RRSSocketMux(
         threadID: muxInfo.id,
         muxInfo: muxInfo,
+        rrsSocket: muxInfo.rrsSocket,
         muxPasswordSha224: muxPasswordSha224);
     muxInfo.usingList[muxInfo.id] = temp;
     return temp;
