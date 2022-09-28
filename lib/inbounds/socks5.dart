@@ -33,7 +33,6 @@ class Socks5Request extends Link {
     }, onError: (e) {
       closeServer();
     }, onDone: () {
-      devPrint('client closed');
       closeServer();
     });
   }

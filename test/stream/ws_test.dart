@@ -17,24 +17,36 @@ void main() {
       s.listen((event) {
         print(event);
         s.close();
-        print('closed');
       }, onDone: () async {
         serverListenDone = true;
-        print('server done.');
+        print('server close.');
       });
+
+      s.done.then(
+        (value) {
+          print('server done.');
+        },
+      );
     });
 
     var client = await WebSocket.connect('ws://$host:$port');
     client.listen((event) {}, onDone: () {
       clientClosed = true;
+      print('client close.');
     });
+
+    client.done.then(
+      (value) {
+        print('client done.');
+      },
+    );
 
     client.add([1]);
     await delay(1);
     expect(clientClosed, true);
-    // expect(serverListenDone, false);
+    expect(serverListenDone, true);
     client.add([2]);
-    await delay(3);
+    await delay(1);
     await client.close();
   });
 }

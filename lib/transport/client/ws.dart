@@ -1,8 +1,27 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
+
+class WS extends RRSSocket {
+  WS({required super.socket});
+
+  @override
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    super.listen(onData, onDone: () {
+      isClosed = true;
+      clearListen();
+      onDone!();
+    }, onError: (e) {
+      isClosed = true;
+      clearListen();
+      onError!(e);
+    });
+  }
+}
 
 class WSClient2 extends TransportClient1 {
   late String path;
@@ -35,6 +54,7 @@ class WSClient2 extends TransportClient1 {
 
     outAddress = address;
     outPort = port;
-    return RRSSocket(socket: ws);
+    return WS(socket: ws);
+    // return RRSSocket(socket: ws);
   }
 }
