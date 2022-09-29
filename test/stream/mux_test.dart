@@ -54,102 +54,95 @@ void main() {
     expect(isRecieve, true);
   }); //}}}
 
-  //test('tcp mux', () async {//{{{
-  //  var host = '127.0.0.1';
-  //  var port = await getUnusedPort(InternetAddress(host));
-  //  var muxPWD = '123';
-  //  var config = {
-  //    'mux': {'enabled': true, 'password': muxPWD}
-  //  };
-  //  var client = MuxClient(transportClient1: TCPClient2(config: config));
-  //  var bind = MuxServer(transportServer1: TCPServer2(config: config));
+  test('tcp mux', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var muxPWD = '123';
+    var config = {
+      'mux': {'enabled': true, 'password': muxPWD}
+    };
+    var client = MuxClient(transportClient1: TCPClient2(config: config));
+    var bind = MuxServer(transportServer1: TCPServer2(config: config));
 
-  //  var msg = '1'; // length == 1
-  //  bool serverReciveClosed = false; // close signal from client.
-  //  bool clientReciveClosed = false; // close signal from server.
-  //  bool isRecieve = false;
+    var msg = '1'; // length == 1
+    bool serverReciveClosed = false; // close signal from client.
+    bool clientReciveClosed = false; // close signal from server.
+    bool isRecieve = false;
 
-  //  var server = await bind.bind(host, port);
+    var server = await bind.bind(host, port);
 
-  //  server.listen((inClient) {
-  //    inClient.listen((event) async {
-  //      expect(utf8.decode(event), msg);
-  //      inClient.add(event);
-  //      inClient.close();
-  //    }, onDone: () {
-  //      serverReciveClosed = true;
-  //    });
-  //  }, onDone: () {});
+    server.listen((inClient) {
+      inClient.listen((event) async {
+        expect(utf8.decode(event), msg);
+        inClient.add(event);
+      }, onDone: () async {
+        serverReciveClosed = true;
+        await delay(2);
+        inClient.close();
+      });
+    }, onDone: () {});
 
-  //  var muxSocket = await client.connect(host, port);
-  //  muxSocket.add(msg.codeUnits);
+    var muxSocket = await client.connect(host, port);
+    muxSocket.add(msg.codeUnits);
 
-  //  muxSocket.listen((event) {
-  //    expect(listsEqual(event, msg.codeUnits), true);
-  //    isRecieve = true;
-  //  }, onDone: () {
-  //    clientReciveClosed = true;
-  //  });
+    muxSocket.listen((event) {
+      expect(listsEqual(event, msg.codeUnits), true);
+      isRecieve = true;
+    }, onDone: () {
+      clientReciveClosed = true;
+    });
 
-  //  client.mux.forEach(
-  //    (key, value) {
-  //      expect(value.length, 1);
-  //    },
-  //  );
+    client.mux.forEach(
+      (key, value) {
+        expect(value.length, 1);
+      },
+    );
 
-  //  await delay(2);
-  //  expect(isRecieve, true);
+    await delay(1);
+    expect(isRecieve, true);
 
-  //  muxSocket.close();
-  //  await delay(1);
-  //  expect(serverReciveClosed, true);
-  //  expect(clientReciveClosed, true);
-  //  client.clearEmpty();
-  //  expect(client.mux.length, 0);
+    muxSocket.close();
+    await delay(1);
+    expect(serverReciveClosed, true);
+    await delay(1);
+    expect(clientReciveClosed, true);
+    client.clearEmpty();
+    expect(client.mux.length, 0);
 
-  //  //----------------------------------
-  //  serverReciveClosed = false;
-  //  clientReciveClosed = false;
-  //  isRecieve = false;
 
-  //  muxSocket = await client.connect(host, port);
-  //  var muxSocket2 = await client.connect(host, port);
-  //  expect(client.mux.length, 1);
+    //----------------------------------
+    serverReciveClosed = false;
+    clientReciveClosed = false;
+    isRecieve = false;
 
-  //  muxSocket.listen((event) {
-  //    expect(listsEqual(event, msg.codeUnits), true);
-  //    isRecieve = true;
-  //  }, onDone: () {
-  //    clientReciveClosed = true;
-  //  });
+    muxSocket = await client.connect(host, port);
+    var muxSocket2 = await client.connect(host, port);
+    expect(client.mux.length, 1);
 
-  //  muxSocket2.listen((event) {
-  //    expect(listsEqual(event, msg.codeUnits), true);
-  //    isRecieve = true;
-  //    print(event);
-  //  }, onDone: () {
-  //    clientReciveClosed = true;
-  //  });
-  //  muxSocket.add(msg.codeUnits);
-  //  await delay(1);
-  //  expect(isRecieve, true);
-  //  expect(clientReciveClosed, true);
-  //  expect(serverReciveClosed, true);
+    muxSocket.listen((event) {
+      expect(listsEqual(event, msg.codeUnits), true);
+      isRecieve = true;
+    }, onDone: () {
+      clientReciveClosed = true;
+    });
 
-  //  serverReciveClosed = false;
-  //  clientReciveClosed = false;
-  //  isRecieve = false;
+    muxSocket2.listen((event) {
+      expect(listsEqual(event, msg.codeUnits), true);
+      isRecieve = true;
+      print(event);
+    }, onDone: () {
+      clientReciveClosed = true;
+    });
+    muxSocket.add(msg.codeUnits);
+    await delay(1);
+    expect(isRecieve, true);
+    muxSocket.close();
+    await delay(1);
+    expect(serverReciveClosed, true);
+    await delay(2);
+    expect(clientReciveClosed, true);
 
-  //  client.mux.forEach(
-  //    (key, value) {
-  //      expect(value.length, 1);
-  //      value.forEach(
-  //        (key2, value2) {
-  //          print(value2);
-  //          expect(value2.usingList.length, 1);
-  //        },
-  //      );
-  //    },
-  //  );
-  //});//}}}
+    expect(client.mux.length, 1);
+  }); //}}}
 }

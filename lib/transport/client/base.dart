@@ -45,15 +45,7 @@ class RRSSocket {
     var temp = socket.listen((data) {
       onData!(data);
       traffic.downlink += (data as Uint8List).length;
-    }, onDone: () {
-      // isClosed = true;
-      // clearListen();
-      onDone!();
-    }, onError: (e) {
-      // isClosed = true;
-      // clearListen();
-      onError!(e);
-    }, cancelOnError: true);
+    }, onDone: onDone, onError: onError, cancelOnError: true);
 
     streamSubscription.add(temp);
   }

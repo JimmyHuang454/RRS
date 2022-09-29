@@ -14,17 +14,13 @@ void main() {
 
     httpServer.listen((httpClient) async {
       var s = await WebSocketTransformer.upgrade(httpClient);
-      s.listen((event) {
-        print(event);
+      s.listen((event) {}, onDone: () {
         s.close();
-      }, onDone: () async {
-        serverListenDone = true;
-        print('server close.');
       });
 
       s.done.then(
         (value) {
-          print('server done.');
+          serverListenDone = true;
         },
       );
     });
@@ -32,20 +28,20 @@ void main() {
     var client = await WebSocket.connect('ws://$host:$port');
     client.listen((event) {
       print(event);
-    }, onDone: () {
-      clientClosed = true;
-      print('client close.');
     });
 
     client.done.then(
       (value) {
         print('client done.');
+        clientClosed = true;
       },
     );
 
     client.add([1]);
-    await delay(4);
-    client.add([1]);
+    await delay(1);
     await client.close();
+    await delay(2);
+    expect(clientClosed, true);
+    expect(serverListenDone, true);
   });
 }
