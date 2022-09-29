@@ -8,17 +8,14 @@ import 'package:proxy/utils/utils.dart';
 class WS extends RRSSocket {
   WS({required super.socket});
 
+  // WS is not a stream protocol,
+  // it's closed when it close. So when we received onDone(), we should not add() and listen() to that WS channel.
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     super.listen(onData, onDone: () {
       isClosed = true;
-      clearListen();
       onDone!();
-    }, onError: (e) {
-      isClosed = true;
-      clearListen();
-      onError!(e);
     });
   }
 }
@@ -54,7 +51,7 @@ class WSClient2 extends TransportClient1 {
 
     outAddress = address;
     outPort = port;
-    return WS(socket: ws);
-    // return RRSSocket(socket: ws);
+    // return WS(socket: ws);
+    return RRSSocket(socket: ws);
   }
 }

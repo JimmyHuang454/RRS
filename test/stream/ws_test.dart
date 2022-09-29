@@ -30,7 +30,9 @@ void main() {
     });
 
     var client = await WebSocket.connect('ws://$host:$port');
-    client.listen((event) {}, onDone: () {
+    client.listen((event) {
+      print(event);
+    }, onDone: () {
       clientClosed = true;
       print('client close.');
     });
@@ -42,11 +44,8 @@ void main() {
     );
 
     client.add([1]);
-    await delay(1);
-    expect(clientClosed, true);
-    expect(serverListenDone, true);
-    client.add([2]);
-    await delay(1);
+    await delay(4);
+    client.add([1]);
     await client.close();
   });
 }

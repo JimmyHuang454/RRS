@@ -45,7 +45,15 @@ class RRSSocket {
     var temp = socket.listen((data) {
       onData!(data);
       traffic.downlink += (data as Uint8List).length;
-    }, onDone: onDone, onError: onError, cancelOnError: true);
+    }, onDone: () {
+      // isClosed = true;
+      // clearListen();
+      onDone!();
+    }, onError: (e) {
+      // isClosed = true;
+      // clearListen();
+      onError!(e);
+    }, cancelOnError: true);
 
     streamSubscription.add(temp);
   }
@@ -197,20 +205,22 @@ class TransportClient {
   }
 } //}}}
 
-class Connect2 extends RRSSocketBase {
+class Connect2 extends RRSSocket {
   //{{{
   OutboundStruct outboundStruct;
+  RRSSocket rrsSocket;
   Link link;
 
   Connect2(
-      {required super.rrsSocket,
+      {required this.rrsSocket,
       required this.link,
-      required this.outboundStruct});
+      required this.outboundStruct})
+      : super(socket: rrsSocket.socket);
 
   @override
   Future close() async {
-    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
-    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
+    outboundStruct.traffic.uplink += super.traffic.uplink;
+    outboundStruct.traffic.downlink += super.traffic.downlink;
     await rrsSocket.close();
   }
 } //}}}

@@ -85,15 +85,23 @@ class Link {
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () {
-      closeClient();
+      closeAll();
     }, onError: (e) {
-      closeClient();
+      closeAll();
+    });
+
+    client.done.then((value) {
+      client.clearListen();
+    }, onError: (e) {
+      client.clearListen();
     });
 
     server!.done.then((e) {
       serverDone();
+      server!.clearListen();
     }, onError: (e) {
       serverDone();
+      server!.clearListen();
     });
 
     return true;
