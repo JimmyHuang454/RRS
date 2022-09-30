@@ -121,7 +121,6 @@ void main() {
     client.clearEmpty();
     expect(client.mux.length, 0);
 
-
     //----------------------------------
     serverReciveClosed = false;
     clientReciveClosed = false;
@@ -184,5 +183,65 @@ void main() {
     expect(client.mux.length, 0);
 
     server.close();
+  }); //}}}
+
+  test('tcp mux2', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var muxPWD = '123xxxxxxxx';
+    var config = {
+      'mux': {'enabled': true, 'password': muxPWD}
+    };
+    var client = MuxClient(transportClient1: TCPClient2(config: config));
+    var bind = MuxServer(transportServer1: TCPServer2(config: config));
+
+    var server = await bind.bind(host, port);
+    var clientList = {};
+
+    server.listen((inClient) {
+      inClient.listen((event) {
+        inClient.add(event);
+      }, onDone: () {
+        inClient.close();
+      });
+    }, onDone: () {});
+
+    const times = 100;
+    for (var i = 0, len = times; i < len; ++i) {
+      var muxSocket = await client.connect(host, port);
+      clientList[i] = {'isClosed': false, 'isRecieve': false};
+      muxSocket.listen((event) {
+        clientList[event[0]]['isRecieve'] = true;
+      });
+      muxSocket.add([i]);
+    }
+
+    await delay(2);
+
+    for (var i = 0, len = times; i < len; ++i) {
+      expect(clientList[i]['isRecieve'], true);
+    }
+
+    client.mux.forEach(
+      (key, value) {
+        value.forEach(
+          (key2, value2) async {
+            expect(value2.isAllDone, false);
+            value2.usingList.forEach(
+              (key3, value3) {
+                value3.close();
+              },
+            );
+            await delay(2);
+            expect(value2.isAllDone, true);
+          },
+        );
+      },
+    );
+
+    await delay(1);
+    client.clearEmpty();
+    expect(client.mux.length, 0);
   }); //}}}
 }
