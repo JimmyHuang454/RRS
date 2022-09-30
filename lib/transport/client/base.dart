@@ -17,9 +17,9 @@ class RRSSocket {
 
   RRSSocket({required this.socket});
 
-  Future<void> clearListen() async {
+  void clearListen() {
     for (var i = 0, len = streamSubscription.length; i < len; ++i) {
-      await streamSubscription[i].cancel();
+      streamSubscription[i].cancel();
     }
     streamSubscription = [];
   }
@@ -32,12 +32,12 @@ class RRSSocket {
     traffic.uplink += data.length;
   }
 
-  Future close() async {
+  void close() {
     if (isClosed) {
       return;
     }
     isClosed = true;
-    await socket.close();
+    socket.close();
   }
 
   void listen(void Function(Uint8List event)? onData,
@@ -210,10 +210,10 @@ class Connect2 extends RRSSocket {
       : super(socket: rrsSocket.socket);
 
   @override
-  Future close() async {
+  void close() {
     outboundStruct.traffic.uplink += super.traffic.uplink;
     outboundStruct.traffic.downlink += super.traffic.downlink;
-    await rrsSocket.close();
+    rrsSocket.close();
   }
 } //}}}
 
@@ -236,8 +236,8 @@ class RRSSocketBase extends RRSSocket {
   Traffic get traffic => rrsSocket.traffic;
 
   @override
-  Future<void> clearListen() async {
-    await rrsSocket.clearListen();
+  void clearListen() {
+    rrsSocket.clearListen();
   }
 
   @override
@@ -246,8 +246,8 @@ class RRSSocketBase extends RRSSocket {
   }
 
   @override
-  Future close() async {
-    await rrsSocket.close();
+  void close() {
+    rrsSocket.close();
   }
 
   @override

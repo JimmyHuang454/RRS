@@ -224,7 +224,7 @@ class RRSSocketMux extends RRSSocketBase {
   }
 
   @override
-  Future close() async {
+  void close() {
     muxInfo.close(threadID);
   }
 
@@ -354,13 +354,13 @@ class RRSServerSocketMux extends RRSServerSocket {
   List get streamSubscription => rrsServerSocket.streamSubscription;
 
   @override
-  Future<void> clearListen() async {
-    await rrsServerSocket.clearListen();
+  void clearListen() {
+    rrsServerSocket.clearListen();
   }
 
   @override
-  Future<void> close() async {
-    await rrsServerSocket.close();
+  void close() {
+    rrsServerSocket.close();
   }
 } //}}}
 

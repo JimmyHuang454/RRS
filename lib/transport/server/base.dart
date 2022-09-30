@@ -95,11 +95,11 @@ class RRSServerSocket {
 
   RRSServerSocket({required this.serverSocket});
 
-  Future<void> close() async {
+  void close() async {
     await serverSocket.close();
   }
 
-  Future<void> clearListen() async {
+  void clearListen() async {
     for (var i = 0, len = streamSubscription.length; i < len; ++i) {
       await streamSubscription[i].cancel();
     }

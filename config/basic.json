@@ -5,9 +5,9 @@
       "setting": {
         "strategy": "default"
       },
-      "outStream": "defalut_tcp"
+      "outStream": "tcp_instream"
     },
-    "trojanProxy": {
+    "trojan_outbound": {
       "protocol": "trojan",
       "setting": {
         "address": "uif02.xyz",
@@ -16,23 +16,14 @@
       },
       "outStream": "ws_with_tls"
     },
-    "trojanProxy2": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "uif02.xyz",
-        "port": 443,
-        "password": "password2"
-      },
-      "outStream": "ws_with_tls"
-    },
-    "localTrojan": {
+    "trojan_outbound_mux": {
       "protocol": "trojan",
       "setting": {
         "address": "127.0.0.1",
         "port": 8848,
         "password": "password"
       },
-      "outStream": "defalut_tcp"
+      "outStream": "tcp_mux_outstream"
     }
   },
   "inbounds": {
@@ -42,16 +33,19 @@
         "address": "0.0.0.0",
         "port": 8080
       },
-      "inStream": "defalut_tcp",
+      "inStream": "tcp_instream",
       "route": "proxy"
     },
-    "trojan_inbound": {
-      "protocol": "http",
+    "trojan_inbound_mux": {
+      "protocol": "trojan",
       "setting": {
         "address": "127.0.0.1",
-        "port": 8082
+        "port": 8848,
+        "tunnelPort": 1,
+        "tunnelAddress": "fake",
+        "password": "password",
       },
-      "inStream": "defalut_tcp",
+      "inStream": "tcp_mux_instream",
       "route": "proxy"
     },
     "socks5_inbound": {
@@ -60,9 +54,18 @@
         "address": "127.0.0.1",
         "port": 8081
       },
-      "inStream": "defalut_tcp",
+      "inStream": "tcp_instream",
       "route": "proxy"
-    }
+    },
+    "socks5_inbound_mux": {
+      "protocol": "socks5",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8083
+      },
+      "inStream": "tcp_instream",
+      "route": "mux_route"
+    },
   },
   "outStream": {
     "tcp_with_tls": {
@@ -84,8 +87,15 @@
         "enabled": false
       }
     },
-    "defalut_tcp": {
+    "tcp_instream": {
       "protocol": "tcp"
+    },
+    "tcp_mux_outstream": {
+      "protocol": "tcp",
+      "mux": {
+        "enabled": false,
+        "password": "123"
+      }
     },
     "ws_with_tls": {
       "protocol": "ws",
@@ -98,8 +108,15 @@
     }
   },
   "inStream": {
-    "defalut_tcp": {
+    "tcp_instream": {
       "protocol": "tcp"
+    },
+    "tcp_mux_instream": {
+      "protocol": "tcp",
+      "mux": {
+        "enabled": false,
+        "password": "123"
+      }
     }
   },
   "routes": {
@@ -109,18 +126,23 @@
         "outbound": "endPoint"
       }]
     },
+    "mux_route": {
+      "rules": [{
+        "outbound": "trojan_outbound_mux"
+      }]
+    },
     "proxy": {
       "rules": [{
         "outbound": "endPoint",
         "domain": ["regex:.*.cn"]
       }, {
-        "outbound": "trojanProxy",
+        "outbound": "trojan_outbound",
         "domain": ["google"]
       }, {
         "outbound": "endPoint",
         "chinaOnly": true
       }, {
-        "outbound": ["trojanProxy", "trojanProxy2"]
+        "outbound": ["trojan_outbound"]
       }]
     }
   }

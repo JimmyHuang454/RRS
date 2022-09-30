@@ -48,7 +48,7 @@ class HTTPOut extends OutboundStruct {
       await streamController.close();
 
       if (res != 1) {
-        await conn.close();
+        conn.close();
         throw 'failed to build http tunnel.';
       }
     }

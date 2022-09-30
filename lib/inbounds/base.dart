@@ -44,10 +44,6 @@ class Link {
   }
 
   void closeAll() {
-    client.clearListen();
-    if (server != null) {
-      server!.clearListen();
-    }
     closeServer();
     closeClient();
   }
