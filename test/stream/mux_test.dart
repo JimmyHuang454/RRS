@@ -127,12 +127,11 @@ void main() {
       clientReciveClosed = true;
     });
 
+    var clientReciveClosed2 = false;
     muxSocket2.listen((event) {
-      expect(listsEqual(event, msg.codeUnits), true);
-      isRecieve = true;
       print(event);
     }, onDone: () {
-      clientReciveClosed = true;
+      clientReciveClosed2 = true;
     });
     muxSocket.add(msg.codeUnits);
     await delay(1);
@@ -141,6 +140,7 @@ void main() {
     await delay(1);
     expect(serverReciveClosed, true);
     await delay(2);
+    expect(clientReciveClosed2, false);
     expect(clientReciveClosed, true);
 
     expect(client.mux.length, 1);

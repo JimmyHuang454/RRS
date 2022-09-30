@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
@@ -5,7 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:quiver/collection.dart';
 
-class MuxInfo {
+class MuxHandler {
   //{{{
   int muxInfoID;
 
@@ -24,7 +25,7 @@ class MuxInfo {
   bool isAuth = false;
   bool isFake = false;
 
-  MuxInfo(
+  MuxHandler(
       {required this.rrsSocket,
       required this.muxInfoID,
       required this.muxPasswordSha224}) {
@@ -66,18 +67,18 @@ class MuxInfo {
 
     RRSSocketMux dstSocket;
     if (currentThreadID == 0) {
-      var inThreadID = content[0];
-      currentThreadID = inThreadID;
-      if (!usingList.containsKey(inThreadID)) {
+      var threadID = content[0];
+      currentThreadID = threadID;
+      if (!usingList.containsKey(threadID)) {
         var temp = RRSSocketMux(
-            threadID: inThreadID,
+            threadID: threadID,
             muxInfo: this,
             rrsSocket: rrsSocket,
             muxPasswordSha224: muxPasswordSha224);
-        usingList[inThreadID] = temp;
+        usingList[threadID] = temp;
         newConnection!(temp);
       }
-      dstSocket = usingList[inThreadID]!;
+      dstSocket = usingList[threadID]!;
 
       Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
       ByteData byteData = ByteData.sublistView(byteList);
@@ -90,7 +91,7 @@ class MuxInfo {
     }
 
     if (currentLen == 0) {
-      close(currentThreadID);
+      onDone(currentThreadID);
     } else {
       var handleLen = currentLen - addedLen;
       if (content.length < handleLen) {
@@ -110,43 +111,82 @@ class MuxInfo {
   Future<void> closeAll() async {
     usingList.forEach(
       (key, value) {
-        close(key, isClear: false);
+        close(key);
       },
     );
+    usingList.clear();
     rrsSocket.close();
   }
 
-  void close(int inThreadID, {bool isClear = true}) {
-    if (!usingList.containsKey(inThreadID)) {
+  void onDone(int threadID) {
+    if (!usingList.containsKey(threadID)) {
       return;
     }
     RRSSocketMux dstSocket;
-    dstSocket = usingList[inThreadID]!;
+    dstSocket = usingList[threadID]!;
 
     if (dstSocket.onDone2 != null) {
       dstSocket.onDone2!();
     }
+    dstSocket.readClosed = true;
 
-    if (isClear) {
-      usingList.remove(inThreadID);
+    triggerDone(dstSocket, threadID);
+  }
+
+  void triggerDone(RRSSocketMux dstSocket, int threadID) {
+    if (dstSocket.isDone) {
+      return;
     }
-    if (usingList.isEmpty) {
-      rrsSocket.close();
+
+    if (dstSocket.writeClosed && dstSocket.readClosed) {
+      dstSocket.isDone = true;
+      dstSocket.c.complete('ok');
+
+      if (usingList.containsKey(threadID)) {
+        usingList.removeWhere(
+          (key, value) {
+            return key == threadID;
+          },
+        );
+      }
+      if (usingList.isEmpty) {
+        rrsSocket.close();
+      }
     }
+  }
+
+  void close(int threadID) {
+    if (!usingList.containsKey(threadID)) {
+      return;
+    }
+
+    RRSSocketMux dstSocket;
+    dstSocket = usingList[threadID]!;
+
+    if (!dstSocket.writeClosed) {
+      dstSocket.add([]);
+    }
+    dstSocket.writeClosed = true;
+
+    triggerDone(dstSocket, threadID);
   }
 } //}}}
 
 class RRSSocketMux extends RRSSocketBase {
   //{{{
   int threadID;
-  MuxInfo muxInfo;
+  MuxHandler muxInfo;
   List<int> muxPasswordSha224;
 
   void Function(Uint8List event)? onData2;
   Function? onError2;
   void Function()? onDone2;
 
+  bool writeClosed = false;
+  bool readClosed = false;
+  bool isDone = false;
   int version = 0;
+  final c = Completer();
 
   RRSSocketMux(
       {required this.threadID,
@@ -170,9 +210,11 @@ class RRSSocketMux extends RRSSocketBase {
 
   @override
   Future close() async {
-    add([]); // send a empty datagram.
     muxInfo.close(threadID);
   }
+
+  @override
+  Future<dynamic> get done => c.future;
 
   @override
   void listen(void Function(Uint8List event)? onData,
@@ -185,7 +227,7 @@ class RRSSocketMux extends RRSSocketBase {
 
 class MuxClient {
   //{{{
-  Map<String, Map<int, MuxInfo>> mux = {};
+  Map<String, Map<int, MuxHandler>> mux = {};
 
   int muxInfoID = 0;
 
@@ -228,7 +270,7 @@ class MuxClient {
     }
 
     String dst = host + ":" + port.toString();
-    late MuxInfo muxInfo;
+    late MuxHandler muxInfo;
 
     var isAssigned = false;
 
@@ -250,7 +292,7 @@ class MuxClient {
 
     if (!isAssigned) {
       muxInfoID += 1;
-      muxInfo = MuxInfo(
+      muxInfo = MuxHandler(
           rrsSocket: await transportClient1.connect(host, port),
           muxInfoID: muxInfoID,
           muxPasswordSha224: muxPasswordSha224);
@@ -281,7 +323,7 @@ class RRSServerSocketMux extends RRSServerSocket {
   void listen(void Function(RRSSocket rrsSocket)? onData,
       {Function? onError, void Function()? onDone}) {
     super.listen((rrsSocket) {
-      var muxInfo = MuxInfo(
+      var muxInfo = MuxHandler(
           rrsSocket: rrsSocket,
           muxInfoID: 0,
           muxPasswordSha224: muxPasswordSha224);
