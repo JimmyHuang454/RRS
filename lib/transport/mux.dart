@@ -132,12 +132,12 @@ class MuxHandler {
     RRSSocketMux dstSocket;
     dstSocket = usingList[threadID]!;
 
-    dstSocket.readClosed = true;
-    triggerDone(dstSocket);
-
-    if (dstSocket.onDone2 != null) {
+    if (dstSocket.onDone2 != null && !dstSocket.readClosed) {
       dstSocket.onDone2!();
     }
+    dstSocket.readClosed = true;
+
+    triggerDone(dstSocket);
   }
 
   void triggerDone(RRSSocketMux dstSocket) {
@@ -316,7 +316,6 @@ class MuxClient {
           muxInfoID: muxInfoID,
           muxPasswordSha224: muxPasswordSha224);
       mux[dst]![muxInfoID] = muxInfo;
-      print(mux[dst]);
     }
 
     muxInfo.id += 1;

@@ -99,9 +99,11 @@ void main() {
       },
     );
     var isdone = false;
-    muxSocket.done.then((value) {
-      isdone = true;
-    },);
+    muxSocket.done.then(
+      (value) {
+        isdone = true;
+      },
+    );
 
     await delay(1);
     expect(isRecieve, true);
@@ -119,7 +121,7 @@ void main() {
     client.clearEmpty();
     expect(client.mux.length, 0);
 
-    return;
+
     //----------------------------------
     serverReciveClosed = false;
     clientReciveClosed = false;
@@ -159,5 +161,28 @@ void main() {
     await delay(2);
     expect(clientReciveClosed, true);
     expect(clientReciveClosed2, false);
+
+    serverReciveClosed = false;
+    muxSocket2.close();
+    await delay(3);
+    expect(clientReciveClosed2, true);
+    expect(serverReciveClosed, true);
+    expect(client.mux.length, 1);
+
+    client.mux.forEach(
+      (key, value) {
+        value.forEach(
+          (key2, value2) {
+            expect(value2.isAllDone, true);
+          },
+        );
+      },
+    );
+
+    client.clearEmpty();
+    await delay(1);
+    expect(client.mux.length, 0);
+
+    server.close();
   }); //}}}
 }
