@@ -72,20 +72,9 @@
       "protocol": "tcp",
       "setting": {},
       "connectionTimeout": 100,
-      "mux": {
-        "enabled": false,
-        "concurrency": 10
-      },
       "tls": {
         "enabled": true,
-        "alpn": ["h2", "http/1.1"],
-        "useSystemRoot": true,
-        "certificate": ""
       },
-
-      "fakeRoute": {
-        "enabled": false
-      }
     },
     "tcp_instream": {
       "protocol": "tcp"

@@ -30,6 +30,9 @@ class RRSSocket {
     }
     traffic.uplink += data.length;
     socket.add(data);
+    try {
+      socket.flush();
+    } catch (_) {}
   }
 
   void close() {
@@ -84,7 +87,7 @@ class TransportClient1 {
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
 
     isMux = getValue(config, 'mux.enabled', false);
-    maxThread = getValue(config, 'mux.maxThread', 8);
+    maxThread = getValue(config, 'mux.maxThread', 28);
     muxPassword = getValue(config, 'mux.password', '');
 
     connectionTimeout = getValue(config, 'connectionTimeout', 100);

@@ -55,6 +55,74 @@ void main() {
   //  expect(isRecieve, true);
   //}); //}}}
 
+  test('tcp mux one link', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var muxPWD = '123';
+    Map<String, dynamic> config = {
+      'mux': {'enabled': true, 'password': muxPWD}
+    };
+    var client = buildOutStream('1', config);
+    var bind = buildInStream('2', config);
+
+    var msg = '1'; // length == 1
+    bool serverReciveClosed = false; // close signal from client.
+    bool clientReciveClosed = false; // close signal from server.
+    bool isRecieve = false;
+
+    var server = await bind.bind(host, port);
+
+    server.listen((inClient) {
+      inClient.listen((event) {
+        expect(utf8.decode(event), msg);
+        inClient.add(event);
+      }, onDone: () async {
+        serverReciveClosed = true;
+        await delay(2);
+        inClient.close();
+      });
+    }, onDone: () {});
+
+    var muxSocket = await client.connect(host, port);
+    muxSocket.add(msg.codeUnits);
+
+    muxSocket.listen((event) {
+      expect(listsEqual(event, msg.codeUnits), true);
+      isRecieve = true;
+    }, onDone: () {
+      clientReciveClosed = true;
+    });
+
+    client.mux.forEach(
+      (key, value) {
+        expect(value.length, 1);
+      },
+    );
+    var isdone = false;
+    muxSocket.done.then(
+      (value) {
+        isdone = true;
+      },
+    );
+
+    await delay(1);
+    expect(isRecieve, true);
+
+    muxSocket.close();
+    await delay(1);
+    expect(serverReciveClosed, true);
+    expect(clientReciveClosed, false);
+    expect(isdone, false);
+
+    await delay(2);
+    expect(clientReciveClosed, true);
+    expect(isdone, true);
+
+    client.clearEmpty();
+    expect(client.mux.length, 0);
+  }); //}}}
+
   test('tcp mux', () async {
     //{{{
     var host = '127.0.0.1';
@@ -122,6 +190,7 @@ void main() {
     client.clearEmpty();
     expect(client.mux.length, 0);
 
+    return;
     //----------------------------------
     serverReciveClosed = false;
     clientReciveClosed = false;
