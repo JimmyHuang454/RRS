@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
@@ -179,4 +180,10 @@ class Address {
         (_type == 'domain' ? rawString.codeUnits : internetAddress.rawAddress);
     return Uint8List.fromList(res);
   }
+}
+
+String generateRandomString(int len) {
+  final result = String.fromCharCodes(
+      List.generate(len, (index) => Random().nextInt(33) + 89));
+  return result;
 }

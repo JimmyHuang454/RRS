@@ -30,9 +30,6 @@ class RRSSocket {
     }
     traffic.uplink += data.length;
     socket.add(data);
-    try {
-      socket.flush();
-    } catch (_) {}
   }
 
   void close() {

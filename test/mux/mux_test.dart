@@ -29,43 +29,38 @@ void main() {
   //   // await delay(3);
   // });//}}}
 
-  test('mux test', () async {//{{{
+  test('mux test', () async {
+    //{{{
     var f = File('./test/mux/mux_test.json');
     var config = jsonDecode(await f.readAsString());
     entry(config);
     var httpServer = await HttpServer.bind('127.0.0.1', 80);
 
+    var tag = '111111111';
+
     httpServer.forEach((HttpRequest request) {
-      request.response.write('Hello, world!');
+      request.response.write(tag);
       request.response.close();
     });
 
     var client = TCPClient2(config: {'tag': 'TCPClient_http'});
-    var j = 0;
-    var r = 0;
-    var d = 0;
-    var times = 10;
+    var times = 100;
+    var clientList = {};
+    var receiveList = {};
     for (var i = 0, len = times; i < len; ++i) {
-      var so = await client.connect('127.0.0.1', 18080);
-      so.add(buildHTTPProxyRequest('127.0.0.1'));
-      so.listen((event) {
-        r += 1;
-      }, onDone: () {
-        d += 1;
-      });
-
-      so.done.then(
-        (value) {
-          j += 1;
-        },
-      );
-      so.close();
-      await delay(1);
+      clientList[i] = await client.connect('127.0.0.1', 18080);
+      clientList[i].listen((event) {
+        // expect(utf8.decode(event).contains(tag), true);
+        receiveList[i] = true;
+      }, onDone: () {});
     }
-    await delay(3);
+    await delay(1);
 
-    expect(j, times);
-    expect(d, times);
-    expect(r, times);
-  });//}}}
+    for (var i = 0, len = times; i < len; ++i) {
+      clientList[i].add(buildHTTPProxyRequest('127.0.0.1'));
+    }
+    await delay(2);
+
+    expect(receiveList.length, times);
+  }); //}}}
 }

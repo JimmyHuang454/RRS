@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:proxy/handler.dart';
 import 'package:quiver/collection.dart';
@@ -255,7 +256,7 @@ void main() {
     server.close();
   }); //}}}
 
-  test('tcp mux2', () async {
+  test('tcp mux chunck', () async {
     //{{{
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
@@ -268,6 +269,7 @@ void main() {
 
     var server = await bind.bind(host, port);
     var clientList = {};
+    var clientInfo = {};
 
     server.listen((inClient) {
       inClient.listen((event) {
@@ -278,19 +280,35 @@ void main() {
     }, onDone: () {});
 
     const times = 100;
+    var d = 0;
     for (var i = 0, len = times; i < len; ++i) {
       var muxSocket = await client.connect(host, port);
-      clientList[i] = {'isClosed': false, 'isRecieve': false};
+      clientList[i] = muxSocket;
+      clientInfo[i] = {'isRecieve': false, 'content': []};
       muxSocket.listen((event) {
-        clientList[event[0]]['isRecieve'] = true;
+        clientInfo[i]['content'] += event;
+        clientInfo[i]['isRecieve'] = true;
       });
-      muxSocket.add([i]);
+      muxSocket.done.then(
+        (value) {
+          d += 1;
+        },
+      );
     }
 
-    await delay(2);
+    await delay(1);
 
     for (var i = 0, len = times; i < len; ++i) {
-      expect(clientList[i]['isRecieve'], true);
+      clientInfo[i]['text'] =
+          generateRandomString(Random().nextInt(1000)).codeUnits;
+      clientList[i].add(clientInfo[i]['text']);
+    }
+
+    await delay(1);
+
+    for (var i = 0, len = times; i < len; ++i) {
+      expect(clientInfo[i]['isRecieve'], true);
+      expect(clientInfo[i]['content'], clientInfo[i]['text']);
     }
 
     client.mux.forEach(
@@ -313,5 +331,6 @@ void main() {
     await delay(1);
     client.clearEmpty();
     expect(client.mux.length, 0);
+    expect(d, times);
   }); //}}}
 }
