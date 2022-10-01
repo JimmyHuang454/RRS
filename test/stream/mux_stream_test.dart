@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:proxy/handler.dart';
 import 'package:quiver/collection.dart';
 import 'package:proxy/transport/mux.dart';
 import 'package:test/test.dart';
@@ -59,11 +60,11 @@ void main() {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
     var muxPWD = '123';
-    var config = {
+    Map<String, dynamic> config = {
       'mux': {'enabled': true, 'password': muxPWD}
     };
-    var client = MuxClient(transportClient1: TCPClient2(config: config));
-    var bind = MuxServer(transportServer1: TCPServer2(config: config));
+    var client = buildOutStream('1', config);
+    var bind = buildInStream('2', config);
 
     var msg = '1'; // length == 1
     bool serverReciveClosed = false; // close signal from client.
@@ -190,11 +191,11 @@ void main() {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
     var muxPWD = '123xxxxxxxx';
-    var config = {
+    Map<String, dynamic> config = {
       'mux': {'enabled': true, 'password': muxPWD}
     };
-    var client = MuxClient(transportClient1: TCPClient2(config: config));
-    var bind = MuxServer(transportServer1: TCPServer2(config: config));
+    var client = buildOutStream('4', config);
+    var bind = buildInStream('5', config);
 
     var server = await bind.bind(host, port);
     var clientList = {};

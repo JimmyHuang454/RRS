@@ -49,20 +49,12 @@ class Link {
   }
 
   void clientAdd(List<int> data) {
-    try {
-      client.add(data);
-    } catch (e) {
-      devPrint(e);
-    }
+    client.add(data);
   }
 
   void serverAdd(List<int> data) {
     if (server != null) {
-      try {
-        server!.add(data);
-      } catch (e) {
-        devPrint(e);
-      }
+      server!.add(data);
     }
   }
 
@@ -114,8 +106,12 @@ class Link {
 
   String buildLinkInfo() {
     if (linkInfo == '') {
+      var isMux = '';
+      if (outboundStruct.getClient().transportClient1.isMux) {
+        isMux = ':mux';
+      }
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient1.protocolName}>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient1.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

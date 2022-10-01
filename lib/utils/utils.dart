@@ -121,6 +121,11 @@ List<int> findEnd(List<int> input) {
   return input.sublist(0, i);
 }
 
+List<int> buildHTTPProxyRequest(String domain) {
+  var res = 'GET http://$domain HTTP/1.1\r\nHost: $domain\r\n\r\n';
+  return res.codeUnits;
+}
+
 class Address {
   late InternetAddress internetAddress;
 

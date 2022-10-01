@@ -10,8 +10,8 @@ class MuxHandler {
   //{{{
   int muxInfoID;
 
-  int id = 0;
-  int version = 0;
+  int threadIDCount = 0;
+  int muxVersion = 0;
   int currentThreadID = 0;
 
   int currentLen = 0;
@@ -24,7 +24,7 @@ class MuxHandler {
   List<int> muxPasswordSha224;
   bool isAuth = false;
   bool isFake = false;
-  bool isClosed = false;
+  bool isChannelClosed = false;
   bool isAllDone = false;
 
   MuxHandler(
@@ -42,7 +42,7 @@ class MuxHandler {
         if (!listsEqual(pwd, muxPasswordSha224)) {
           isFake = true;
         } else {
-          version = content[56];
+          muxVersion = content[56];
           content = content.sublist(57);
         }
         isAuth = true;
@@ -55,10 +55,8 @@ class MuxHandler {
 
       handle();
     }, onDone: () {
-      isClosed = true;
       closeAll();
     }, onError: (e) {
-      isClosed = true;
       closeAll();
     });
   }
@@ -102,7 +100,9 @@ class MuxHandler {
       if (content.length < handleLen) {
         handleLen = content.length;
       }
-      dstSocket.onData2!(Uint8List.fromList(content.sublist(0, handleLen)));
+      if (!dstSocket.readClosed) {
+        dstSocket.onData2!(Uint8List.fromList(content.sublist(0, handleLen)));
+      }
       addedLen += handleLen;
       content = content.sublist(handleLen);
     }
@@ -123,6 +123,9 @@ class MuxHandler {
         },
       );
     }
+
+    isChannelClosed = true;
+    rrsSocket.close();
   }
 
   void onDone(int threadID) {
@@ -141,11 +144,7 @@ class MuxHandler {
   }
 
   void triggerDone(RRSSocketMux dstSocket) {
-    if (dstSocket.isDone) {
-      return;
-    }
-
-    if (dstSocket.writeClosed && dstSocket.readClosed) {
+    if (!dstSocket.isDone && dstSocket.writeClosed && dstSocket.readClosed) {
       dstSocket.isDone = true;
       dstSocket.c.complete('ok');
     }
@@ -158,12 +157,6 @@ class MuxHandler {
         }
       },
     );
-
-    if (!isAllDone || !isClosed) {
-      return;
-    }
-
-    rrsSocket.close();
   }
 
   void close(int threadID) {
@@ -196,7 +189,8 @@ class RRSSocketMux extends RRSSocketBase {
   bool writeClosed = false;
   bool readClosed = false;
   bool isDone = false;
-  int version = 0;
+
+  final muxVersion = 0;
   final c = Completer();
 
   RRSSocketMux(
@@ -213,7 +207,7 @@ class RRSSocketMux extends RRSSocketBase {
 
     List<int> temp = [threadID];
     if (!muxInfo.isAuth) {
-      temp = [version, threadID];
+      temp = [muxVersion, threadID];
       temp = List.from(muxPasswordSha224)..addAll(temp);
       muxInfo.isAuth = true;
     }
@@ -235,7 +229,7 @@ class RRSSocketMux extends RRSSocketBase {
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     onData2 = onData;
-    onError2 = onError2;
+    onError2 = onError;
     onDone2 = onDone;
   }
 } //}}}
@@ -265,11 +259,11 @@ class MuxClient {
     mux.forEach(
       (dst, value) {
         value.removeWhere(
-          (key, value) {
-            if (value.isAllDone) {
-              value.rrsSocket.close();
+          (key2, value2) {
+            if (value2.isAllDone) {
+              value2.rrsSocket.close();
             }
-            return value.isAllDone;
+            return value2.isAllDone;
           },
         );
       },
@@ -290,15 +284,15 @@ class MuxClient {
     String dst = host + ":" + port.toString();
     late MuxHandler muxInfo;
 
-    var isAssigned = false;
-
     clearEmpty();
 
+    var isAssigned = false;
     if (mux.containsKey(dst)) {
       mux[dst]!.forEach(
         (key, value) {
           if (value.usingList.length < transportClient1.maxThread &&
-              !isAssigned) {
+              !isAssigned &&
+              !value.isAllDone) {
             muxInfo = value;
             isAssigned = true;
             return;
@@ -318,13 +312,13 @@ class MuxClient {
       mux[dst]![muxInfoID] = muxInfo;
     }
 
-    muxInfo.id += 1;
+    muxInfo.threadIDCount += 1;
     var temp = RRSSocketMux(
-        threadID: muxInfo.id,
+        threadID: muxInfo.threadIDCount,
         muxInfo: muxInfo,
         rrsSocket: muxInfo.rrsSocket,
         muxPasswordSha224: muxPasswordSha224);
-    muxInfo.usingList[muxInfo.id] = temp;
+    muxInfo.usingList[muxInfo.threadIDCount] = temp;
     return temp;
   }
 } //}}}
@@ -341,7 +335,7 @@ class RRSServerSocketMux extends RRSServerSocket {
   @override
   void listen(void Function(RRSSocket rrsSocket)? onData,
       {Function? onError, void Function()? onDone}) {
-    super.listen((rrsSocket) {
+    rrsServerSocket.listen((rrsSocket) {
       var muxInfo = MuxHandler(
           rrsSocket: rrsSocket,
           muxInfoID: 0,
@@ -384,11 +378,11 @@ class MuxServer {
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
-    var res = await transportServer1.bind(address, port);
+    var temp = await transportServer1.bind(address, port);
     if (!transportServer1.isMux) {
-      return res;
+      return temp;
     }
     return RRSServerSocketMux(
-        rrsServerSocket: res, muxPasswordSha224: muxPasswordSha224);
+        rrsServerSocket: temp, muxPasswordSha224: muxPasswordSha224);
   }
 } //}}}

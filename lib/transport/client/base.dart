@@ -28,8 +28,8 @@ class RRSSocket {
     if (isClosed) {
       return;
     }
-    socket.add(data);
     traffic.uplink += data.length;
+    socket.add(data);
   }
 
   void close() {
@@ -197,23 +197,21 @@ class TransportClient {
   }
 } //}}}
 
-class Connect2 extends RRSSocket {
+class Connect2 extends RRSSocketBase {
   //{{{
   OutboundStruct outboundStruct;
-  RRSSocket rrsSocket;
   Link link;
 
   Connect2(
-      {required this.rrsSocket,
+      {required super.rrsSocket,
       required this.link,
-      required this.outboundStruct})
-      : super(socket: rrsSocket.socket);
+      required this.outboundStruct});
 
   @override
   void close() {
-    outboundStruct.traffic.uplink += super.traffic.uplink;
-    outboundStruct.traffic.downlink += super.traffic.downlink;
     rrsSocket.close();
+    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
+    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
   }
 } //}}}
 
