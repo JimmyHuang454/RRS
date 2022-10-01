@@ -304,6 +304,12 @@ void main() {
       clientList[i].add(clientInfo[i]['text']);
     }
 
+    for (var i = 0, len = times; i < len; ++i) {
+      var temp = generateRandomString(Random().nextInt(1000)).codeUnits;
+      clientInfo[i]['text'] += temp;
+      clientList[i].add(temp);
+    }
+
     await delay(1);
 
     for (var i = 0, len = times; i < len; ++i) {

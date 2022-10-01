@@ -33,26 +33,28 @@ void main() {
     //{{{
     var f = File('./test/mux/mux_test.json');
     var config = jsonDecode(await f.readAsString());
+    var host = '127.0.0.1';
     entry(config);
-    var httpServer = await HttpServer.bind('127.0.0.1', 80);
-
+    var httpServer = await ServerSocket.bind(host, 80);
     var tag = '111111111';
+    httpServer.listen(
+      (event) {
+        event.add(tag.codeUnits);
+        event.close();
+      },
+    );
 
-    httpServer.forEach((HttpRequest request) {
-      request.response.write(tag);
-      request.response.close();
-    });
-
-    var client = TCPClient2(config: {'tag': 'TCPClient_http'});
-    var times = 100;
+    var times = 2;
     var clientList = {};
     var receiveList = {};
+    var d = 0;
     for (var i = 0, len = times; i < len; ++i) {
-      clientList[i] = await client.connect('127.0.0.1', 18080);
+      clientList[i] = await Socket.connect('127.0.0.1', 18080);
       clientList[i].listen((event) {
-        // expect(utf8.decode(event).contains(tag), true);
         receiveList[i] = true;
-      }, onDone: () {});
+      }, onDone: () {
+        d += 1;
+      });
     }
     await delay(1);
 
@@ -62,5 +64,6 @@ void main() {
     await delay(2);
 
     expect(receiveList.length, times);
+    expect(d, times);
   }); //}}}
 }

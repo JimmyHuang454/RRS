@@ -33,7 +33,6 @@ class MuxClientHandler extends MuxHandler {
     usingList.forEach(
       (key, value) {
         value.onDone();
-        value.close();
       },
     );
 
@@ -133,7 +132,7 @@ class RRSSocketMux2 extends RRSSocketBase {
   }
 
   void onData(Uint8List data) {
-    if (onData2 != null && !readClosed && !isDone) {
+    if (onData2 != null) {
       onData2!(data);
     }
   }

@@ -84,7 +84,10 @@ class TransportClient1 {
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
 
     isMux = getValue(config, 'mux.enabled', false);
-    maxThread = getValue(config, 'mux.maxThread', 28);
+    maxThread = getValue(config, 'mux.maxThread', 18);
+    if (isMux && (maxThread <= 0 || maxThread > 255)) {
+      throw "maxThread should more than 0 and len than 255 .";
+    }
     muxPassword = getValue(config, 'mux.password', '');
 
     connectionTimeout = getValue(config, 'connectionTimeout', 100);
