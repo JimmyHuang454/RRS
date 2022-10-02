@@ -12,20 +12,21 @@ class RRSSocket {
   dynamic socket;
   List<dynamic> streamSubscription = [];
   bool isClosed = false;
+  bool writeClosed = false;
 
   Traffic traffic = Traffic();
 
   RRSSocket({required this.socket});
 
-  void clearListen() async {
+  void clearListen() {
     for (var i = 0, len = streamSubscription.length; i < len; ++i) {
-      await streamSubscription[i].cancel();
+      streamSubscription[i].cancel();
     }
     streamSubscription = [];
   }
 
   void add(List<int> data) {
-    if (isClosed) {
+    if (isClosed || writeClosed) {
       return;
     }
     traffic.uplink += data.length;

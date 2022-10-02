@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/mux.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -34,11 +36,13 @@ class Link {
   Link({required this.client, required this.inboundStruct});
 
   void closeClient() {
+    client.writeClosed = true;
     client.close();
   }
 
   void closeServer() {
     if (server != null) {
+      server!.writeClosed = true;
       server!.close();
     }
   }
@@ -72,15 +76,15 @@ class Link {
 
     server!.listen((event) {
       clientAdd(event);
-    }, onDone: () async {
+    }, onDone: () {
       closeAll();
-    }, onError: (e) async {
+    }, onError: (e) {
       closeAll();
     });
 
-    client.done.then((value) {
+    client.done.then((value) async {
       client.clearListen();
-    }, onError: (e) {
+    }, onError: (e) async {
       client.clearListen();
     });
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:proxy/inbounds/base.dart';
@@ -30,9 +31,9 @@ class Socks5Request extends Link {
       } else {
         handleUDP(data);
       }
-    }, onError: (e) async {
+    }, onError: (e) {
       closeAll();
-    }, onDone: () async {
+    }, onDone: () {
       closeAll();
     });
   }

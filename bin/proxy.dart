@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:json5/json5.dart';
 
 import 'package:proxy/handler.dart';
+import 'package:proxy/utils/utils.dart';
 
 void main(List<String> arguments) async {
   var configFile = File(
@@ -9,5 +11,9 @@ void main(List<String> arguments) async {
   var config = await configFile.readAsString();
   var configJson = (JSON5.parse(config) as Map<String, dynamic>);
 
-  await entry(configJson);
+  runZonedGuarded(() {
+    entry(configJson);
+  }, (e, s) {
+    devPrint(e);
+  });
 }
