@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:typed_data';
+import 'package:async/async.dart';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/mux/client.dart';
 import 'package:proxy/transport/mux/server.dart';
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class MuxClient {
   //{{{
@@ -37,8 +38,8 @@ class MuxClient {
                 value2.usingList.length >= transportClient1.maxThread;
             if (isClosed) {
               value2.rrsSocket.close();
-              print(
-                  'link $key2 closed. ${value2.usingList.length} -----------');
+              devPrint(
+                  'mux ${value2.muxID} closed. ${value2.usingList.length}');
             }
             return isClosed;
           },
@@ -61,9 +62,10 @@ class MuxClient {
     String dst = host + ":" + port.toString();
     late MuxClientHandler muxInfo;
 
-    print('1 $mux');
+    muxIDCount += 1;
+    var muxID = muxIDCount;
+
     clearEmpty();
-    print('2 $mux');
 
     var isAssigned = false;
     if (mux.containsKey(dst)) {
@@ -81,17 +83,16 @@ class MuxClient {
     }
 
     if (!isAssigned) {
-      muxIDCount += 1;
       muxInfo = MuxClientHandler(
           rrsSocket: await transportClient1.connect(host, port),
-          muxID: muxIDCount,
+          muxID: muxID,
           muxPasswordSha224: muxPasswordSha224);
+      mux[dst]![muxID] = muxInfo;
       muxInfo.init();
-      mux[dst]![muxIDCount] = muxInfo;
     }
-    print('3 $mux');
     var res = RRSSocketMux2(muxClientHandler: muxInfo);
-    print('$dst ${muxInfo.muxID} ${res.threadID}/${muxInfo.usingList.length}');
+    devPrint(
+        '$dst ${muxInfo.muxID} ${res.threadID}/${muxInfo.usingList.length}');
     return res;
   }
 } //}}}

@@ -56,12 +56,12 @@ void main() {
         d += 1;
       });
     }
-    await delay(1);
+
 
     for (var i = 0, len = times; i < len; ++i) {
       clientList[i].add(buildHTTPProxyRequest('127.0.0.1'));
+      await delay(2);
     }
-    await delay(2);
 
     expect(receiveList.length, times);
     expect(d, times);

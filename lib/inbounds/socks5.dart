@@ -80,7 +80,7 @@ class Socks5Request extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-       closeAll();
+      closeAll();
       return -1;
     }
 
@@ -112,7 +112,7 @@ class Socks5Request extends Link {
     }
 
     if (content[0] != socks5Version) {
-       closeAll();
+      closeAll();
       return;
     }
     cmd = content[1];

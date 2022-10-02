@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/mux/client.dart';
+import 'package:proxy/utils/utils.dart';
 import 'package:quiver/collection.dart';
 
 class MuxServerHandler extends MuxClientHandler {
@@ -47,11 +50,16 @@ class MuxServerHandler extends MuxClientHandler {
   @override
   void handle() {
     //{{{
+    if (isFake) {
+      // TODO
+      throw 'todo';
+    }
     if (content.length < 9) {
       // 1 + 8
       return;
     }
 
+    RRSSocketMux2 dstSocket;
     if (currentThreadID == 0) {
       var threadID = content[0];
       currentThreadID = threadID;
@@ -61,12 +69,33 @@ class MuxServerHandler extends MuxClientHandler {
         );
         usingList[threadID] = temp;
         newConnection!(temp);
-      } else {
-        // should not happen.
       }
-      currentThreadID = 0;
+
+      dstSocket = usingList[threadID]!;
+      Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
+      ByteData byteData = ByteData.sublistView(byteList);
+      currentLen = byteData.getUint64(0, Endian.big);
+      addedLen = 0;
+      content = content.sublist(9);
+    } else {
+      dstSocket = usingList[currentThreadID]!;
     }
 
-    super.handle();
+    if (currentLen == 0) {
+      dstSocket.onDone();
+    } else {
+      var handleLen = currentLen - addedLen;
+      if (content.length < handleLen) {
+        handleLen = content.length;
+      }
+      dstSocket.onData(Uint8List.fromList(content.sublist(0, handleLen)));
+      addedLen += handleLen;
+      content = content.sublist(handleLen);
+    }
+
+    if (addedLen == currentLen) {
+      currentThreadID = 0;
+    }
+    handle();
   } //}}}
 }

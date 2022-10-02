@@ -17,9 +17,9 @@ class RRSSocket {
 
   RRSSocket({required this.socket});
 
-  void clearListen() {
+  void clearListen() async {
     for (var i = 0, len = streamSubscription.length; i < len; ++i) {
-      streamSubscription[i].cancel();
+      await streamSubscription[i].cancel();
     }
     streamSubscription = [];
   }
@@ -32,12 +32,12 @@ class RRSSocket {
     socket.add(data);
   }
 
-  void close() {
+  void close() async {
     if (isClosed) {
       return;
     }
     isClosed = true;
-    socket.close();
+    await socket.close();
   }
 
   void listen(void Function(Uint8List event)? onData,
@@ -84,7 +84,7 @@ class TransportClient1 {
         getValue(config, 'tls.supportedProtocols', ['http/1.1']);
 
     isMux = getValue(config, 'mux.enabled', false);
-    maxThread = getValue(config, 'mux.maxThread', 18);
+    maxThread = getValue(config, 'mux.maxThread', 8);
     if (isMux && (maxThread <= 0 || maxThread > 255)) {
       throw "maxThread should more than 0 and len than 255 .";
     }

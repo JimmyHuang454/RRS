@@ -85,11 +85,11 @@ class Link {
     });
 
     server!.done.then((e) {
-      serverDone();
       server!.clearListen();
+      serverDone();
     }, onError: (e) {
-      serverDone();
       server!.clearListen();
+      serverDone();
     });
 
     return true;

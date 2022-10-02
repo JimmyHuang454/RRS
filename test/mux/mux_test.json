@@ -2,7 +2,7 @@
   "outbounds": {
     "endPoint": {
       "protocol": "freedom",
-      "outStream": "tcp_instream"
+      "outStream": "tcp_outstream"
     },
     "trojan_outbound_mux": {
       "protocol": "trojan",
@@ -47,7 +47,7 @@
     }
   },
   "outStream": {
-    "tcp_instream": {
+    "tcp_outstream": {
       "protocol": "tcp"
     },
     "tcp_mux_outstream": {

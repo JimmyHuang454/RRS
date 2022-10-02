@@ -121,7 +121,7 @@ void main() {
     expect(isdone, true);
 
     client.clearEmpty();
-    expect(client.mux.length, 0);
+    expect(client.mux.length, 1);
   }); //}}}
 
   test('tcp mux', () async {
@@ -189,7 +189,7 @@ void main() {
     expect(isdone, true);
 
     client.clearEmpty();
-    expect(client.mux.length, 0);
+    expect(client.mux.length, 1);
 
     return;
     //----------------------------------
@@ -336,7 +336,7 @@ void main() {
 
     await delay(1);
     client.clearEmpty();
-    expect(client.mux.length, 0);
+    expect(client.mux.length, 1);
     expect(d, times);
   }); //}}}
 }

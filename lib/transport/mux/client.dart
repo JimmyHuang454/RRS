@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/mux/mux.dart';
+import 'package:proxy/utils/utils.dart';
 
 class MuxClientHandler extends MuxHandler {
   int threadIDCount = 0;
@@ -105,9 +106,9 @@ class RRSSocketMux2 extends RRSSocketBase {
   void sendWithHeader(List<int> data) {
     List<int> temp = [threadID];
     if (!muxClientHandler.isAuth) {
+      muxClientHandler.isAuth = true;
       temp = [muxClientHandler.muxVersion, threadID];
       temp = List.from(muxClientHandler.muxPasswordSha224)..addAll(temp);
-      muxClientHandler.isAuth = true;
     }
     temp += Uint8List(8)
       ..buffer.asByteData().setUint64(0, data.length, Endian.big);
@@ -173,4 +174,8 @@ class RRSSocketMux2 extends RRSSocketBase {
     onError2 = onError;
     onDone2 = onDone;
   }
+
+  // Inbound will clear listen after done, so if we can not let it clear mux link.
+  @override
+  void clearListen() {}
 } //}}}
