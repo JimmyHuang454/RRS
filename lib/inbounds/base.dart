@@ -34,11 +34,13 @@ class Link {
   Link({required this.client, required this.inboundStruct});
 
   void closeClient() {
+    client.writeClosed = true;
     client.close();
   }
 
   void closeServer() {
     if (server != null) {
+      server!.writeClosed = true;
       server!.close();
     }
   }

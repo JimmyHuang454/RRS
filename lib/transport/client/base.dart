@@ -12,6 +12,7 @@ class RRSSocket {
   dynamic socket;
   List<dynamic> streamSubscription = [];
   bool isClosed = false;
+  bool writeClosed = false;
 
   Traffic traffic = Traffic();
 
@@ -25,7 +26,7 @@ class RRSSocket {
   }
 
   void add(List<int> data) {
-    if (isClosed) {
+    if (isClosed || writeClosed) {
       return;
     }
     traffic.uplink += data.length;
