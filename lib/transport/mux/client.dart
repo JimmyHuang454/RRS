@@ -141,10 +141,12 @@ class RRSSocketMux2 extends RRSSocketBase {
   }
 
   void onDone() {
-    if (onDone2 != null && !readClosed) {
-      onDone2!();
+    if (!readClosed) {
+      readClosed = true;
+      if (onDone2 != null) {
+        onDone2!();
+      }
     }
-    readClosed = true;
     completeDone();
   }
 
