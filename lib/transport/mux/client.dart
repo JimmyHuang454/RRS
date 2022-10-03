@@ -24,20 +24,22 @@ class MuxClientHandler extends MuxHandler {
     });
 
     rrsSocket.done.then((value) {
+      closeAll();
       rrsSocket.clearListen();
     }, onError: (e) {
+      closeAll();
       rrsSocket.clearListen();
     });
   }
 
   void closeAll() {
+    rrsSocket.close();
+
     usingList.forEach(
       (key, value) {
         value.onDone();
       },
     );
-
-    rrsSocket.close();
   }
 
   void handle() {
@@ -133,7 +135,7 @@ class RRSSocketMux2 extends RRSSocketBase {
   }
 
   void onData(Uint8List data) {
-    if (onData2 != null) {
+    if (onData2 != null && !readClosed) {
       onData2!(data);
     }
   }

@@ -8,6 +8,8 @@ import 'package:proxy/utils/utils.dart';
 void main(List<String> arguments) async {
   var configFile = File(
       'C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/config/basic.json');
+  devPrint(getRunningDir());
+
   var config = await configFile.readAsString();
   var configJson = (JSON5.parse(config) as Map<String, dynamic>);
 

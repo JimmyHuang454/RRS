@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:path/path.dart';
 
 dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
   var temp = key.split('.');
@@ -16,6 +17,12 @@ dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
     return defaultValue;
   }
   return deep;
+}
+
+String getRunningDir() {
+  final pathToScript = Platform.script.toFilePath();
+  final pathToDirectory = dirname(pathToScript);
+  return pathToDirectory;
 }
 
 Future<void> delay(int seconds) async {

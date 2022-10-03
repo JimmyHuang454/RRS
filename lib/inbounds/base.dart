@@ -36,13 +36,11 @@ class Link {
   Link({required this.client, required this.inboundStruct});
 
   void closeClient() {
-    client.writeClosed = true;
     client.close();
   }
 
   void closeServer() {
     if (server != null) {
-      server!.writeClosed = true;
       server!.close();
     }
   }
@@ -82,9 +80,9 @@ class Link {
       closeAll();
     });
 
-    client.done.then((value) async {
+    client.done.then((value) {
       client.clearListen();
-    }, onError: (e) async {
+    }, onError: (e) {
       client.clearListen();
     });
 
