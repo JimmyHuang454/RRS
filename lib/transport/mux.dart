@@ -39,7 +39,7 @@ class MuxClient {
             if (isClosed) {
               value2.rrsSocket.close();
               devPrint(
-                  'mux ${value2.muxID} closed. ${value2.usingList.length}');
+                  'mux ${value2.muxID} closed. ${value2.usingList.length}.');
             }
             return isClosed;
           },

@@ -24,12 +24,12 @@ class RRSSocket {
     streamSubscription = [];
   }
 
-  void add(List<int> data) async {
+  void add(List<int> data) {
     if (isClosed) {
       return;
     }
     traffic.uplink += data.length;
-    await socket.add(data);
+    socket.add(data);
   }
 
   void close() async {
@@ -42,12 +42,17 @@ class RRSSocket {
 
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = socket.listen((data) {
-      onData!(data);
-      traffic.downlink += (data as Uint8List).length;
-    }, onDone: onDone, onError: onError, cancelOnError: true);
+    runZonedGuarded(() {
+      var temp = socket.listen((data) {
+        onData!(data);
+        traffic.downlink += (data as Uint8List).length;
+      }, onDone: onDone, onError: onError, cancelOnError: true);
 
-    streamSubscription.add(temp);
+      streamSubscription.add(temp);
+    }, (e, s) {
+      devPrint('mux listen: $e');
+      onError!(e);
+    });
   }
 
   Future<dynamic> get done => socket.done;

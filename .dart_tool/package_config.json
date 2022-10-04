@@ -140,6 +140,12 @@
       "languageVersion": "2.17"
     },
     {
+      "name": "logger",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/logger-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "logging",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/logging-1.0.2",
       "packageUri": "lib/",
@@ -338,7 +344,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-10-03T11:49:02.807127Z",
+  "generated": "2022-10-04T20:21:33.567076Z",
   "generator": "pub",
   "generatorVersion": "2.18.1"
 }

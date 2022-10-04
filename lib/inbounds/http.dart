@@ -26,7 +26,6 @@ class HTTPRequest extends Link {
     }, onError: (e) {
       closeServer();
     }, onDone: () {
-      devPrint('client closed');
       closeServer();
     });
   }

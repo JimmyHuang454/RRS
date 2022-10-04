@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:logger/logger.dart';
 import 'package:path/path.dart';
+
+var logger = Logger();
 
 dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
   var temp = key.split('.');

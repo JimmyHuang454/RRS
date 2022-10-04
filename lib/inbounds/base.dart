@@ -70,7 +70,7 @@ class Link {
     }
 
     outboundStruct.linkNr += 1;
-    devPrint('Created: ${buildLinkInfo()}');
+    logger.i('Created: ${buildLinkInfo()}');
 
     server!.listen((event) {
       clientAdd(event);
@@ -98,11 +98,10 @@ class Link {
   }
 
   void serverDone() {
-    closeAll();
     outboundStruct.linkNr -= 1;
-    devPrint(
+    logger.i(
         'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
-    devPrint(
+    logger.i(
         '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B] ${outboundStruct.linkNr}');
   }
 
