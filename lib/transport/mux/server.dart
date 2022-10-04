@@ -34,17 +34,15 @@ class MuxServerHandler extends MuxClientHandler {
         isAuth = true;
       }
       handle();
-    }, onDone: () {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
+    }, onDone: () async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
     });
 
     rrsSocket.done.then((value) {
-      closeAll();
       rrsSocket.clearListen();
     }, onError: (e) {
-      closeAll();
       rrsSocket.clearListen();
     });
   }

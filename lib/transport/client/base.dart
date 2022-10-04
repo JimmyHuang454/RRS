@@ -32,7 +32,7 @@ class RRSSocket {
     socket.add(data);
   }
 
-  void close() async {
+  Future<void> close() async {
     if (isClosed) {
       return;
     }
@@ -216,7 +216,7 @@ class Connect2 extends RRSSocketBase {
       required this.outboundStruct});
 
   @override
-  void close() {
+  Future<void> close() async {
     rrsSocket.close();
     outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
     outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
@@ -252,8 +252,8 @@ class RRSSocketBase extends RRSSocket {
   }
 
   @override
-  void close() {
-    rrsSocket.close();
+  Future<void> close() async {
+    await rrsSocket.close();
   }
 
   @override

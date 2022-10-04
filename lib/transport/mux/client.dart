@@ -17,23 +17,21 @@ class MuxClientHandler extends MuxHandler {
     rrsSocket.listen((data) {
       content += data;
       handle();
-    }, onDone: () {
-      closeAll();
-    }, onError: (e) {
-      closeAll();
+    }, onDone: () async {
+      await closeAll();
+    }, onError: (e) async {
+      await closeAll();
     });
 
     rrsSocket.done.then((value) {
-      closeAll();
       rrsSocket.clearListen();
     }, onError: (e) {
-      closeAll();
       rrsSocket.clearListen();
     });
   }
 
-  void closeAll() {
-    rrsSocket.close();
+  Future<void> closeAll() async {
+    await rrsSocket.close();
 
     usingList.forEach(
       (key, value) {
@@ -159,7 +157,7 @@ class RRSSocketMux2 extends RRSSocketBase {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     if (writeClosed) {
       return;
     }

@@ -16,11 +16,21 @@ Future<void> loadConfig(path) async {
   config = (JSON5.parse(temp) as Map<String, dynamic>);
 }
 
+void setLoggerLevel(String debugLevelStr) {
+  if (debugLevelStr == 'debug') {
+    Logger.level = Level.debug;
+  } else if (debugLevelStr == 'none') {
+    Logger.level = Level.nothing;
+  } else if (debugLevelStr == 'info') {
+    Logger.level = Level.info;
+  } else {
+    Logger.level = Level.verbose;
+  }
+}
+
 void main(List<String> argument) async {
   var argsParser = ArgParser();
   var root = getRunningDir();
-
-  logger.i('Running at: $root');
 
   argsParser.addOption('config_path',
       abbr: 'c',
@@ -28,20 +38,14 @@ void main(List<String> argument) async {
       help: 'Path to your config. Default to use "config.json" in root dir.');
 
   argsParser.addOption('debug_level',
-      defaultsTo: 'info', allowed: ['debug', 'info', 'none']);
+      defaultsTo: 'debug', allowed: ['debug', 'info', 'none']);
 
   var args = argsParser.parse(argument);
 
-  await loadConfig(args['config_path']);
+  setLoggerLevel(args['debug_level']);
 
-  String debugLevel = args['debug_level'];
-  if (debugLevel == 'debug') {
-    Logger.level = Level.debug;
-  } else if (debugLevel == 'none') {
-    Logger.level = Level.nothing;
-  } else if (debugLevel == 'info') {
-    Logger.level = Level.info;
-  }
+  logger.e('Running at: $root');
+  await loadConfig(args['config_path']);
 
   entry(config);
 }
