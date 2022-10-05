@@ -108,15 +108,11 @@ class RRSServerSocket {
 
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
-    runZonedGuarded(() {
-      var temp = serverSocket.listen((client) {
-        onData!(RRSSocket(socket: client));
-      }, onError: onError, onDone: onDone, cancelOnError: true);
+    var temp = serverSocket.listen((client) {
+      onData!(RRSSocket(socket: client));
+    }, onError: onError, onDone: onDone, cancelOnError: true);
 
-      streamSubscription.add(temp);
-    }, (e, s) {
-      onError!(e);
-    });
+    streamSubscription.add(temp);
   }
 } //}}}
 

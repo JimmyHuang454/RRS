@@ -34,10 +34,11 @@ class MuxServerHandler extends MuxClientHandler {
         isAuth = true;
       }
       handle();
-    }, onDone: () async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
+    }, onDone: () {
+      closeAll();
+    }, onError: (e) {
+      devPrint('mux server listen: $e');
+      closeAll();
     });
 
     rrsSocket.done.then((value) {
@@ -72,9 +73,16 @@ class MuxServerHandler extends MuxClientHandler {
       }
 
       dstSocket = usingList[threadID]!;
-      Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
-      ByteData byteData = ByteData.sublistView(byteList);
-      currentLen = byteData.getUint64(0, Endian.big);
+
+      var temp = content.sublist(1, 9);
+      if (listsEqual(temp, [255, 255, 255, 255, 255, 255, 255, 255])) {
+        currentLen = 0;
+      } else {
+        Uint8List byteList = Uint8List.fromList(temp);
+        ByteData byteData = ByteData.sublistView(byteList);
+        currentLen = byteData.getUint64(0, Endian.big);
+      }
+
       addedLen = 0;
       content = content.sublist(9);
     } else {

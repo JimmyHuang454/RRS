@@ -35,19 +35,19 @@ class Link {
 
   Link({required this.client, required this.inboundStruct});
 
-  Future<void> closeClient() async {
-    await client.close();
+  void closeClient() {
+    client.close();
   }
 
-  Future<void> closeServer() async {
+  void closeServer() {
     if (server != null) {
-      await server!.close();
+      server!.close();
     }
   }
 
-  Future<void> closeAll() async {
-    await closeServer();
-    await closeClient();
+  void closeAll() {
+    closeServer();
+    closeClient();
   }
 
   void clientAdd(List<int> data) {
@@ -65,7 +65,7 @@ class Link {
     try {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
-      await closeAll();
+      closeAll();
       return false;
     }
 
@@ -74,10 +74,11 @@ class Link {
 
     server!.listen((event) {
       clientAdd(event);
-    }, onDone: () async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
+    }, onDone: () {
+      closeAll();
+    }, onError: (e) {
+      devPrint('bindServer listen: $e');
+      closeAll();
     });
 
     client.done.then((value) {

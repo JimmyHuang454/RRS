@@ -33,15 +33,15 @@ class MuxClient {
     mux.forEach(
       (dst, value) {
         value.forEach(
-          (key2, value2) {
+          (key2, value2) async {
             var isClosed = value2.isAllDone &&
                 value2.usingList.length >= transportClient1.maxThread &&
                 !value2.isClosed;
             if (isClosed) {
               value2.isClosed = true;
-              value2.rrsSocket.close();
+              // await value2.rrsSocket.close();
               devPrint(
-                  'mux ${value2.muxID}/${value.length} closed. ${value2.usingList.length}.');
+                  'muxID: ${value2.muxID}(including ${value2.usingList.length} done link) closed. Remainning ${value.length} links. ');
             }
           },
         );
@@ -79,7 +79,8 @@ class MuxClient {
       mux[dst]!.forEach(
         (key, value) {
           if (value.usingList.length < transportClient1.maxThread &&
-              !isAssigned && !value.isClosed) {
+              !isAssigned &&
+              !value.isClosed) {
             muxInfo = value;
             isAssigned = true;
           }

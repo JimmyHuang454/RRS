@@ -32,12 +32,12 @@ class RRSSocket {
     socket.add(data);
   }
 
-  Future<void> close() async {
+  void close() {
     if (isClosed) {
       return;
     }
     isClosed = true;
-    await socket.close();
+    socket.close();
   }
 
   void listen(void Function(Uint8List event)? onData,
@@ -50,7 +50,6 @@ class RRSSocket {
 
       streamSubscription.add(temp);
     }, (e, s) {
-      devPrint('mux listen: $e');
       onError!(e);
     });
   }
@@ -216,7 +215,7 @@ class Connect2 extends RRSSocketBase {
       required this.outboundStruct});
 
   @override
-  Future<void> close() async {
+  void close() {
     rrsSocket.close();
     outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
     outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
@@ -252,8 +251,8 @@ class RRSSocketBase extends RRSSocket {
   }
 
   @override
-  Future<void> close() async {
-    await rrsSocket.close();
+  void close() {
+    rrsSocket.close();
   }
 
   @override

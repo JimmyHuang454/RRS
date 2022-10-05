@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/mux/mux.dart';
 import 'package:proxy/utils/utils.dart';
+import 'package:quiver/collection.dart';
 
 class MuxClientHandler extends MuxHandler {
   int threadIDCount = 0;
@@ -18,10 +19,11 @@ class MuxClientHandler extends MuxHandler {
     rrsSocket.listen((data) {
       content += data;
       handle();
-    }, onDone: () async {
-      await closeAll();
-    }, onError: (e) async {
-      await closeAll();
+    }, onDone: () {
+      closeAll();
+    }, onError: (e) {
+      devPrint('mux client listen: $e');
+      closeAll();
     });
 
     rrsSocket.done.then((value) {
@@ -31,8 +33,8 @@ class MuxClientHandler extends MuxHandler {
     });
   }
 
-  Future<void> closeAll() async {
-    await rrsSocket.close();
+  void closeAll() {
+    rrsSocket.close();
 
     usingList.forEach(
       (key, value) {
@@ -54,9 +56,15 @@ class MuxClientHandler extends MuxHandler {
       currentThreadID = threadID;
       dstSocket = usingList[threadID]!;
 
-      Uint8List byteList = Uint8List.fromList(content.sublist(1, 9));
-      ByteData byteData = ByteData.sublistView(byteList);
-      currentLen = byteData.getUint64(0, Endian.big);
+      var temp = content.sublist(1, 9);
+      if (listsEqual(temp, [255, 255, 255, 255, 255, 255, 255, 255])) {
+        currentLen = 0;
+      } else {
+        Uint8List byteList = Uint8List.fromList(temp);
+        ByteData byteData = ByteData.sublistView(byteList);
+        currentLen = byteData.getUint64(0, Endian.big);
+      }
+
       addedLen = 0;
 
       content = content.sublist(9);
@@ -111,8 +119,12 @@ class RRSSocketMux2 extends RRSSocketBase {
       temp = [muxClientHandler.muxVersion, threadID];
       temp = List.from(muxClientHandler.muxPasswordSha224)..addAll(temp);
     }
-    temp += Uint8List(8)
-      ..buffer.asByteData().setUint64(0, data.length, Endian.big);
+    if (data.isEmpty) {
+      temp += [255, 255, 255, 255, 255, 255, 255, 255];
+    } else {
+      temp += Uint8List(8)
+        ..buffer.asByteData().setUint64(0, data.length, Endian.big);
+    }
     temp += data;
     rrsSocket.add(temp);
   }

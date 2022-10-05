@@ -31,10 +31,11 @@ class Socks5Request extends Link {
       } else {
         handleUDP(data);
       }
-    }, onError: (e) async {
-      await closeAll();
+    }, onError: (e) {
+      devPrint('Socks5Request listen: $e');
+      closeAll();
     }, onDone: () async {
-      await closeAll();
+      closeAll();
     });
   }
 
@@ -56,10 +57,12 @@ class Socks5Request extends Link {
     } else if (cmd == 3) {
       // UDP TODO
       streamType = 'UDP';
-      closeAll();
+      throw "TODO";
     } else if (cmd == 2) {
       // BIND TODO
-      closeAll();
+      throw "TODO";
+    } else {
+      throw "UNKNOW";
     }
   } //}}}
 
@@ -194,7 +197,7 @@ class Socks5In extends InboundStruct {
   Future<void> bind() async {
     var server = await getServer().bind(inAddress, inPort);
 
-    server.listen((client) async {
+    server.listen((client) {
       Socks5Request(client: client, inboundStruct: this);
     }, onError: (e) {
       print(e);
