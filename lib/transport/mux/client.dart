@@ -7,6 +7,7 @@ import 'package:proxy/utils/utils.dart';
 
 class MuxClientHandler extends MuxHandler {
   int threadIDCount = 0;
+  bool isClosed = false;
 
   MuxClientHandler(
       {required super.rrsSocket,

@@ -32,16 +32,23 @@ class MuxClient {
   void clearEmpty() {
     mux.forEach(
       (dst, value) {
-        value.removeWhere(
+        value.forEach(
           (key2, value2) {
             var isClosed = value2.isAllDone &&
-                value2.usingList.length >= transportClient1.maxThread;
+                value2.usingList.length >= transportClient1.maxThread &&
+                !value2.isClosed;
             if (isClosed) {
+              value2.isClosed = true;
               value2.rrsSocket.close();
               devPrint(
-                  'mux ${value2.muxID} closed. ${value2.usingList.length}.');
+                  'mux ${value2.muxID}/${value.length} closed. ${value2.usingList.length}.');
             }
-            return isClosed;
+          },
+        );
+
+        value.removeWhere(
+          (key2, value2) {
+            return value2.isClosed;
           },
         );
       },
@@ -72,7 +79,7 @@ class MuxClient {
       mux[dst]!.forEach(
         (key, value) {
           if (value.usingList.length < transportClient1.maxThread &&
-              !isAssigned) {
+              !isAssigned && !value.isClosed) {
             muxInfo = value;
             isAssigned = true;
           }
@@ -92,7 +99,7 @@ class MuxClient {
     }
     var res = RRSSocketMux2(muxClientHandler: muxInfo);
     devPrint(
-        '$dst ${muxInfo.muxID} ${res.threadID}/${muxInfo.usingList.length}');
+        '$dst ${muxInfo.muxID}/${mux[dst]!.length} ${res.threadID}/${muxInfo.usingList.length}');
     return res;
   }
 } //}}}
