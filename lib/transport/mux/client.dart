@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/mux/mux.dart';
 import 'package:proxy/utils/utils.dart';
-import 'package:quiver/collection.dart';
 
 class MuxClientHandler extends MuxHandler {
   int threadIDCount = 0;
@@ -57,15 +56,9 @@ class MuxClientHandler extends MuxHandler {
       dstSocket = usingList[threadID]!;
 
       var temp = content.sublist(1, 9);
-      if (listsEqual(temp, [255, 255, 255, 255, 255, 255, 255, 255])) {
-        currentLen = 0;
-      } else {
-        Uint8List byteList = Uint8List.fromList(temp);
-        ByteData byteData = ByteData.sublistView(byteList);
-        currentLen = byteData.getUint64(0, Endian.big);
-      }
-
-      addedLen = 0;
+      Uint8List byteList = Uint8List.fromList(temp);
+      ByteData byteData = ByteData.sublistView(byteList);
+      currentLen = byteData.getUint64(0, Endian.big);
 
       content = content.sublist(9);
     } else {
@@ -75,18 +68,14 @@ class MuxClientHandler extends MuxHandler {
     if (currentLen == 0) {
       dstSocket.onDone();
     } else {
-      var handleLen = currentLen - addedLen;
-      if (content.length < handleLen) {
-        handleLen = content.length;
+      if (content.length < currentLen) {
+        return;
       }
-      dstSocket.onData(Uint8List.fromList(content.sublist(0, handleLen)));
-      addedLen += handleLen;
-      content = content.sublist(handleLen);
+      dstSocket.onData(Uint8List.fromList(content.sublist(0, currentLen)));
+      content = content.sublist(currentLen);
     }
 
-    if (addedLen == currentLen) {
-      currentThreadID = 0;
-    }
+    currentThreadID = 0;
     handle();
   } //}}}
 }
@@ -119,12 +108,8 @@ class RRSSocketMux2 extends RRSSocketBase {
       temp = [muxClientHandler.muxVersion, threadID];
       temp = List.from(muxClientHandler.muxPasswordSha224)..addAll(temp);
     }
-    if (data.isEmpty) {
-      temp += [255, 255, 255, 255, 255, 255, 255, 255];
-    } else {
-      temp += Uint8List(8)
-        ..buffer.asByteData().setUint64(0, data.length, Endian.big);
-    }
+    temp += Uint8List(8)
+      ..buffer.asByteData().setUint64(0, data.length, Endian.big);
     temp += data;
     rrsSocket.add(temp);
   }
@@ -170,7 +155,7 @@ class RRSSocketMux2 extends RRSSocketBase {
   }
 
   @override
-  Future<void> close() async {
+  void close() {
     if (writeClosed) {
       return;
     }

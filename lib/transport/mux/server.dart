@@ -28,6 +28,7 @@ class MuxServerHandler extends MuxClientHandler {
           var version = content[56];
           if (version != muxVersion) {
             // TODO
+            throw 'todo';
           }
           content = content.sublist(57);
         }
@@ -75,15 +76,10 @@ class MuxServerHandler extends MuxClientHandler {
       dstSocket = usingList[threadID]!;
 
       var temp = content.sublist(1, 9);
-      if (listsEqual(temp, [255, 255, 255, 255, 255, 255, 255, 255])) {
-        currentLen = 0;
-      } else {
-        Uint8List byteList = Uint8List.fromList(temp);
-        ByteData byteData = ByteData.sublistView(byteList);
-        currentLen = byteData.getUint64(0, Endian.big);
-      }
+      Uint8List byteList = Uint8List.fromList(temp);
+      ByteData byteData = ByteData.sublistView(byteList);
+      currentLen = byteData.getUint64(0, Endian.big);
 
-      addedLen = 0;
       content = content.sublist(9);
     } else {
       dstSocket = usingList[currentThreadID]!;
@@ -92,18 +88,14 @@ class MuxServerHandler extends MuxClientHandler {
     if (currentLen == 0) {
       dstSocket.onDone();
     } else {
-      var handleLen = currentLen - addedLen;
-      if (content.length < handleLen) {
-        handleLen = content.length;
+      if (content.length < currentLen) {
+        return;
       }
-      dstSocket.onData(Uint8List.fromList(content.sublist(0, handleLen)));
-      addedLen += handleLen;
-      content = content.sublist(handleLen);
+      dstSocket.onData(Uint8List.fromList(content.sublist(0, currentLen)));
+      content = content.sublist(currentLen);
     }
 
-    if (addedLen == currentLen) {
-      currentThreadID = 0;
-    }
+    currentThreadID = 0;
     handle();
   } //}}}
 }

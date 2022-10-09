@@ -70,14 +70,13 @@ class Link {
     }
 
     outboundStruct.linkNr += 1;
-    logger.i('Created: ${buildLinkInfo()}');
+    // devPrint('Created: ${buildLinkInfo()}');
 
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () {
       closeAll();
     }, onError: (e) {
-      devPrint('bindServer listen: $e');
       closeAll();
     });
 
@@ -100,10 +99,10 @@ class Link {
 
   void serverDone() {
     outboundStruct.linkNr -= 1;
-    logger.i(
-        'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
-    logger.i(
-        '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B] ${outboundStruct.linkNr}');
+    // devPrint(
+    //     'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
+    // devPrint(
+    //     '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B] ${outboundStruct.linkNr}');
   }
 
   String buildLinkInfo() {

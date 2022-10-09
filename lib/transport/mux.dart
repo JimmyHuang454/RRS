@@ -39,7 +39,7 @@ class MuxClient {
                 !value2.isClosed;
             if (isClosed) {
               value2.isClosed = true;
-              // await value2.rrsSocket.close();
+              value2.rrsSocket.close();
               devPrint(
                   'muxID: ${value2.muxID}(including ${value2.usingList.length} done link) closed. Remainning ${value.length} links. ');
             }
@@ -120,8 +120,8 @@ class RRSServerSocketMux extends RRSServerSocket {
     rrsServerSocket.listen((rrsSocket) {
       var muxInfo = MuxServerHandler(
           rrsSocket: rrsSocket, muxPasswordSha224: muxPasswordSha224);
-      muxInfo.init();
       muxInfo.newConnection = onData;
+      muxInfo.init();
     }, onError: onError, onDone: onDone);
   }
 

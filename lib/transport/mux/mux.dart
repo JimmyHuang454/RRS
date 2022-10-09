@@ -7,11 +7,10 @@ class MuxHandler {
 
   int muxID;
   Map<int, RRSSocketMux2> usingList = {};
-  bool isAuth = false;
+  bool isAuth = true;
   final muxVersion = 0;
   int currentThreadID = 0;
   int currentLen = 0;
-  int addedLen = 0;
   List<int> content = [];
 
   bool isAllDone = false;

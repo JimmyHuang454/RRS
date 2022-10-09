@@ -4,10 +4,7 @@ import 'dart:math';
 
 import 'package:proxy/handler.dart';
 import 'package:quiver/collection.dart';
-import 'package:proxy/transport/mux.dart';
 import 'package:test/test.dart';
-import 'package:proxy/transport/client/tcp.dart';
-import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
@@ -279,14 +276,14 @@ void main() {
       });
     }, onDone: () {});
 
-    const times = 100;
+    const times = 2;
     var d = 0;
     for (var i = 0, len = times; i < len; ++i) {
       var muxSocket = await client.connect(host, port);
       clientList[i] = muxSocket;
       clientInfo[i] = {'isRecieve': false, 'content': []};
       muxSocket.listen((event) {
-        clientInfo[i]['content'] += event;
+        clientInfo[i]['content'] = event;
         clientInfo[i]['isRecieve'] = true;
       });
       muxSocket.done.then(
@@ -300,17 +297,19 @@ void main() {
 
     for (var i = 0, len = times; i < len; ++i) {
       clientInfo[i]['text'] =
-          generateRandomString(Random().nextInt(1000)).codeUnits;
+          generateRandomString(Random().nextInt(9999999)).codeUnits;
+      devPrint('added1');
       clientList[i].add(clientInfo[i]['text']);
+      devPrint('added2');
     }
 
-    for (var i = 0, len = times; i < len; ++i) {
-      var temp = generateRandomString(Random().nextInt(1000)).codeUnits;
-      clientInfo[i]['text'] += temp;
-      clientList[i].add(temp);
-    }
+    // for (var i = 0, len = times; i < len; ++i) {
+    //   var temp = generateRandomString(Random().nextInt(1000)).codeUnits;
+    //   clientInfo[i]['text'] = temp;
+    //   clientList[i].add(temp);
+    // }
 
-    await delay(1);
+    await delay(10);
 
     for (var i = 0, len = times; i < len; ++i) {
       expect(clientInfo[i]['isRecieve'], true);

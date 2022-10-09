@@ -19,11 +19,11 @@ class TrojanRequest extends Link {
       {required super.client,
       required super.inboundStruct,
       required this.pwdSHA224}) {
-    Future.delayed(Duration(seconds: 3), () {
-      if (!isAuth) {
-        isTunnel = true;
-      }
-    });
+    // Future.delayed(Duration(seconds: 3), () {
+    //   if (!isAuth) {
+    //     isTunnel = true;
+    //   }
+    // });
 
     client.listen((data) async {
       if (isTunnel) {
