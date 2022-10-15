@@ -21,7 +21,6 @@ class MuxClientHandler extends MuxHandler {
     }, onDone: () {
       closeAll();
     }, onError: (e) {
-      devPrint('mux client listen: $e');
       closeAll();
     });
 

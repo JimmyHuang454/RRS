@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:json5/json5.dart';
-import 'package:logger/logger.dart';
+import 'package:logging/logging.dart';
 
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
@@ -18,14 +18,18 @@ Future<void> loadConfig(path) async {
 
 void setLoggerLevel(String debugLevelStr) {
   if (debugLevelStr == 'debug') {
-    Logger.level = Level.debug;
+    Logger.root.level = Level.FINEST;
   } else if (debugLevelStr == 'none') {
-    Logger.level = Level.nothing;
+    Logger.root.level = Level.OFF;
   } else if (debugLevelStr == 'info') {
-    Logger.level = Level.info;
+    Logger.root.level = Level.INFO;
   } else {
-    Logger.level = Level.verbose;
+    Logger.root.level = Level.CONFIG;
   }
+
+  Logger.root.onRecord.listen((record) {
+    print('${record.level.name}: ${record.message}');
+  });
 }
 
 void main(List<String> argument) async {
@@ -44,8 +48,11 @@ void main(List<String> argument) async {
 
   setLoggerLevel(args['debug_level']);
 
-  logger.e('Running at: $root');
-  await loadConfig(args['config_path']);
+  logger.config('Running at: $root');
+
+  var configPath = args['config_path'];
+  logger.config('Using config at: $configPath');
+  await loadConfig(configPath);
 
   entry(config);
 }

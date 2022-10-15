@@ -32,23 +32,17 @@ class MuxClient {
   void clearEmpty() {
     mux.forEach(
       (dst, value) {
-        value.forEach(
-          (key2, value2) async {
+        value.removeWhere(
+          (key2, value2) {
             var isClosed = value2.isAllDone &&
                 value2.usingList.length >= transportClient1.maxThread &&
                 !value2.isClosed;
             if (isClosed) {
-              value2.isClosed = true;
               value2.rrsSocket.close();
-              devPrint(
+              logger.info(
                   'muxID: ${value2.muxID}(including ${value2.usingList.length} done link) closed. Remainning ${value.length} links. ');
             }
-          },
-        );
-
-        value.removeWhere(
-          (key2, value2) {
-            return value2.isClosed;
+            return isClosed;
           },
         );
       },
@@ -99,7 +93,7 @@ class MuxClient {
       muxInfo.init();
     }
     var res = RRSSocketMux2(muxClientHandler: muxInfo);
-    devPrint(
+    logger.info(
         '$dst ${muxInfo.muxID}/${mux[dst]!.length} ${res.threadID}/${muxInfo.usingList.length}');
     return res;
   }

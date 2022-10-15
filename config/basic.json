@@ -36,6 +36,15 @@
       "inStream": "tcp_instream",
       "route": "proxy"
     },
+    "http_inbound_mux": {
+      "protocol": "http",
+      "setting": {
+        "address": "0.0.0.0",
+        "port": 8087
+      },
+      "inStream": "tcp_instream",
+      "route": "mux_route"
+    },
     "trojan_inbound_mux": {
       "protocol": "trojan",
       "setting": {
