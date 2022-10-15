@@ -10,7 +10,7 @@
     "trojan_outbound": {
       "protocol": "trojan",
       "setting": {
-        "address": "uif02.xyz",
+        "address": "normal.uif02.xyz",
         "port": 443,
         "password": "password2"
       },

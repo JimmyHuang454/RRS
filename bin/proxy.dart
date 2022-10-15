@@ -5,6 +5,7 @@ import 'package:args/args.dart';
 import 'package:json5/json5.dart';
 import 'package:logging/logging.dart';
 
+import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -14,6 +15,9 @@ Future<void> loadConfig(path) async {
   var configFile = File(path);
   var temp = await configFile.readAsString();
   config = (JSON5.parse(temp) as Map<String, dynamic>);
+}
+
+void loadMmdb(path) {
 }
 
 void setLoggerLevel(String debugLevelStr) {
@@ -33,6 +37,9 @@ void setLoggerLevel(String debugLevelStr) {
 }
 
 void main(List<String> argument) async {
+  ////////////////
+  //  argument  //
+  ////////////////
   var argsParser = ArgParser();
   var root = getRunningDir();
 
@@ -44,15 +51,31 @@ void main(List<String> argument) async {
   argsParser.addOption('debug_level',
       defaultsTo: 'debug', allowed: ['debug', 'info', 'none']);
 
+  argsParser.addOption('ipdb',
+      defaultsTo: '$root/ip.mmdb',
+      help: 'database for ip region.');
+
   var args = argsParser.parse(argument);
 
+  ////////////
+  //  init  //
+  ////////////
   setLoggerLevel(args['debug_level']);
 
+  // root
   logger.config('Running at: $root');
 
+  // load config.
   var configPath = args['config_path'];
   logger.config('Using config at: $configPath');
   await loadConfig(configPath);
 
+  // load db.
+  ipdbPath = args['ipdb'];
+  logger.config('Using IP data base at: $ipdbPath');
+
+  ////////////
+  //  main  //
+  ////////////
   entry(config);
 }

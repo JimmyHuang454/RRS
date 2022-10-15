@@ -18,6 +18,7 @@ import 'package:proxy/outbounds/trojan.dart';
 
 import 'package:proxy/route/route.dart';
 
+import 'package:proxy/utils/default_setting.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/obj_list.dart';
 
@@ -118,25 +119,30 @@ Route buildRoute(String tag, Map<String, dynamic> config) {
   return res;
 } //}}}
 
-Future<void> entry(Map<String, dynamic> allConfig) async {
-  var item = {
-    'inStream': buildInStream,
-    'outStream': buildOutStream,
-    'inbounds': buildInbounds,
-    'outbounds': buildOutbounds,
-    'routes': buildRoute,
-  };
+void _entry(Map<String, dynamic> config) {
+  var list = [
+    ['outStream', buildOutStream],
+    ['inStream', buildInStream],
+    ['outbounds', buildOutbounds],
+    ['routes', buildRoute],
+    ['inbounds', buildInbounds],
+  ];
 
-  item.forEach(
-    (key, value) {
-      if (allConfig.containsKey(key)) {
-        var temp = (allConfig[key] as Map<String, dynamic>);
-        temp.forEach(
-          (tag, content) {
-            value(tag, content);
-          },
-        );
-      }
-    },
-  );
+  for (var i = 0, len = list.length; i < len; ++i) {
+    var key = list[i][0];
+    var value = list[i][1] as Function;
+    if (config.containsKey(key)) {
+      var temp = (config[key] as Map<String, dynamic>);
+      temp.forEach(
+        (tag, content) {
+          value(tag, content);
+        },
+      );
+    }
+  }
+}
+
+void entry(Map<String, dynamic> allConfig) {
+  // _entry(defaultSetting);
+  _entry(allConfig);
 }

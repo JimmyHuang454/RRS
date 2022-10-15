@@ -154,7 +154,7 @@ abstract class InboundStruct {
 
   MuxServer getServer() {
     if (!inStreamList.containsKey(inStream)) {
-      throw "wrong inStream tag.";
+      throw 'wrong inStream tag named "$inStream"';
     }
     return inStreamList[inStream]!;
   }

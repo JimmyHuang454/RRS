@@ -38,7 +38,7 @@ abstract class OutboundStruct {
 
   MuxClient getClient() {
     if (!outStreamList.containsKey(outStreamTag)) {
-      throw "wrong outStreamTag.";
+      throw 'wrong outStreamTag named "$outStreamTag"';
     }
     return outStreamList[outStreamTag]!;
   }
