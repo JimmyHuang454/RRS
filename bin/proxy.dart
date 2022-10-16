@@ -17,9 +17,6 @@ Future<void> loadConfig(path) async {
   config = (JSON5.parse(temp) as Map<String, dynamic>);
 }
 
-void loadMmdb(path) {
-}
-
 void setLoggerLevel(String debugLevelStr) {
   if (debugLevelStr == 'debug') {
     Logger.root.level = Level.FINEST;
@@ -31,7 +28,7 @@ void setLoggerLevel(String debugLevelStr) {
     Logger.root.level = Level.CONFIG;
   }
 
-  Logger.root.onRecord.listen((record) {
+  Logger.root.onRecord.listen((record) async {
     print('${record.level.name}: ${record.message}');
   });
 }
@@ -52,8 +49,7 @@ void main(List<String> argument) async {
       defaultsTo: 'debug', allowed: ['debug', 'info', 'none']);
 
   argsParser.addOption('ipdb',
-      defaultsTo: '$root/ip.mmdb',
-      help: 'database for ip region.');
+      defaultsTo: '$root/ip.mmdb', help: 'database for ip region.');
 
   var args = argsParser.parse(argument);
 

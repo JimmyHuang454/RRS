@@ -23,6 +23,8 @@ abstract class OutboundStruct {
   String realOutAddress = '';
   int realOutPort = 0;
 
+  late MuxClient _muxClient;
+
   OutboundStruct(
       {required this.protocolName,
       required this.protocolVersion,
@@ -34,13 +36,18 @@ abstract class OutboundStruct {
 
     realOutAddress = outAddress;
     realOutPort = outPort;
+
+    if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
+      throw 'wrong outStream named "$outStreamTag"';
+    }
+
+    if (protocolName != 'block') {
+      _muxClient = outStreamList[outStreamTag]!;
+    }
   }
 
   MuxClient getClient() {
-    if (!outStreamList.containsKey(outStreamTag)) {
-      throw 'wrong outStreamTag named "$outStreamTag"';
-    }
-    return outStreamList[outStreamTag]!;
+    return _muxClient;
   }
 
   Future<RRSSocket> newConnect(Link l) async {

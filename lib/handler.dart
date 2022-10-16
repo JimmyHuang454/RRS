@@ -17,6 +17,7 @@ import 'package:proxy/outbounds/http.dart';
 import 'package:proxy/outbounds/trojan.dart';
 
 import 'package:proxy/route/route.dart';
+import 'package:proxy/transport/server/ws.dart';
 
 import 'package:proxy/utils/default_setting.dart';
 import 'package:proxy/utils/utils.dart';
@@ -46,7 +47,9 @@ TransportServer1 _buildInStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
 
-  if (protocol == 'ws') {}
+  if (protocol == 'ws') {
+    return WSServer1(config: config);
+  }
   return TCPServer2(config: config);
 } //}}}
 
@@ -130,12 +133,12 @@ void _entry(Map<String, dynamic> config) {
 
   for (var i = 0, len = list.length; i < len; ++i) {
     var key = list[i][0];
-    var value = list[i][1] as Function;
+    var fuc = list[i][1] as Function;
     if (config.containsKey(key)) {
-      var temp = (config[key] as Map<String, dynamic>);
+      var temp = config[key];
       temp.forEach(
         (tag, content) {
-          value(tag, content);
+          fuc(tag, content);
         },
       );
     }
@@ -143,6 +146,6 @@ void _entry(Map<String, dynamic> config) {
 }
 
 void entry(Map<String, dynamic> allConfig) {
-  // _entry(defaultSetting);
+  _entry(defaultSetting);
   _entry(allConfig);
 }

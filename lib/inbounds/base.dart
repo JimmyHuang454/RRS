@@ -134,6 +134,7 @@ abstract class InboundStruct {
   Map<String, dynamic> config;
 
   int totalClient = 0;
+  late MuxServer _muxServer;
 
   InboundStruct(
       {required this.protocolName,
@@ -148,15 +149,17 @@ abstract class InboundStruct {
     if (inStream == '' || route == '') {
       throw 'inStream and route can NOT be null.';
     }
+
+    if (!inStreamList.containsKey(inStream)) {
+      throw 'wrong inStream tag named "$inStream"';
+    }
+    _muxServer = inStreamList[inStream]!;
   }
 
   Future<void> bind();
 
   MuxServer getServer() {
-    if (!inStreamList.containsKey(inStream)) {
-      throw 'wrong inStream tag named "$inStream"';
-    }
-    return inStreamList[inStream]!;
+    return _muxServer;
   }
 
   Future<OutboundStruct> doRoute(Link link) async {

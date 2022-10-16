@@ -1,40 +1,42 @@
 {
-  "inStream": {
-    "default": {
-      "protocol": "tcp"
-    },
-    "tcp": {
-      "protocol": "tcp"
-    },
-  },
-  "outSteam": {
-    "default": {
-      "protocol": "tcp"
-    },
-    "tcp": {
-      "protocol": "tcp"
+  "inbounds": {
+    "http_inbound": {
+      "protocol": "http",
+      "setting": {
+        "address": "0.0.0.0",
+        "port": 10809
+      },
+      "inStream": "tcp",
+      "route": "proxy"
     }
   },
   "outbounds": {
-    "default": {
-      "protocol": "freedom",
-      "outStream": "tcp"
+    "trojan": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "normal.uif02.xyz",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "tls_ws"
     },
-    "freedom": {
-      "protocol": "freedom",
-      "outStream": "tcp"
-    }
   },
   "routes": {
-    "default": {
+    "proxy": {
       "rules": [{
-        "outbound": ["default"]
+        "outbound": ["trojan"]
       }]
-    },
-    "freedom": {
-      "rules": [{
-        "outbound": ["default"]
-      }]
+    }
+  },
+  "outStream": {
+    "tls_ws": {
+      "protocol": "ws",
+      "tls": {
+        "enabled": true
+      },
+      "setting": {
+        "path": "uif_trojan"
+      }
     }
   }
 }

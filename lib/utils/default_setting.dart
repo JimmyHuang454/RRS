@@ -5,26 +5,50 @@ Map<String, dynamic> defaultSetting = {
   },
   "outStream": {
     "default": {"protocol": "tcp"},
-    "tcp": {"protocol": "tcp"}
+    "tcp": {"protocol": "tcp"},
+    "tls": {
+      "protocol": "tcp",
+      "tls": {
+        "enabled": true,
+      },
+    },
+    "tls_tcp": {
+      "protocol": "tcp",
+      "tls": {
+        "enabled": true,
+      },
+    },
+    "tls_ws": {
+      "protocol": "ws",
+      "tls": {
+        "enabled": true
+      },
+      "setting": {
+        "path": "uif_trojan"
+      }
+    }
   },
   "outbounds": {
     "default": {"protocol": "freedom", "outStream": "tcp"},
-    "freedom": {"protocol": "freedom", "outStream": "tcp"}
+    "freedom": {"protocol": "freedom", "outStream": "tcp"},
   },
-  "routes": {
-    // "default": {
-    //   "rules": [
-    //     {
-    //       "outbound": ["default"]
-    //     }
-    //   ]
-    // },
-    // "freedom": {
-    //   "rules": [
-    //     {
-    //       "outbound": ["default"]
-    //     }
-    //   ]
-    // }
-  }
+  // "routes": {
+  //   // key 'comment' is to fix type error. It's not really useful.
+  //   "default": {
+  //     "rules": [
+  //       {
+  //         "outbound": ["default"]
+  //       }
+  //     ],
+  //     'comment': {}
+  //   },
+  //   "freedom": {
+  //     "rules": [
+  //       {
+  //         "outbound": ["default"]
+  //       }
+  //     ],
+  //     'comment': {}
+  //   }
+  // }
 };

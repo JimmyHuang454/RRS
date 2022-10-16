@@ -1,7 +1,10 @@
 import 'dart:io';
 
+import 'package:proxy/handler.dart';
 import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
+import 'package:proxy/transport/server/ws.dart';
+import 'package:proxy/transport/client/ws.dart';
 
 void main() {
   test('normal ws', () async {
@@ -43,5 +46,17 @@ void main() {
     await delay(2);
     expect(clientClosed, true);
     expect(serverListenDone, true);
+  });
+
+  test('rrs ws', () async {
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+
+    var server = buildInStream('s', {'protocol': 'ws', 'setting': {}});
+
+    await server.bind(host, port);
+    var client = buildOutStream('c', {'protocol': 'ws', 'setting': {}});
+
+    var c = await client.connect(host, port);
   });
 }

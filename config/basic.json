@@ -1,12 +1,5 @@
 {
   "outbounds": {
-    "endPoint": {
-      "protocol": "freedom",
-      "setting": {
-        "strategy": "default"
-      },
-      "outStream": "tcp_instream"
-    },
     "trojan_outbound": {
       "protocol": "trojan",
       "setting": {
@@ -33,7 +26,7 @@
         "address": "0.0.0.0",
         "port": 8080
       },
-      "inStream": "tcp_instream",
+      "inStream": "tcp",
       "route": "proxy"
     },
     "http_inbound_mux": {
@@ -42,7 +35,7 @@
         "address": "0.0.0.0",
         "port": 8087
       },
-      "inStream": "tcp_instream",
+      "inStream": "tcp",
       "route": "mux_route"
     },
     "trojan_inbound_mux": {
@@ -63,7 +56,7 @@
         "address": "127.0.0.1",
         "port": 8081
       },
-      "inStream": "tcp_instream",
+      "inStream": "tcp",
       "route": "proxy"
     },
     "socks5_inbound_mux": {
@@ -72,7 +65,7 @@
         "address": "127.0.0.1",
         "port": 8083
       },
-      "inStream": "tcp_instream",
+      "inStream": "tcp",
       "route": "mux_route"
     },
   },
@@ -84,9 +77,6 @@
       "tls": {
         "enabled": true,
       },
-    },
-    "tcp_instream": {
-      "protocol": "tcp"
     },
     "tcp_mux_outstream": {
       "protocol": "tcp",
@@ -107,9 +97,6 @@
     }
   },
   "inStream": {
-    "tcp_instream": {
-      "protocol": "tcp"
-    },
     "tcp_mux_instream": {
       "protocol": "tcp",
       "mux": {
@@ -122,7 +109,7 @@
     "allowUser": {
       "rules": [{
         "user": ["1"],
-        "outbound": "endPoint"
+        "outbound": "freedom"
       }]
     },
     "mux_route": {
@@ -132,13 +119,13 @@
     },
     "proxy": {
       "rules": [{
-        "outbound": "endPoint",
+        "outbound": "freedom",
         "domain": ["regex:.*.cn"]
       }, {
         "outbound": "trojan_outbound",
         "domain": ["google"]
       }, {
-        "outbound": "endPoint",
+        "outbound": "freedom",
         "chinaOnly": true
       }, {
         "outbound": ["trojan_outbound"]
