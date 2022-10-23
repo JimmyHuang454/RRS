@@ -52,11 +52,41 @@ void main() {
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
 
-    var server = buildInStream('s', {'protocol': 'ws', 'setting': {}});
+    var server = buildInStream('s', {
+      'protocol': 'ws',
+      'setting': {'path': 'abc'}
+    });
 
-    await server.bind(host, port);
-    var client = buildOutStream('c', {'protocol': 'ws', 'setting': {}});
+    var s = await server.bind(host, port);
+    var client = buildOutStream('c', {
+      'protocol': 'ws',
+      'setting': {'path': 'abc'}
+    });
+
+    var serverReceived = false;
+    var clientReceive = false;
+    s.listen(
+      (client) {
+        client.listen(
+          (data) {
+            serverReceived = true;
+            client.add(data);
+          },
+        );
+      },
+    );
 
     var c = await client.connect(host, port);
+
+    c.listen((event) {
+      clientReceive = true;
+    },);
+
+    c.add([1]);
+
+    await delay(2);
+
+    expect(serverReceived, true);
+    expect(clientReceive, true);
   });
 }

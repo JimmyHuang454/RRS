@@ -3,11 +3,17 @@
   "outStream": {
     "tcp": {
       "protocol": "tcp"
+    },
+    "ws": {
+      "protocol": "ws"
     }
   },
   "inStream": {
     "tcp": {
       "protocol": "tcp"
+    },
+    "ws": {
+      "protocol": "ws"
     }
   },
   "inbounds": {
@@ -18,6 +24,15 @@
         "port": 5455
       },
       "route": "out",
+      "inStream": "tcp"
+    },
+    "HTTPIn_ws": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "route": "out_ws",
       "inStream": "tcp"
     },
     "TrojanIn": {
@@ -31,6 +46,18 @@
       },
       "route": "freedom",
       "inStream": "tcp"
+    },
+    "TrojanIn_ws": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "tunnelAddress": "1",
+        "tunnelPort": 1,
+        "password": "123"
+      },
+      "route": "freedom",
+      "inStream": "ws"
     }
   },
   "outbounds": {
@@ -49,6 +76,15 @@
         "password": "123"
       },
       "outStream": "tcp"
+    },
+    "TrojanOut_ws": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "password": "123"
+      },
+      "outStream": "ws"
     }
   },
   "routes": {
@@ -63,6 +99,11 @@
     "out": {
       "rules": [{
         "outbound": "TrojanOut"
+      }]
+    },
+    "out_ws": {
+      "rules": [{
+        "outbound": "TrojanOut_ws"
       }]
     }
   }
