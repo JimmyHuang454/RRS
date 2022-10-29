@@ -5,6 +5,7 @@ jobs:
   setup_env:
     name: test
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.os }}
