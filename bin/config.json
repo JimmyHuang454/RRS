@@ -8,6 +8,18 @@
       },
       "inStream": "tcp",
       "route": "proxy"
+    },
+    "trojan_inboud": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "0.0.0.0",
+        "port": 10800,
+        "tunnelAddress": "1",
+        "tunnelPort": 1,
+        "password": "abc"
+      },
+      "inStream": "ws",
+      "route": "freedom"
     }
   },
   "outbounds": {
@@ -25,6 +37,11 @@
     "proxy": {
       "rules": [{
         "outbound": ["trojan"]
+      }]
+    },
+    "freedom": {
+      "rules": [{
+        "outbound": ["freedom"]
       }]
     }
   },

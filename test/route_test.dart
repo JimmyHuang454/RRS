@@ -6,13 +6,17 @@ import 'package:quiver/pattern.dart';
 
 void main() {
   test('route match', () async {
-    buildOutbounds('out1', {
-      'setting': {
-        'address': '1',
-        'port': 1,
-        'password': '1',
+    entry({
+      'outbounds': {
+        'out1': {
+          'setting': {
+            'address': '1',
+            'port': 1,
+            'password': '1',
+          },
+          'outStream': 'tcp'
+        }
       },
-      'outStream': 'tcp'
     });
 
     buildRoute('test_route', {

@@ -2,6 +2,7 @@ Map<String, dynamic> defaultSetting = {
   "inStream": {
     "default": {"protocol": "tcp"},
     "tcp": {"protocol": "tcp"},
+    "ws": {"protocol": "ws"}
   },
   "outStream": {
     "default": {"protocol": "tcp"},
