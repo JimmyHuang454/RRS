@@ -9,33 +9,33 @@
       "inStream": "tcp",
       "route": "proxy"
     },
-    "trojan_inboud": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "0.0.0.0",
-        "port": 10800,
-        "tunnelAddress": "1",
-        "tunnelPort": 1,
-        "password": "abc"
-      },
-      "inStream": "ws",
-      "route": "freedom"
-    }
   },
   "outbounds": {
     "trojan": {
       "protocol": "trojan",
       "setting": {
-        "address": "normal.uif02.xyz",
+        "address": "us.uif02.xyz",
         "port": 443,
-        "password": "password2"
+        "password": "abc"
       },
       "outStream": "tls_ws"
+    },
+    "trojan_mux": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "us.uif02.xyz",
+        "port": 443,
+        "password": "abc"
+      },
+      "outStream": "ws_mux"
     },
   },
   "routes": {
     "proxy": {
       "rules": [{
+        "chinaOnly": true,
+        "outbound": ["freedom"]
+      }, {
         "outbound": ["trojan"]
       }]
     },
@@ -52,8 +52,21 @@
         "enabled": true
       },
       "setting": {
-        "path": "uif_trojan"
+        "path": "my_proxy"
       }
+    },
+    "ws_mux": {
+      "protocol": "ws",
+      "tls": {
+        "enabled": true
+      },
+      "setting": {
+        "path": "my_proxy_mux"
+      },
+      "mux": {
+        "enabled": true,
+        "password": "123"
+      },
     }
   }
 }

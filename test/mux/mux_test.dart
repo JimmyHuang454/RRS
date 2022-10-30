@@ -35,7 +35,8 @@ void main() {
     var config = jsonDecode(await f.readAsString());
     var host = '127.0.0.1';
     entry(config);
-    var httpServer = await ServerSocket.bind(host, 80);
+    var port2 = await getUnusedPort(InternetAddress(host));
+    var httpServer = await ServerSocket.bind(host, port2);
     var tag = '111111111';
     httpServer.listen(
       (event) {
@@ -59,7 +60,7 @@ void main() {
 
 
     for (var i = 0, len = times; i < len; ++i) {
-      clientList[i].add(buildHTTPProxyRequest('127.0.0.1'));
+      clientList[i].add(buildHTTPProxyRequest('127.0.0.1:$port2'));
       await delay(2);
     }
 
