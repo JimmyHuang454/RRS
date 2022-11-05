@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/sniff/sniffer.dart';
 import 'package:proxy/utils/utils.dart';
 
 class HTTPRequest extends Link {
@@ -70,6 +71,8 @@ class HTTPRequest extends Link {
     if (method == 'CONNECT') {
       clientAdd(buildConnectionResponse());
     }
+
+    trafficType = sniff(content);
 
     if (content.isNotEmpty) {
       serverAdd(content);

@@ -14,18 +14,18 @@
     "trojan": {
       "protocol": "trojan",
       "setting": {
-        "address": "us.uif02.xyz",
+        "address": "normal.uif02.xyz",
         "port": 443,
-        "password": "abc"
+        "password": "password2"
       },
       "outStream": "tls_ws"
     },
     "trojan_mux": {
       "protocol": "trojan",
       "setting": {
-        "address": "us.uif02.xyz",
+        "address": "normal.uif02.xyz",
         "port": 443,
-        "password": "abc"
+        "password": "password2"
       },
       "outStream": "ws_mux"
     },
@@ -52,7 +52,7 @@
         "enabled": true
       },
       "setting": {
-        "path": "my_proxy"
+        "path": "uif_trojan"
       }
     },
     "ws_mux": {
@@ -61,11 +61,12 @@
         "enabled": true
       },
       "setting": {
-        "path": "my_proxy_mux"
+        "path": "uif_trojan"
       },
       "mux": {
         "enabled": true,
-        "password": "123"
+        "password": "123",
+        "maxThread":11
       },
     }
   }

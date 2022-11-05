@@ -5,6 +5,7 @@ import 'package:proxy/transport/mux.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/utils/utils.dart';
+import 'package:proxy/sniff/sniffer.dart';
 
 class Link {
   RRSSocket client; // in
@@ -20,7 +21,7 @@ class Link {
 
   String protocolVersion = '';
   List<int> userID = [];
-  bool isTLS = false;
+  late TrafficType trafficType;
   bool isHTTPRequest = false;
   bool isBitcont = false;
   int timeout = 100;
@@ -66,6 +67,7 @@ class Link {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
       closeAll();
+      // logger.info('Failed to connect: ${buildLinkInfo()}');
       return false;
     }
 
