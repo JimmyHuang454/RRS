@@ -98,6 +98,12 @@
       "languageVersion": "2.14"
     },
     {
+      "name": "http2",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/http2-2.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
+    },
+    {
       "name": "http_multi_server",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/http_multi_server-3.2.1",
       "packageUri": "lib/",
@@ -338,7 +344,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-10-15T07:27:30.953973Z",
+  "generated": "2022-11-05T14:26:19.298957Z",
   "generator": "pub",
   "generatorVersion": "2.18.1"
 }
