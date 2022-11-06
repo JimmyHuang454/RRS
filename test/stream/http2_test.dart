@@ -70,9 +70,11 @@ class H2Request {
     clientTransportStream.outgoingMessages.close();
     info['link'] -= 1;
     if (info['link'] == 0) {
+      liveConnection.remove(hostAndPort);
       await con.finish();
+    } else {
+      clientTransportStream.outgoingMessages.close();
     }
-    liveConnection.remove(hostAndPort);
   }
 }
 
@@ -83,8 +85,15 @@ void main() {
       (event) {
         var temp = ServerTransportConnection.viaSocket(event);
         temp.incomingStreams.listen(
-          (client) {
+          (client) async {
             client.sendData(utf8.encode('fuck'));
+            client.incomingMessages.listen(
+              (message) {
+                if (message is DataStreamMessage) {
+                  devPrint(utf8.decode(message.bytes));
+                }
+              },
+            );
             client.outgoingMessages.close();
           },
         );
@@ -100,6 +109,8 @@ void main() {
           devPrint(utf8.decode(message.bytes));
         }
       }
+      stream.sendData(utf8.encode('abc'));
+      await delay(1);
       await req.close();
     }
   });
