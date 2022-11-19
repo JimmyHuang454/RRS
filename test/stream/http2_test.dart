@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/h2.dart';
 
@@ -11,7 +12,9 @@ Map<String, Map<String, dynamic>> liveConnection = {};
 
 void main() {
   test('http2', () async {
-    var s = await ServerSocket.bind('127.0.0.1', 7767);
+    var host = '127.0.0.1';
+    var port = 7767;
+    var s = await ServerSocket.bind(host, port);
     s.listen(
       (event) {
         var temp = ServerTransportConnection.viaSocket(event);
@@ -31,18 +34,13 @@ void main() {
       },
     );
 
-    for (var i = 0, len = 10; i < len; ++i) {
-      var req = H2Request('http://127.0.0.1:7767/');
-      var stream = await req.get();
+    var client = buildOutStream('c', {
+      'protocol': 'h2',
+      'setting': {'path': 'abc'}
+    });
 
-      await for (var message in stream.incomingMessages) {
-        if (message is DataStreamMessage) {
-          devPrint(utf8.decode(message.bytes));
-        }
-      }
-      stream.sendData(utf8.encode('abc'));
-      await delay(1);
-      await req.close();
-    }
+    var c = await client.connect(host, port);
+    c.add('fuck'.codeUnits);
+    await delay(3);
   });
 }

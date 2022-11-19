@@ -1,6 +1,7 @@
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
+import 'package:proxy/transport/client/h2.dart';
 
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/tcp.dart';
@@ -31,6 +32,8 @@ TransportClient1 _buildOutStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return WSClient2(config: config);
+  } else if (protocol == 'h2') {
+    return H2Client(config: config);
   }
   return TCPClient2(config: config);
 } //}}}

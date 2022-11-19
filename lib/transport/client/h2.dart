@@ -61,7 +61,7 @@ class H2Socket {
   Future<dynamic> get done => transportStream.outgoingMessages.done;
 }
 
-class H2Request extends TransportClient1 {
+class H2Client extends TransportClient1 {
   String hostAndPort = '';
   String path = '';
   int muxID = 0;
@@ -72,18 +72,18 @@ class H2Request extends TransportClient1 {
   late Map<String, dynamic> info;
   late List<Header> header;
 
-  H2Request({required super.config}) : super(protocolName: 'h2') {
+  H2Client({required super.config}) : super(protocolName: 'h2') {
     path = getValue(config, 'setting.path', '');
+  }
 
+  Future<Map<String, dynamic>> _connect() async {
     header = [
       Header.ascii(':method', 'GET'),
       Header.ascii(':path', uri.path),
       Header.ascii(':scheme', uri.scheme),
       Header.ascii(':authority', uri.host),
     ];
-  }
 
-  Future<Map<String, dynamic>> _connect() async {
     if (!liveConnection.containsKey(hostAndPort)) {
       liveConnection[hostAndPort] = {};
     }
@@ -98,7 +98,7 @@ class H2Request extends TransportClient1 {
       },
     );
 
-    if (info == {}) {
+    if (info.isEmpty) {
       dynamic s;
       muxID += 1;
       if (uri.scheme.startsWith('https')) {
