@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:proxy/transport/client/h2.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
@@ -14,14 +15,18 @@ class H2RRSServerScoket extends RRSServerSocket {
   @override
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = (serverSocket as ServerSocket).listen((socketClient) {
+    serverSocket.listen((socketClient) {
       var h2Client = ServerTransportConnection.viaSocket(socketClient);
-        h2Client.incomingStreams.listen(
-          (client) {
-          },
-        );
+      h2Client.incomingStreams.listen(
+        (h2Client) {
+          var s = RRSSocket(
+              socket: H2Socket(
+            transportStream: h2Client,
+          ));
+          onData!(s);
+        },
+      );
     }, onError: onError, onDone: onDone, cancelOnError: true);
-    streamSubscription.add(temp);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:proxy/transport/client/ws.dart';
 import 'package:proxy/transport/client/h2.dart';
 
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/transport/server/h2.dart';
 import 'package:proxy/transport/server/tcp.dart';
 
 import 'package:proxy/inbounds/base.dart';
@@ -52,6 +53,8 @@ TransportServer1 _buildInStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return WSServer1(config: config);
+  } else if (protocol == 'h2') {
+    return H2Server(config: config);
   }
   return TCPServer2(config: config);
 } //}}}

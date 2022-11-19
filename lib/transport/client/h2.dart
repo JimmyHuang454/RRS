@@ -9,13 +9,13 @@ Map<String, Map<String, dynamic>> liveConnection = {};
 
 class H2Socket {
   dynamic transportStream;
-  Map<String, dynamic> info;
+  Map<String, dynamic> info = {};
   String hostAndPort = '';
 
   H2Socket(
       {required this.transportStream,
-      required this.info,
-      required this.hostAndPort});
+      this.info = const {},
+      this.hostAndPort = ''});
 
   void add(List<int> data) {
     if (transportStream is ClientTransportStream) {
@@ -44,17 +44,21 @@ class H2Socket {
     }
   }
 
-  void close() async {
-    if (transportStream is ClientTransportStream) {
-      (transportStream as ClientTransportStream).outgoingMessages.close();
-    } else if (transportStream is ServerTransportStream) {
-      (transportStream as ServerTransportStream).outgoingMessages.close();
-    }
+  void _muxClose() async {
     info['link'] -= 1;
     if (info['link'] == 0) {
       info['isClosed'] = true;
       liveConnection.remove(hostAndPort);
       await info['con'].finish();
+    }
+  }
+
+  void close() async {
+    if (transportStream is ClientTransportStream) {
+      (transportStream as ClientTransportStream).outgoingMessages.close();
+      _muxClose();
+    } else if (transportStream is ServerTransportStream) {
+      (transportStream as ServerTransportStream).outgoingMessages.close();
     }
   }
 
