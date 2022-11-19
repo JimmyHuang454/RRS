@@ -20,6 +20,15 @@
       },
       "outStream": "tls_ws"
     },
+    "trojan2": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "normal2.uif02.xyz",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "tls_ws"
+    },
     "trojan_mux": {
       "protocol": "trojan",
       "setting": {
@@ -36,7 +45,7 @@
         "chinaOnly": true,
         "outbound": ["freedom"]
       }, {
-        "outbound": ["trojan"]
+        "outbound": ["trojan", "trojan2"]
       }]
     },
     "freedom": {

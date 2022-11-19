@@ -9,8 +9,13 @@ Map<String, Map<String, dynamic>> liveConnection = {};
 
 class H2Socket {
   dynamic transportStream;
+  Map<String, dynamic> info;
+  String hostAndPort = '';
 
-  H2Socket({required this.transportStream});
+  H2Socket(
+      {required this.transportStream,
+      required this.info,
+      required this.hostAndPort});
 
   void add(List<int> data) {
     if (transportStream is ClientTransportStream) {
@@ -39,11 +44,17 @@ class H2Socket {
     }
   }
 
-  void close() {
+  void close() async {
     if (transportStream is ClientTransportStream) {
       (transportStream as ClientTransportStream).outgoingMessages.close();
     } else if (transportStream is ServerTransportStream) {
       (transportStream as ServerTransportStream).outgoingMessages.close();
+    }
+    info['link'] -= 1;
+    if (info['link'] == 0) {
+      info['isClosed'] = true;
+      liveConnection.remove(hostAndPort);
+      await info['con'].finish();
     }
   }
 
@@ -72,7 +83,7 @@ class H2Request extends TransportClient1 {
     ];
   }
 
-  Future<void> _connect() async {
+  Future<Map<String, dynamic>> _connect() async {
     if (!liveConnection.containsKey(hostAndPort)) {
       liveConnection[hostAndPort] = {};
     }
@@ -108,6 +119,7 @@ class H2Request extends TransportClient1 {
     }
     info['link'] += 1;
     con = info['con'];
+    return info;
   }
 
   @override
@@ -127,19 +139,13 @@ class H2Request extends TransportClient1 {
     uri = Uri.parse(address);
     hostAndPort = '${uri.host}:${uri.port}';
 
-    await _connect();
+    var info = await _connect();
 
-    clientTransportStream = con.makeRequest(header, endStream: false);
-    return RRSSocket(socket: H2Socket(transportStream: clientTransportStream));
-  }
-
-  Future<void> close() async {
-    clientTransportStream.outgoingMessages.close();
-    info['link'] -= 1;
-    if (info['link'] == 0) {
-      info['isClosed'] = true;
-      liveConnection.remove(hostAndPort);
-      await con.finish();
-    }
+    clientTransportStream = info['con'].makeRequest(header, endStream: false);
+    return RRSSocket(
+        socket: H2Socket(
+            transportStream: clientTransportStream,
+            info: info,
+            hostAndPort: hostAndPort));
   }
 }
