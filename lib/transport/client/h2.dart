@@ -26,7 +26,7 @@ class H2Socket {
   }
 
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function? onError, void Function()? onDone, cancelOnError = true}) {
     if (transportStream is ClientTransportStream) {
       (transportStream as ClientTransportStream).incomingMessages.listen(
           (event) {

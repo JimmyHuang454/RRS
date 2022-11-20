@@ -49,10 +49,15 @@ void main() {
     });
     var s = await server.bind(host, port);
 
+    var msg = 'hello';
     s.listen(
       (inClient) {
-        inClient.add(utf8.encode('fuck'));
-        devPrint('connected');
+        inClient.listen(
+          (data) {
+            expect(utf8.decode(data) == msg, true);
+          },
+        );
+        inClient.add(utf8.encode(msg));
         inClient.close();
       },
     );
@@ -63,7 +68,12 @@ void main() {
     });
 
     var c = await client.connect(host, port);
-    c.add('fuck'.codeUnits);
+    c.listen(
+      (data) {
+        expect(utf8.decode(data) == msg, true);
+      },
+    );
+    c.add(utf8.encode(msg));
     await delay(3);
   });
 }

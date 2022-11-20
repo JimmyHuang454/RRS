@@ -51,7 +51,9 @@ class RRSSocket {
       streamSubscription.add(temp);
     }, (e, s) {
       devPrint('client: $s');
-      onError!(e);
+      if (onError != null) {
+        onError(e);
+      }
     });
   }
 

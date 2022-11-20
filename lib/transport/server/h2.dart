@@ -15,7 +15,6 @@ class H2RRSServerScoket extends RRSServerSocket {
   @override
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
-    devPrint(onData);
     serverSocket.listen((socketClient) {
       var h2Client = ServerTransportConnection.viaSocket(socketClient);
       h2Client.incomingStreams.listen(
