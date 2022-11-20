@@ -15,13 +15,14 @@ class H2RRSServerScoket extends RRSServerSocket {
   @override
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
+    devPrint(onData);
     serverSocket.listen((socketClient) {
       var h2Client = ServerTransportConnection.viaSocket(socketClient);
       h2Client.incomingStreams.listen(
-        (h2Client) {
+        (client) {
           var s = RRSSocket(
               socket: H2Socket(
-            transportStream: h2Client,
+            transportStream: client,
           ));
           onData!(s);
         },
@@ -31,7 +32,6 @@ class H2RRSServerScoket extends RRSServerSocket {
 }
 
 class H2Server extends TransportServer1 {
-  late HttpServer httpServer;
   late String path;
 
   H2Server({required super.config}) : super(protocolName: 'h2') {
@@ -40,7 +40,7 @@ class H2Server extends TransportServer1 {
 
   @override
   Future<RRSServerSocket> bind(address, int port) async {
-    httpServer = await HttpServer.bind(address, port);
-    return H2RRSServerScoket(serverSocket: httpServer, path: path);
+    var server = await ServerSocket.bind(address, port);
+    return H2RRSServerScoket(serverSocket: server, path: path);
   }
 }

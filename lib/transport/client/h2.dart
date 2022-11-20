@@ -56,9 +56,10 @@ class H2Socket {
   void close() async {
     if (transportStream is ClientTransportStream) {
       (transportStream as ClientTransportStream).outgoingMessages.close();
-      _muxClose();
+      // _muxClose();
     } else if (transportStream is ServerTransportStream) {
-      (transportStream as ServerTransportStream).outgoingMessages.close();
+      var temp = (transportStream as ServerTransportStream);
+      temp.outgoingMessages.close();
     }
   }
 
