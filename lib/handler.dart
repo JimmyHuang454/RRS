@@ -32,11 +32,11 @@ TransportClient _buildOutStream(Map<String, dynamic> config) {
   var protocol = getValue(config, 'protocol', 'tcp');
 
   if (protocol == 'ws') {
-    return WSClient2(config: config);
+    return WSClient(config: config);
   } else if (protocol == 'h2') {
     return H2Client(config: config);
   }
-  return TCPClient2(config: config);
+  return TCPClient(config: config);
 } //}}}
 
 MuxClient buildOutStream(String tag, Map<String, dynamic> config) {

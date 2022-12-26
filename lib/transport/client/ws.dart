@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class WSClient2 extends TransportClient {
+class WSClient extends TransportClient {
   late String path;
   late String userAgent;
   late WebSocket ws;
@@ -13,7 +13,7 @@ class WSClient2 extends TransportClient {
   String outAddress = '';
   int outPort = 0;
 
-  WSClient2({required super.config}) : super(protocolName: 'ws') {
+  WSClient({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
   }
 

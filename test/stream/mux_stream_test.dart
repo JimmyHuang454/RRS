@@ -12,7 +12,7 @@ void main() {
   //  //{{{
   //  var host = '127.0.0.1';
   //  var port = await getUnusedPort(InternetAddress(host));
-  //  var client = MuxClient(transportClient1: TCPClient2(config: {}));
+  //  var client = MuxClient(transportClient1: TCPClient(config: {}));
   //  var bind = MuxServer(transportServer1: TCPServer(config: {}));
 
   //  var msg = '1';

@@ -27,7 +27,7 @@ void main() {
   //     serverClosed = true;
   //   });
 
-  //   var client = await TCPClient2(config: {}).connect(host, port);
+  //   var client = await TCPClient(config: {}).connect(host, port);
 
   //   client.add(msg.codeUnits);
 
