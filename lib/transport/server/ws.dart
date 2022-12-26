@@ -24,11 +24,11 @@ class WSRRSServerScoket extends RRSServerSocket {
   }
 }
 
-class WSServer1 extends TransportServer1 {
+class WSServer extends TransportServer {
   late HttpServer httpServer;
   late String path;
 
-  WSServer1({required super.config}) : super(protocolName: 'ws') {
+  WSServer({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
   }
 

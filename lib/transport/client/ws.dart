@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class WSClient2 extends TransportClient1 {
+class WSClient2 extends TransportClient {
   late String path;
   late String userAgent;
   late WebSocket ws;

@@ -66,7 +66,7 @@ class H2Socket {
   Future<dynamic> get done => transportStream.outgoingMessages.done;
 }
 
-class H2Client extends TransportClient1 {
+class H2Client extends TransportClient {
   String hostAndPort = '';
   String path = '';
   int muxID = 0;

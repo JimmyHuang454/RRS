@@ -21,7 +21,6 @@ class Link {
 
   String protocolVersion = '';
   List<int> userID = [];
-  late TrafficType trafficType;
   bool isHTTPRequest = false;
   bool isBitcont = false;
   int timeout = 100;
@@ -67,7 +66,7 @@ class Link {
       server = await outboundStruct.newConnect(this);
     } catch (e) {
       closeAll();
-      // logger.info('Failed to connect: ${buildLinkInfo()}');
+      logger.info(e);
       return false;
     }
 
@@ -110,11 +109,11 @@ class Link {
   String buildLinkInfo() {
     if (linkInfo == '') {
       var isMux = '';
-      if (outboundStruct.getClient().transportClient1.isMux) {
+      if (outboundStruct.getClient().transportClient.isMux) {
         isMux = ':mux';
       }
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient1.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }

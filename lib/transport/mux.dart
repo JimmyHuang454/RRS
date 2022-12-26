@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:async/async.dart';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:crypto/crypto.dart';
@@ -13,20 +12,23 @@ class MuxClient {
   Map<String, Map<int, MuxClientHandler>> mux = {};
 
   int muxIDCount = 0;
+  int paddingLen = -1;
 
-  TransportClient1 transportClient1;
+  TransportClient transportClient;
   List<int> muxPasswordSha224 = [];
 
-  MuxClient({required this.transportClient1}) {
-    if (transportClient1.isMux) {
-      if (transportClient1.muxPassword == '') {
+  MuxClient({required this.transportClient}) {
+    if (transportClient.isMux) {
+      if (transportClient.muxPassword == '') {
         throw "muxPassword can not be null.";
       }
       muxPasswordSha224 = sha224
-          .convert(transportClient1.muxPassword.codeUnits)
+          .convert(transportClient.muxPassword.codeUnits)
           .toString()
           .codeUnits;
     }
+
+    paddingLen = getValue(transportClient.config, 'mux.paddingLen', -1);
   }
 
   void clearEmpty() {
@@ -35,7 +37,7 @@ class MuxClient {
         value.removeWhere(
           (key2, value2) {
             var isClosed = value2.isAllDone &&
-                value2.usingList.length >= transportClient1.maxThread &&
+                value2.usingList.length >= transportClient.maxThread &&
                 !value2.isClosed;
             if (isClosed) {
               value2.rrsSocket.close();
@@ -56,8 +58,8 @@ class MuxClient {
   }
 
   Future<RRSSocket> connect(host, int port) async {
-    if (!transportClient1.isMux) {
-      return await transportClient1.connect(host, port);
+    if (!transportClient.isMux) {
+      return await transportClient.connect(host, port);
     }
 
     String dst = host + ":" + port.toString();
@@ -72,7 +74,7 @@ class MuxClient {
     if (mux.containsKey(dst)) {
       mux[dst]!.forEach(
         (key, value) {
-          if (value.usingList.length < transportClient1.maxThread &&
+          if (value.usingList.length < transportClient.maxThread &&
               !isAssigned &&
               !value.isClosed) {
             muxInfo = value;
@@ -86,7 +88,7 @@ class MuxClient {
 
     if (!isAssigned) {
       muxInfo = MuxClientHandler(
-          rrsSocket: await transportClient1.connect(host, port),
+          rrsSocket: await transportClient.connect(host, port),
           muxID: muxID,
           muxPasswordSha224: muxPasswordSha224);
       mux[dst]![muxID] = muxInfo;
@@ -135,7 +137,7 @@ class RRSServerSocketMux extends RRSServerSocket {
 
 class MuxServer {
   //{{{
-  TransportServer1 transportServer1;
+  TransportServer transportServer1;
   List<int> muxPasswordSha224 = [];
 
   MuxServer({

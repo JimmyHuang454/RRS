@@ -30,7 +30,7 @@ class H2RRSServerScoket extends RRSServerSocket {
   }
 }
 
-class H2Server extends TransportServer1 {
+class H2Server extends TransportServer {
   late String path;
 
   H2Server({required super.config}) : super(protocolName: 'h2') {

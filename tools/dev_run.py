@@ -15,7 +15,7 @@ def DoCMD(cmd, is_wait=True, cwd=None):
 
 DoCMD([
     'dart', 'run', './bin/proxy.dart', '-c',
-    os.path.dirname(BASE_DIR) + '/config/basic.json', '--ipdb',
+    os.path.dirname(BASE_DIR) + '/bin/config.json', '--ipdb',
     os.path.dirname(BASE_DIR) + '/bin/ip.mmdb'
 ],
       cwd=os.path.dirname(BASE_DIR))

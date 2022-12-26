@@ -20,7 +20,7 @@ class FreedomOut extends OutboundStruct {
     }
 
     var temp = getClient();
-    if (temp.transportClient1.isMux) {
+    if (temp.transportClient.isMux) {
       throw "Freedom outbound should NOT enable mux.";
     }
   }

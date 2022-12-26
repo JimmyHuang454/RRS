@@ -11,7 +11,6 @@ import 'package:proxy/inbounds/base.dart';
 
 class TrojanConnect extends Connect2 {
   List<int> passwordSha224;
-  List<int> userIDSha224;
 
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
@@ -20,8 +19,7 @@ class TrojanConnect extends Connect2 {
       {required this.passwordSha224,
       required super.link,
       required super.rrsSocket,
-      required super.outboundStruct,
-      this.userIDSha224 = const []});
+      required super.outboundStruct});
 
   List<int> _buildRequest() {
     //{{{
@@ -77,9 +75,9 @@ class TrojanConnect extends Connect2 {
       data = _buildUDPHead(data.length) + data;
     }
 
-    if (isSendHeader) {
-      data = _buildRequest() + data;
+    if (!isSendHeader) {
       isSendHeader = true;
+      data = _buildRequest() + data;
     }
 
     super.add(data);
@@ -88,30 +86,22 @@ class TrojanConnect extends Connect2 {
 
 class TrojanOut extends OutboundStruct {
   String password = '';
-  String userID = '';
   List<int> passwordSha224 = [];
-  List<int> userIDSha224 = [];
 
   bool isBalancer = false;
   bool redirected = false;
-  bool isPassThrough = false;
   late Link link;
 
   TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
     password = getValue(config, 'setting.password', '');
-    userID = getValue(config, 'setting.userID', '');
     isBalancer = getValue(config, 'setting.balance.enable', false);
-    isPassThrough = getValue(config, 'setting.passThroughTLS', false);
 
     if (outAddress == '' || outPort == 0 || password == '') {
       throw '"address", "port" and "password" can not be empty in trojan setting.';
     }
 
     passwordSha224 = sha224.convert(password.codeUnits).toString().codeUnits;
-    if (userID != '') {
-      userIDSha224 = sha224.convert(userID.codeUnits).toString().codeUnits;
-    }
   }
 
   Future<void> handleBalance() async {
@@ -127,7 +117,6 @@ class TrojanOut extends OutboundStruct {
     }
 
     var params = {
-      'userID': userIDSha224,
       'password': passwordSha224,
       'config': getValue(config, 'setting.balance', {})
     };
@@ -150,13 +139,10 @@ class TrojanOut extends OutboundStruct {
   @override
   Future<RRSSocket> newConnect(Link l) async {
     await handleBalance(); // init realOutAddress and realOutPort.
-    if (l.trafficType.isTLS && isPassThrough) {
-      
-    }
+
     var temp = await getClient().connect(realOutAddress, realOutPort);
     var res = TrojanConnect(
         rrsSocket: temp,
-        userIDSha224: userIDSha224,
         link: l,
         outboundStruct: this,
         passwordSha224: passwordSha224);

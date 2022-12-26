@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('buildInStream', () {
-    var res = buildOutStream('TCPClient', {'protocol': 'tcp'}).transportClient1;
+    var res = buildOutStream('TCPClient', {'protocol': 'tcp'}).transportClient;
     expect(res.tag, 'TCPClient');
     expect(res.config, {'protocol': 'tcp', 'tag': 'TCPClient'});
     expect(res.useTLS, false);

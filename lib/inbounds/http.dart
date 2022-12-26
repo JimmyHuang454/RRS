@@ -11,13 +11,6 @@ class HTTPRequest extends Link {
   List<int> content = [];
 
   HTTPRequest({required super.client, required super.inboundStruct}) {
-    // Future.delayed(Duration(seconds: 3), () async {
-    //   if (!isParsed) {
-    //     // timeout
-    //     await closeAll();
-    //   }
-    // });
-
     client.listen((data) async {
       if (isParsed) {
         serverAdd(data);
@@ -71,8 +64,6 @@ class HTTPRequest extends Link {
     if (method == 'CONNECT') {
       clientAdd(buildConnectionResponse());
     }
-
-    trafficType = sniff(content);
 
     if (content.isNotEmpty) {
       serverAdd(content);
