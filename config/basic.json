@@ -82,7 +82,7 @@
       "protocol": "tcp",
       "mux": {
         "enabled": true,
-        "maxThread": 1,
+        "maxThread": 4,
         "password": "123"
       }
     },

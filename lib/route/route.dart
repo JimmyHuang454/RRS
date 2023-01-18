@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
+import 'package:crypto/crypto.dart';
 
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/utils/utils.dart';
@@ -21,7 +22,7 @@ class RouteRule {
   List<String> outbound = [];
   late List<dynamic> domain;
   late List<dynamic> ips;
-  late List<dynamic> allowedUser;
+  List<List<int>> allowedUser = [];
   List<DomainPattern> domainPattern = [];
   bool chinaOnly = false;
 
@@ -43,9 +44,13 @@ class RouteRule {
 
     chinaOnly = getValue(config, 'chinaOnly', false);
 
-    allowedUser = getValue(config, 'allowedUser', ['']);
-    if (listsEqual(allowedUser, [''])) {
-      allowedUser = [];
+    var allowedUserTemp = getValue(config, 'allowedUser', ['']);
+    for (var i = 0, len = allowedUserTemp.length; i < len; ++i) {
+      if (allowedUserTemp[i] == '' ||
+          allowedUserTemp[i].runtimeType != String) {
+        continue;
+      }
+      allowedUser.add(sha224.convert(allowedUserTemp[i]).toString().codeUnits);
     }
 
     domain = getValue(config, 'domain', ['']);
@@ -110,7 +115,7 @@ class RouteRule {
 
   bool checkAllowedUser(Link link) {
     for (var i = 0, len = allowedUser.length; i < len; ++i) {
-      if (listsEqual(allowedUser[i].codeUnits, link.userID)) {
+      if (listsEqual(allowedUser[i], link.userID)) {
         return true;
       }
     }

@@ -137,26 +137,26 @@ class RRSServerSocketMux extends RRSServerSocket {
 
 class MuxServer {
   //{{{
-  TransportServer transportServer1;
+  TransportServer transportServer;
   List<int> muxPasswordSha224 = [];
 
   MuxServer({
-    required this.transportServer1,
+    required this.transportServer,
   }) {
-    if (transportServer1.isMux) {
-      if (transportServer1.muxPassword == '') {
+    if (transportServer.isMux) {
+      if (transportServer.muxPassword == '') {
         throw "muxPassword can not be null.";
       }
       muxPasswordSha224 = sha224
-          .convert(transportServer1.muxPassword.codeUnits)
+          .convert(transportServer.muxPassword.codeUnits)
           .toString()
           .codeUnits;
     }
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
-    var temp = await transportServer1.bind(address, port);
-    if (!transportServer1.isMux) {
+    var temp = await transportServer.bind(address, port);
+    if (!transportServer.isMux) {
       return temp;
     }
     return RRSServerSocketMux(

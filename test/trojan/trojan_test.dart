@@ -34,7 +34,7 @@ void main() {
       },
     );
 
-    var client = TCPClient2(config: {});
+    var client = TCPClient(config: {});
     var times = 10;
     var times2 = 0;
     for (var i = 0, len = times; i < len; ++i) {

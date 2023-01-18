@@ -62,7 +62,7 @@ TransportServer _buildInStream(Map<String, dynamic> config) {
 MuxServer buildInStream(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = MuxServer(transportServer1: _buildInStream(config));
+  var res = MuxServer(transportServer: _buildInStream(config));
   inStreamList[tag] = res;
   return res;
 } //}}}
