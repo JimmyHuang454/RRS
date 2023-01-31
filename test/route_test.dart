@@ -1,3 +1,4 @@
+import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
@@ -53,10 +54,6 @@ void main() {
     expect(rules.checkDomain('abc1cn'), true);
     expect(rules.checkDomain('a.b.c.cn'), true);
     expect(rules.checkDomain('a.b.c.cnn'), true);
-
-    // var doh2 = DnsOverHttps('https://doh.pub/dns-query');
-    // var record = await doh2.lookupHttps('tsinghua.edu.cn');
-    // record = await doh2.lookupHttps('sgu.edu.cn');
   });
 
   test('regex', () async {
@@ -100,5 +97,56 @@ void main() {
     expect(re.hasMatch('baiducom'), false);
     expect(re.hasMatch('baidu1com'), false);
     expect(re.hasMatch('2baidu1com'), false);
+  });
+
+  test('ip route match', () async {
+    entry({
+      'outbounds': {
+        'out1': {
+          'setting': {
+            'address': '1',
+            'port': 1,
+            'password': '1',
+          },
+          'outStream': 'tcp'
+        }
+      },
+    });
+
+    buildData('ipdb', {
+      "geoip": {
+        "type": "mmdb",
+        "path":
+            "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
+      }
+    });
+
+    buildRoute('test_route', {
+      "rules": [
+        {
+          "ip": [
+            '127.0.0.1',
+            {'ipdb': 'geoip', 'type': 'CN'}
+          ],
+          "outbound": "out1"
+        }
+      ]
+    });
+
+    expect(routeList.containsKey('test_route'), true);
+
+    var obj = routeList['test_route'];
+    expect(obj!.rules.length, 1);
+
+    var rule = obj.rules[0];
+    expect(rule.ipPattern.isNotEmpty, true);
+    expect(rule.ipPattern[0].type, 'full');
+    expect(rule.ipPattern[1].type, 'db');
+    expect(rule.ipPattern[1].pattern, 'CN');
+
+    var ip = await rule.resolveDomain('baidu.com');
+
+    expect(await rule.checkIP('127.0.0.1'), true);
+    expect(await rule.checkIP(ip), true);
   });
 }

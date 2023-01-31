@@ -8,7 +8,7 @@
       },
       "inStream": "tcp",
       "route": "proxy"
-    },
+    }
   },
   "outbounds": {
     "trojan": {
@@ -37,13 +37,17 @@
         "password": "password2"
       },
       "outStream": "ws_mux"
-    },
+    }
   },
   "routes": {
     "proxy": {
       "rules": [{
-        "chinaOnly": true,
-        "outbound": ["freedom"]
+        "ip": [{
+          "ipdb": "geoip",
+          "type": "CN"
+        }],
+        "outbound": ["freedom"],
+        "useCache": true
       }, {
         "outbound": ["trojan", "trojan2"]
       }]
@@ -75,8 +79,29 @@
       "mux": {
         "enabled": true,
         "password": "123",
-        "maxThread":11
-      },
+        "maxThread": 11
+      }
     }
+  },
+  "data": {
+    "ipdb": {
+      "geoip": {
+        "type": "mmdb",
+        "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
+      }
+    }
+  },
+  "dns": {
+    "case1": [{
+      "type": "map",
+      "domain": "google.com",
+      "address": ["127.0.0.1"]
+    }, {
+      "type": "doh",
+      "address": "https://doh.pub/dns-query"
+    }, {
+      "type": "udp",
+      "address": "1.1.1.1"
+    }]
   }
 }

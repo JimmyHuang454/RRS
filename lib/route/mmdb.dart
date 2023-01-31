@@ -1,10 +1,20 @@
 import 'dart:io';
 import 'package:maxminddb/maxminddb.dart';
 
-var ipdbPath = '';
+class MMDB {
+  String name;
+  String path;
+  late MaxMindDatabase maxMindDatabase;
 
-Future<MaxMindDatabase> loadGeoIP() async {
-  var f = File(ipdbPath);
-  var geoip = await MaxMindDatabase.file(f);
-  return geoip;
+  MMDB(this.name, this.path);
+
+  Future<MaxMindDatabase> load() async {
+    var f = File(path);
+    maxMindDatabase = await MaxMindDatabase.file(f);
+    return maxMindDatabase;
+  }
+
+  Future<dynamic> search(String ip) async {
+    return await maxMindDatabase.search(ip);
+  }
 }

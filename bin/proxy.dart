@@ -5,7 +5,6 @@ import 'package:args/args.dart';
 import 'package:json5/json5.dart';
 import 'package:logging/logging.dart';
 
-import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -65,10 +64,6 @@ void main(List<String> argument) async {
   var configPath = args['config_path'];
   logger.config('Using config at: $configPath');
   await loadConfig(configPath);
-
-  // load db.
-  ipdbPath = args['ipdb'];
-  logger.config('Using IP data base at: $ipdbPath');
 
   ////////////
   //  main  //

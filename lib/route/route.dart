@@ -9,7 +9,6 @@ import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
-Map<String, dynamic> domainLocation = {}; // CN or not.
 var doh = DnsOverHttps('https://doh.pub/dns-query');
 
 class DomainPattern {
@@ -18,13 +17,22 @@ class DomainPattern {
   DomainPattern(this.type, this.pattern);
 }
 
+class IPPattern {
+  String type = 'db';
+  String pattern;
+
+  late MMDB db;
+  IPPattern(this.type, this.pattern);
+}
+
 class RouteRule {
   List<String> outbound = [];
-  late List<dynamic> domain;
-  late List<dynamic> ips;
   List<List<int>> allowedUser = [];
+  List<IPPattern> ipPattern = [];
   List<DomainPattern> domainPattern = [];
-  bool chinaOnly = false;
+  bool useCache = false;
+
+  Map<String, bool> ruleCache = {};
 
   Map<String, dynamic> config;
 
@@ -42,7 +50,7 @@ class RouteRule {
       }
     }
 
-    chinaOnly = getValue(config, 'chinaOnly', false);
+    useCache = getValue(config, 'useCache', false);
 
     var allowedUserTemp = getValue(config, 'allowedUser', ['']);
     for (var i = 0, len = allowedUserTemp.length; i < len; ++i) {
@@ -53,16 +61,44 @@ class RouteRule {
       allowedUser.add(sha224.convert(allowedUserTemp[i]).toString().codeUnits);
     }
 
-    domain = getValue(config, 'domain', ['']);
     buildDomainPattern();
+    buildIPPattern();
+  }
 
-    ips = getValue(config, 'ip', ['']);
-    if (listsEqual(ips, [''])) {
-      ips = [];
+  void buildIPPattern() {
+    List<dynamic> ipList = getValue(config, 'ip', ['']);
+
+    if (listsEqual(ipList, [''])) {
+      ipList = [];
+    }
+
+    for (var i = 0, len = ipList.length; i < len; ++i) {
+      IPPattern ip;
+      if (ipList[i].runtimeType == String) {
+        var temp = ipList[i] as String;
+        if (temp.contains("/")) {
+          ip = IPPattern('CIDR', temp);
+        } else {
+          ip = IPPattern('full', temp);
+        }
+      } else {
+        var temp = ipList[i] as dynamic;
+        if (!temp.containsKey('ipdb') || !temp.containsKey('type')) {
+          throw "missing ipdb or type in ip RouteRule.";
+        }
+        var name = temp['ipdb'];
+        ip = IPPattern('db', temp['type']);
+        if (!ipdbList.containsKey(name)) {
+          throw "wrong ipdb name: $name.";
+        }
+        ip.db = ipdbList[name]!;
+      }
+      ipPattern.add(ip);
     }
   }
 
   void buildDomainPattern() {
+    var domain = getValue(config, 'domain', ['']);
     if (listsEqual(domain, [''])) {
       domain = [];
     }
@@ -82,35 +118,38 @@ class RouteRule {
     }
   }
 
-  Future<bool> isChinaIP(Link link) async {
-    String address = link.targetAddress.address;
-    if (domainLocation.containsKey(address)) {
-      return domainLocation[address];
-    }
+  Future<String> resolveDomain(String domain) async {
+    List<InternetAddress> record;
+    record = await doh.lookup(domain);
 
-    var ip = address;
-    if (link.targetAddress.type == 'domain') {
-      List<InternetAddress> record;
-      try {
-        record = await doh.lookup(address);
-      } catch (e) {
-        domainLocation[address] = true;
+    try {
+      record = await doh.lookup(domain);
+      if (record.isNotEmpty) {
+        return record[0].address;
+      }
+    } catch (e) {
+      return "";
+    }
+    return "";
+  }
+
+  Future<bool> checkIP(String ip) async {
+    for (var i = 0, len = ipPattern.length; i < len; ++i) {
+      var p = ipPattern[i];
+      if (p.type == 'full' && ip == p.pattern) {
         return true;
+      } else if (p.type == 'db') {
+        await p.db.load();
+        var res = await p.db.search(ip);
+        if (res != null && res['country']['iso_code'] == p.pattern) {
+          return true;
+        }
+      } else if (p.type == 'CIDR') {
+        // TODO
       }
-      if (record.isEmpty) {
-        return false;
-      }
-      ip = record[0].address; // resolve to IP.
     }
 
-    var geo = await loadGeoIP();
-    var res = await geo.search(ip);
-    if (res == null) {
-      domainLocation[address] = false;
-    } else {
-      domainLocation[address] = true; // CN
-    }
-    return domainLocation[address];
+    return false;
   }
 
   bool checkAllowedUser(Link link) {
@@ -136,28 +175,65 @@ class RouteRule {
     return false;
   }
 
-  bool checkIP(Link link) {
-    // TODO
-    return true;
+  int checkCache(Link link) {
+    var id = link.targetAddress.address;
+    if (id != '' && ruleCache.containsKey(id)) {
+      if (ruleCache[id]! == true) {
+        return 1;
+      }
+      return 0;
+    }
+    return -1;
   }
 
-  Future<bool> match(Link link) async {
+  void saveCache(Link link, bool res) {
+    var id = link.targetAddress.address;
+    if (id != '') {
+      ruleCache[id] = res;
+    }
+  }
+
+  Future<bool> _match(Link link) async {
     if (allowedUser.isNotEmpty && !checkAllowedUser(link)) {
       return false;
     }
 
-    if (domain.isNotEmpty && !checkDomain(link.targetAddress.address)) {
+    if (domainPattern.isNotEmpty &&
+        link.targetAddress.type == 'domain' &&
+        !checkDomain(link.targetAddress.address)) {
       return false;
     }
 
-    if (ips.isNotEmpty && !checkIP(link)) {
+    String ip = link.targetAddress.address;
+    if (link.targetAddress.type == 'domain') {
+      ip = await resolveDomain(ip);
+    }
+    link.targetIP = ip;
+
+    if (link.targetIP != '' && ipPattern.isNotEmpty && !await checkIP(ip)) {
       return false;
     }
 
-    if (chinaOnly && !await isChinaIP(link)) {
-      return false;
-    }
     return true;
+  }
+
+  Future<bool> match(Link link) async {
+    if (useCache) {
+      var temp = checkCache(link);
+      if (temp != -1) {
+        if (temp == 1) {
+          return true;
+        }
+        return false;
+      }
+    }
+
+    var res = await _match(link);
+
+    if (useCache) {
+      saveCache(link, res);
+    }
+    return res;
   }
 }
 

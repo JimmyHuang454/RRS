@@ -30,7 +30,6 @@ class RRSServerSocket {
 
       streamSubscription.add(temp);
     }, (e, s) {
-      devPrint('server: $s');
       onError!(e);
     });
   }

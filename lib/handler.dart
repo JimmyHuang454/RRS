@@ -1,3 +1,4 @@
+import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
@@ -128,8 +129,20 @@ Route buildRoute(String tag, Map<String, dynamic> config) {
   return res;
 } //}}}
 
+void buildData(String tag, Map<String, dynamic> config) {
+  //{{{
+  if (tag == 'ipdb') {
+    config.forEach(
+      (key, value) {
+        ipdbList[key] = MMDB(key, value['path']);
+      },
+    );
+  }
+} //}}}
+
 void _entry(Map<String, dynamic> config) {
   var list = [
+    ['data', buildData],
     ['outStream', buildOutStream],
     ['inStream', buildInStream],
     ['outbounds', buildOutbounds],

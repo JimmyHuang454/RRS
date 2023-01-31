@@ -126,10 +126,22 @@
         "domain": ["google"]
       }, {
         "outbound": "freedom",
-        "chinaOnly": true
+        "ip": [{
+          "ipdb": "geoip",
+          "type": "CN"
+        }]
       }, {
         "outbound": ["trojan_outbound"]
-      }]
+      }],
+      "useCache": true
+    }
+  },
+  "data": {
+    "ipdb": {
+      "geoip": {
+        "type": "mmdb",
+        "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
+      }
     }
   }
 }

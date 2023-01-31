@@ -16,6 +16,7 @@ class Link {
   int cmd = 0;
 
   late Address targetAddress;
+  String targetIP = '';
   int targetport = 0;
   String streamType = 'TCP'; // TCP | UDP
 

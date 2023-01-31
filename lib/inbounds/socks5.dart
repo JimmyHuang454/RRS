@@ -32,7 +32,6 @@ class Socks5Request extends Link {
         handleUDP(data);
       }
     }, onError: (e) {
-      devPrint('Socks5Request listen: $e');
       closeAll();
     }, onDone: () {
       closeAll();
@@ -200,7 +199,6 @@ class Socks5In extends InboundStruct {
     server.listen((client) {
       Socks5Request(client: client, inboundStruct: this);
     }, onError: (e) {
-      devPrint('socks5 bind: $e');
     }, onDone: () {});
   }
 }
