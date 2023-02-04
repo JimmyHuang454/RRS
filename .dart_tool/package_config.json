@@ -56,6 +56,12 @@
       "languageVersion": "2.14"
     },
     {
+      "name": "dcache",
+      "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/dcache-0.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dns_client",
       "rootUri": "file:///C:/Users/qwer/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/dns_client-0.2.1",
       "packageUri": "lib/",
@@ -344,7 +350,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-11-05T14:26:19.298957Z",
+  "generated": "2023-02-04T16:41:21.933300Z",
   "generator": "pub",
   "generatorVersion": "2.18.1"
 }

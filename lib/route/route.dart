@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
+import 'package:dcache/dcache.dart';
 
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/utils/utils.dart';
@@ -32,9 +33,8 @@ class RouteRule {
   List<DomainPattern> domainPattern = [];
   bool useCache = false;
 
-  Map<String, bool> ruleCache = {};
-
   Map<String, dynamic> config;
+  late Cache ruleCache;
 
   RouteRule({required this.config}) {
     var temp = config['outbound'];
@@ -50,7 +50,11 @@ class RouteRule {
       }
     }
 
-    useCache = getValue(config, 'useCache', false);
+    useCache = getValue(config, 'cache.enable', false);
+    var storageSize = getValue(config, 'cache.size', 500);
+    ruleCache = LruCache(
+      storage: InMemoryStorage(storageSize),
+    );
 
     var allowedUserTemp = getValue(config, 'allowedUser', ['']);
     for (var i = 0, len = allowedUserTemp.length; i < len; ++i) {
@@ -139,10 +143,14 @@ class RouteRule {
       if (p.type == 'full' && ip == p.pattern) {
         return true;
       } else if (p.type == 'db') {
-        await p.db.load();
-        var res = await p.db.search(ip);
-        if (res != null && res['country']['iso_code'] == p.pattern) {
-          return true;
+        try {
+          await p.db.load();
+          var res = await p.db.search(ip);
+          if (res != null && res['country']['iso_code'] == p.pattern) {
+            return true;
+          }
+        } catch (e) {
+          rethrow;
         }
       } else if (p.type == 'CIDR') {
         // TODO
@@ -161,14 +169,15 @@ class RouteRule {
     return false;
   }
 
-  bool checkDomain(String str) {
+  bool checkDomain(String domain) {
     for (var i = 0, len = domainPattern.length; i < len; ++i) {
       var temp = domainPattern[i];
-      if (temp.type == 'substring' && str.contains(temp.pattern)) {
+      if (temp.type == 'substring' && domain.contains(temp.pattern)) {
         return true;
-      } else if (temp.type == 'regex' && RegExp(temp.pattern).hasMatch(str)) {
+      } else if (temp.type == 'regex' &&
+          RegExp(temp.pattern).hasMatch(domain)) {
         return true;
-      } else if (temp.type == 'full' && temp.pattern == str) {
+      } else if (temp.type == 'full' && temp.pattern == domain) {
         return true;
       }
     }
@@ -178,7 +187,7 @@ class RouteRule {
   int checkCache(Link link) {
     var id = link.targetAddress.address;
     if (id != '' && ruleCache.containsKey(id)) {
-      if (ruleCache[id]! == true) {
+      if (ruleCache.get(id) == true) {
         return 1;
       }
       return 0;
@@ -189,7 +198,7 @@ class RouteRule {
   void saveCache(Link link, bool res) {
     var id = link.targetAddress.address;
     if (id != '') {
-      ruleCache[id] = res;
+      ruleCache.set(id, res);
     }
   }
 
@@ -221,6 +230,7 @@ class RouteRule {
     if (useCache) {
       var temp = checkCache(link);
       if (temp != -1) {
+        // cache found.
         if (temp == 1) {
           return true;
         }
