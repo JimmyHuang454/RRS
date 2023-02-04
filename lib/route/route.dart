@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:quiver/collection.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dcache/dcache.dart';
+import 'package:quiver/collection.dart';
 
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/utils/utils.dart';
@@ -31,10 +31,8 @@ class RouteRule {
   List<List<int>> allowedUser = [];
   List<IPPattern> ipPattern = [];
   List<DomainPattern> domainPattern = [];
-  bool useCache = false;
 
   Map<String, dynamic> config;
-  late Cache ruleCache;
 
   RouteRule({required this.config}) {
     var temp = config['outbound'];
@@ -49,12 +47,6 @@ class RouteRule {
         throw 'There are no route tag named "${outbound[i]}".';
       }
     }
-
-    useCache = getValue(config, 'cache.enable', false);
-    var storageSize = getValue(config, 'cache.size', 500);
-    ruleCache = LruCache(
-      storage: InMemoryStorage(storageSize),
-    );
 
     var allowedUserTemp = getValue(config, 'allowedUser', ['']);
     for (var i = 0, len = allowedUserTemp.length; i < len; ++i) {
@@ -184,25 +176,7 @@ class RouteRule {
     return false;
   }
 
-  int checkCache(Link link) {
-    var id = link.targetAddress.address;
-    if (id != '' && ruleCache.containsKey(id)) {
-      if (ruleCache.get(id) == true) {
-        return 1;
-      }
-      return 0;
-    }
-    return -1;
-  }
-
-  void saveCache(Link link, bool res) {
-    var id = link.targetAddress.address;
-    if (id != '') {
-      ruleCache.set(id, res);
-    }
-  }
-
-  Future<bool> _match(Link link) async {
+  Future<bool> match(Link link) async {
     if (allowedUser.isNotEmpty && !checkAllowedUser(link)) {
       return false;
     }
@@ -225,26 +199,6 @@ class RouteRule {
 
     return true;
   }
-
-  Future<bool> match(Link link) async {
-    if (useCache) {
-      var temp = checkCache(link);
-      if (temp != -1) {
-        // cache found.
-        if (temp == 1) {
-          return true;
-        }
-        return false;
-      }
-    }
-
-    var res = await _match(link);
-
-    if (useCache) {
-      saveCache(link, res);
-    }
-    return res;
-  }
 }
 
 class Route {
@@ -253,6 +207,8 @@ class Route {
   List<RouteRule> rules = [];
 
   Map<String, dynamic> config;
+  late Cache ruleCache;
+  bool useCache = false;
 
   Route({required this.config}) {
     tag = config['tag'];
@@ -266,6 +222,14 @@ class Route {
     for (var i = 0, len = rulesConfig.length; i < len; ++i) {
       rules.add(RouteRule(config: rulesConfig[i]));
     }
+
+    useCache = getValue(config, 'cache.enabled', false);
+    if (useCache) {
+      var storageSize = getValue(config, 'cache.size', 500);
+      ruleCache = LruCache<String, String>(
+        storage: InMemoryStorage<String, String>(storageSize),
+      );
+    }
   }
 
   String selectOut(RouteRule routeRule) {
@@ -273,7 +237,7 @@ class Route {
     return routeRule.outbound[temp];
   }
 
-  Future<String> match2(Link link) async {
+  Future<String> _match(Link link) async {
     for (var i = 0, len = rules.length; i < len; ++i) {
       if (await rules[i].match(link)) {
         return selectOut(rules[i]);
@@ -282,8 +246,40 @@ class Route {
     return selectOut(rules[rules.length - 1]);
   }
 
+  String checkCache(Link link) {
+    var id = link.targetAddress.address;
+    if (id != '') {
+      var temp = ruleCache.get(id);
+      if (temp != null) {
+        return temp;
+      }
+      return '';
+    }
+    return '';
+  }
+
+  void saveCache(Link link, String res) {
+    var id = link.targetAddress.address;
+    if (id != '') {
+      ruleCache.set(id, res);
+    }
+  }
+
   Future<String> match(Link link) async {
-    var outbound = await match2(link);
+    if (useCache) {
+      var temp = checkCache(link);
+      if (temp != '') {
+        logger.info('used DNS cache.');
+        return temp;
+      }
+    }
+
+    var outbound = await _match(link);
+
+    if (useCache) {
+      saveCache(link, outbound);
+    }
+
     return outbound;
   }
 }

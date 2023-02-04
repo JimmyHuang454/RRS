@@ -170,6 +170,8 @@ abstract class InboundStruct {
     }
     var outbound = await routeList[route]!.match(link);
     link.outboundStruct = outboundsList[outbound]!;
+
+    logger.info('routing time: ${link.createdTime.elapsed}');
     return link.outboundStruct;
   }
 }

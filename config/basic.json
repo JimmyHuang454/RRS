@@ -133,7 +133,10 @@
       }, {
         "outbound": ["trojan_outbound"]
       }],
-      "useCache": true
+      "cache": {
+        "enabled": true,
+        "size": 2000
+      }
     }
   },
   "data": {
@@ -143,5 +146,6 @@
         "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
       }
     }
-  },"dns":{}
+  },
+  "dns": {}
 }
