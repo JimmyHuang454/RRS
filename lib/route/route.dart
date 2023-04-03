@@ -50,6 +50,23 @@ class RouteRule {
       }
     }
 
+    buildCache();
+    buildUser();
+    buildDomainPattern();
+    buildIPPattern();
+  }
+
+  void buildCache() {
+    useCache = getValue(config, 'cache.enabled', false);
+    if (useCache) {
+      var storageSize = getValue(config, 'cache.size', 500);
+      ruleCache = LruCache<String, bool>(
+        storage: InMemoryStorage<String, bool>(storageSize),
+      );
+    }
+  }
+
+  void buildUser() {
     var allowedUserTemp = getValue(config, 'allowedUser', ['']);
     for (var i = 0, len = allowedUserTemp.length; i < len; ++i) {
       if (allowedUserTemp[i] == '' ||
@@ -58,17 +75,6 @@ class RouteRule {
       }
       allowedUser.add(sha224.convert(allowedUserTemp[i]).toString().codeUnits);
     }
-
-    useCache = getValue(config, 'cache.enabled', false);
-    if (useCache) {
-      var storageSize = getValue(config, 'cache.size', 500);
-      ruleCache = LruCache<String, bool>(
-        storage: InMemoryStorage<String, bool>(storageSize),
-      );
-    }
-
-    buildDomainPattern();
-    buildIPPattern();
   }
 
   void buildIPPattern() {
