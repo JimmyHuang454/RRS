@@ -1,23 +1,13 @@
-import 'package:uuid/uuid.dart';
-
 class Traffic {
   int uplink = 0;
   int downlink = 0;
 }
 
 class User {
-  String id;
-
   int lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   int uplinkByte = 0;
   int downlinkByte = 0;
   bool isPermitted = false;
-
-  User({this.id = ''}) {
-    if (id == '') {
-      id = Uuid().v1();
-    }
-  }
 
   String getAllInfo() {
     return '';

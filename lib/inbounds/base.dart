@@ -4,8 +4,8 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/mux.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
-import 'package:proxy/sniff/sniffer.dart';
 
 class Link {
   RRSSocket client; // in
@@ -28,9 +28,10 @@ class Link {
   int timeout = 100;
   bool isValidRequest = false;
   bool isClosedAll = false;
+  User? user;
 
   InboundStruct inboundStruct;
-  late OutboundStruct outboundStruct; // assign after routing.
+  OutboundStruct? outboundStruct; // assign after routing.
 
   Stopwatch createdTime = Stopwatch()..start();
   String linkInfo = '';
@@ -54,25 +55,40 @@ class Link {
 
   void clientAdd(List<int> data) {
     client.add(data);
+    user!.addUplink(data.length);
   }
 
   void serverAdd(List<int> data) {
     if (server != null) {
       server!.add(data);
+      user!.addDownlink(data.length);
     }
+  }
+
+  void bindUser() {
+    User tempUser;
+    if (userList.containsKey(userID)) {
+      tempUser = userList[userID]!;
+    } else {
+      tempUser = User();
+      userList[userID] = tempUser;
+    }
+    user = tempUser;
   }
 
   Future<bool> bindServer() async {
     outboundStruct = await inboundStruct.doRoute(this);
     try {
-      server = await outboundStruct.newConnect(this);
+      server = await outboundStruct!.newConnect(this);
     } catch (e) {
       closeAll();
       logger.info(e);
       return false;
     }
 
-    outboundStruct.linkNr += 1;
+    bindUser();
+
+    outboundStruct!.linkNr += 1;
     logger.info('Created: ${buildLinkInfo()}');
 
     server!.listen((event) {
@@ -101,21 +117,21 @@ class Link {
   }
 
   void serverDone() {
-    outboundStruct.linkNr -= 1;
+    outboundStruct!.linkNr -= 1;
     logger.info(
         'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
-        '${outboundStruct.tag}:${outboundStruct.protocolName} [${toMetric(outboundStruct.traffic.uplink, 2)}B/${toMetric(outboundStruct.traffic.downlink, 2)}B] ${outboundStruct.linkNr}');
+        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkNr}');
   }
 
   String buildLinkInfo() {
     if (linkInfo == '') {
       var isMux = '';
-      if (outboundStruct.getClient().transportClient.isMux) {
+      if (outboundStruct!.getClient().transportClient.isMux) {
         isMux = ':mux';
       }
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.realOutAddress}:${outboundStruct!.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }
@@ -171,7 +187,8 @@ abstract class InboundStruct {
     }
     var outbound = await routeList[route]!.match(link);
     link.outboundStruct = outboundsList[outbound]!;
-    logger.info('${link.targetAddress!.address} ${link.createdTime.elapsed} ${link.ipUseCache}');
-    return link.outboundStruct;
+    logger.info(
+        '${link.targetAddress!.address} ${link.createdTime.elapsed} ${link.ipUseCache}');
+    return link.outboundStruct!;
   }
 }
