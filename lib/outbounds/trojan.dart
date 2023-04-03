@@ -42,7 +42,7 @@ class TrojanConnect extends Connect {
     }
     request += link.targetAddress!.rawAddress;
     request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
+      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
     var res = header + request + crlf;
     return res;
   } //}}}
@@ -61,7 +61,7 @@ class TrojanConnect extends Connect {
     }
     request += link.targetAddress!.rawAddress;
     request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
+      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
 
     request += Uint8List(2)
       ..buffer.asByteData().setInt16(0, payloadLen, Endian.big);

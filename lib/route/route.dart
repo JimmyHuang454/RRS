@@ -34,7 +34,7 @@ class RouteRule {
   bool useCache = false;
 
   Map<String, dynamic> config;
-  late Cache ruleCache;
+  Cache? ruleCache;
 
   RouteRule({required this.config}) {
     var temp = config['outbound'];
@@ -216,7 +216,7 @@ class RouteRule {
 
   int checkCache(String id) {
     if (id != '' && useCache) {
-      var temp = ruleCache.get(id);
+      var temp = ruleCache!.get(id);
       if (temp == null) {
         return -1;
       }
@@ -230,7 +230,7 @@ class RouteRule {
 
   void saveCache(String id, bool res) {
     if (id != '' && useCache) {
-      ruleCache.set(id, res);
+      ruleCache!.set(id, res);
     }
   }
 

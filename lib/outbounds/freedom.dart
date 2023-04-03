@@ -2,7 +2,7 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class FreedomConnect extends Connect2 {
+class FreedomConnect extends Connect {
   FreedomConnect(
       {required super.rrsSocket,
       required super.link,
