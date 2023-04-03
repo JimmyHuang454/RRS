@@ -17,7 +17,7 @@ class Link {
 
   Address? targetAddress;
   String targetIP = '';
-  int? targetport = 0;
+  int targetport = 0;
   String streamType = 'TCP'; // TCP | UDP
   bool ipUseCache = false;
 

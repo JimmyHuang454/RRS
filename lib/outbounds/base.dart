@@ -52,7 +52,7 @@ abstract class OutboundStruct {
 
   Future<RRSSocket> newConnect(Link l) async {
     realOutAddress = l.targetAddress!.address;
-    realOutPort = l.targetport!;
+    realOutPort = l.targetport;
     return Connect(
         rrsSocket: await getClient().connect(realOutAddress, realOutPort),
         link: l,
