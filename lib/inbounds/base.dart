@@ -15,10 +15,11 @@ class Link {
   String method = 'GET';
   int cmd = 0;
 
-  late Address targetAddress;
+  Address? targetAddress;
   String targetIP = '';
-  int targetport = 0;
+  int? targetport = 0;
   String streamType = 'TCP'; // TCP | UDP
+  bool ipUseCache = false;
 
   String protocolVersion = '';
   List<int> userID = [];
@@ -114,7 +115,7 @@ class Link {
         isMux = ':mux';
       }
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress.address}:$targetport} -<${outboundStruct.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct.tag}:${outboundStruct.protocolName}] {${outboundStruct.realOutAddress}:${outboundStruct.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }
@@ -170,8 +171,7 @@ abstract class InboundStruct {
     }
     var outbound = await routeList[route]!.match(link);
     link.outboundStruct = outboundsList[outbound]!;
-
-    logger.info('routing time: ${link.createdTime.elapsed}');
+    logger.info('${link.targetAddress!.address} ${link.createdTime.elapsed} ${link.ipUseCache}');
     return link.outboundStruct;
   }
 }

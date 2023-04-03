@@ -2,6 +2,8 @@ import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
 
+import 'package:dcache/dcache.dart';
+
 void main() {
   test('indexOfElements', () {
     var res = [1, 2, 3];
@@ -108,5 +110,16 @@ void main() {
     input = [1, 2, 200, 0];
     input = findEnd(input);
     expect(listsEqual(input, [1, 2]), true);
+  });
+
+  test('LRU', () {
+    var c = LruCache<String, bool>(
+      storage: InMemoryStorage<String, bool>(20),
+    );
+    c.set('1', true);
+
+    expect(c.get('1'), true);
+    expect(c.get('1'), 1);
+    expect(c.get('2'), null);
   });
 }

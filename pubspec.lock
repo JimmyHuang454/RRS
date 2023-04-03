@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.2"
+  cryptography:
+    dependency: "direct main"
+    description:
+      name: cryptography
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.5"
   dcache:
     dependency: "direct main"
     description:
@@ -92,6 +99,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.1.2"
+  fixnum:
+    dependency: transitive
+    description:
+      name: fixnum
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   freezed_annotation:
     dependency: transitive
     description:
@@ -303,12 +317,12 @@ packages:
     source: hosted
     version: "1.9.1"
   stack_trace:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.10.0"
+    version: "1.11.0"
   stream_channel:
     dependency: transitive
     description:

@@ -5,6 +5,8 @@ import 'package:args/args.dart';
 import 'package:json5/json5.dart';
 import 'package:logging/logging.dart';
 
+import 'package:stack_trace/stack_trace.dart';
+
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -29,6 +31,9 @@ void setLoggerLevel(String debugLevelStr) {
 
   Logger.root.onRecord.listen((record) async {
     print('${record.level.name}: ${record.message}');
+    if (record.level == Level.FINEST) {
+      print(Chain.current().toString());
+    }
   });
 }
 

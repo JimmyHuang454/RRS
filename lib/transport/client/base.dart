@@ -50,9 +50,7 @@ class RRSSocket {
 
       streamSubscription.add(temp);
     }, (e, s) {
-      if (onError != null) {
-        onError(e);
-      }
+      onError!(e);
     });
   }
 
@@ -118,12 +116,12 @@ class TransportClient {
   }
 } //}}}
 
-class Connect2 extends RRSSocketBase {
+class Connect extends RRSSocketBase {
   //{{{
   OutboundStruct outboundStruct;
   Link link;
 
-  Connect2(
+  Connect(
       {required super.rrsSocket,
       required this.link,
       required this.outboundStruct});

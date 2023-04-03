@@ -9,7 +9,7 @@ import 'package:crypto/crypto.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 
-class TrojanConnect extends Connect2 {
+class TrojanConnect extends Connect {
   List<int> passwordSha224;
 
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
@@ -32,17 +32,17 @@ class TrojanConnect extends Connect2 {
       request = [3];
     }
 
-    if (link.targetAddress.type == 'domain') {
+    if (link.targetAddress!.type == 'domain') {
       request.add(3);
-      request.add(link.targetAddress.rawAddress.lengthInBytes);
-    } else if (link.targetAddress.type == 'ipv4') {
+      request.add(link.targetAddress!.rawAddress.lengthInBytes);
+    } else if (link.targetAddress!.type == 'ipv4') {
       request.add(1);
     } else {
       request.add(4);
     }
-    request += link.targetAddress.rawAddress;
+    request += link.targetAddress!.rawAddress;
     request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
+      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
     var res = header + request + crlf;
     return res;
   } //}}}
@@ -51,17 +51,17 @@ class TrojanConnect extends Connect2 {
     //{{{
     List<int> request = [];
 
-    if (link.targetAddress.type == 'domain') {
+    if (link.targetAddress!.type == 'domain') {
       request.add(3);
-      request.add(link.targetAddress.rawAddress.lengthInBytes);
-    } else if (link.targetAddress.type == 'ipv4') {
+      request.add(link.targetAddress!.rawAddress.lengthInBytes);
+    } else if (link.targetAddress!.type == 'ipv4') {
       request.add(1);
     } else {
       request.add(4);
     }
-    request += link.targetAddress.rawAddress;
+    request += link.targetAddress!.rawAddress;
     request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
+      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
 
     request += Uint8List(2)
       ..buffer.asByteData().setInt16(0, payloadLen, Endian.big);
