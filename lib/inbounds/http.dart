@@ -51,8 +51,8 @@ class HTTPRequest extends Link {
     } else {
       targetUri = Uri.parse(fullURL);
     }
-    targetAddress = Address(targetUri.host);
-    targetport = targetUri.port;
+    targetAddress = Address(targetUri!.host);
+    targetport = targetUri!.port;
     isParsed = true;
 
     if (!await bindServer()) {

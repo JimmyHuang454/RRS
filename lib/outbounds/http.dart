@@ -41,7 +41,7 @@ class HTTPOut extends OutboundStruct {
         streamController.add(0);
       });
       conn.add(
-          '${l.method} ${l.targetUri.toString()} ${l.protocolVersion}\r\n\r\n'
+          '${l.method} ${l.targetUri!.toString()} ${l.protocolVersion}\r\n\r\n'
               .codeUnits);
       var res = await w.next;
       await w.cancel();

@@ -11,7 +11,7 @@ class Link {
   RRSSocket client; // in
   RRSSocket? server; // out
 
-  late Uri targetUri; // if it's a HTTP request.
+  Uri? targetUri; // if it's a HTTP request.
   String method = 'GET';
   int cmd = 0;
 
@@ -55,13 +55,13 @@ class Link {
 
   void clientAdd(List<int> data) {
     client.add(data);
-    user!.addUplink(data.length);
+    user!.addDownlink(data.length);
   }
 
   void serverAdd(List<int> data) {
     if (server != null) {
       server!.add(data);
-      user!.addDownlink(data.length);
+      user!.addUplink(data.length);
     }
   }
 

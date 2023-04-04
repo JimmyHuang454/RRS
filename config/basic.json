@@ -132,7 +132,7 @@
         "domain": ["regex:.*.cn", "php", "hohovod.com", "192.168", "melogin.cn"]
       }, {
         "outbound": "trojan_outbound",
-        "domain": ["google"]
+        "domain": ["google", "twitter", "instagram", "facebook"]
       }, {
         "outbound": "freedom",
         "ip": [{
