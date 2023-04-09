@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -7,7 +6,7 @@ import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  eventTest(ServerSocket serverSocket, String host, int port) async {
+  eventTest(dynamic serverSocket, dynamic client, String host, int port) async {
     //{{{
     var serverListenDone = false;
     serverSocket.listen(
@@ -25,7 +24,6 @@ void main() {
     var clientListenClosed = false;
     var clientDone = false;
     var isClientReceived = false;
-    var client = await Socket.connect(host, port);
     client.listen((event) {
       isClientReceived = true;
     }, onDone: () {
@@ -54,11 +52,32 @@ void main() {
     expect(clientDone, true);
   } //}}}
 
-  test('dart tcp', () async {
+  test('dart tcp client and dart tcp server.', () async {
     //{{{
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
     var server = await ServerSocket.bind(host, port);
-    await eventTest(server, host, port);
+    var client = await Socket.connect(host, port);
+    await eventTest(server, client, host, port);
+  }); //}}}
+
+  test('RRS tcp client and dart tcp server.', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var server = await ServerSocket.bind(host, port);
+
+    var client = await TCPClient(config: {}).connect(host, port);
+    await eventTest(server, client, host, port);
+  }); //}}}
+
+  test('RRS tcp and RRS server.', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+
+    var server = await TCPServer(config: {}).bind(host, port);
+    var client = await TCPClient(config: {}).connect(host, port);
+    await eventTest(server, client, host, port);
   }); //}}}
 }

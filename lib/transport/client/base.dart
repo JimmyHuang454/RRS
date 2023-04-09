@@ -11,7 +11,7 @@ class RRSSocket {
   //{{{
   dynamic socket;
   List<dynamic> streamSubscription = [];
-  bool isClosed = false;
+  bool isClosed = false; //is remote channel closed?
 
   Traffic traffic = Traffic();
 
@@ -33,9 +33,6 @@ class RRSSocket {
   }
 
   void close() {
-    if (isClosed) {
-      return;
-    }
     isClosed = true;
     socket.close();
   }
