@@ -7,48 +7,10 @@ import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  // test('tcp', () async {//{{{
-  //   var host = '127.0.0.1';
-  //   var port = await getUnusedPort(InternetAddress(host));
-
-  //   var msg = 'fuck you';
-  //   bool serverClosed = false;
-  //   bool clientClosed = false;
-  //   var server = TCPServer(config: {});
-  //   await server.bind(host, port);
-
-  //   server.listen((inClient) {
-  //     inClient.listen((event) {
-  //       expect(utf8.decode(event), msg);
-  //     }, onDone: () async {
-  //       clientClosed = true;
-  //     });
-  //   }, onDone: () async {
-  //     serverClosed = true;
-  //   });
-
-  //   var client = await TCPClient(config: {}).connect(host, port);
-
-  //   client.add(msg.codeUnits);
-
-  //   await Future.delayed(Duration(seconds: 2));
-
-  //   await client.close();
-  //   await server.close();
-  //   await Future.delayed(Duration(seconds: 2));
-  //   expect(clientClosed, true);
-  //   expect(serverClosed, true);
-  // });//}}}
-
-  test('normal tcp', () async {
-    var host = '127.0.0.1';
-    var port = await getUnusedPort(InternetAddress(host));
-    var listenDone = false;
-    var clientDone = false;
+  eventTest(ServerSocket serverSocket, String host, int port) async {
+    //{{{
     var serverListenDone = false;
-
-    var server = await ServerSocket.bind(host, port);
-    server.listen(
+    serverSocket.listen(
       (inclient) async {
         inclient.listen((event) async {
           inclient.add(event);
@@ -60,26 +22,43 @@ void main() {
       },
     );
 
-    var isget = false;
+    var clientListenClosed = false;
+    var clientDone = false;
+    var isClientReceived = false;
     var client = await Socket.connect(host, port);
     client.listen((event) {
-      isget = true;
+      isClientReceived = true;
     }, onDone: () {
-      listenDone = true;
+      clientListenClosed = true;
     });
 
     client.done.then((v) {
       clientDone = true;
     });
 
+    expect(serverListenDone, false);
+    expect(clientListenClosed, false);
+    expect(clientDone, false);
+    expect(isClientReceived, false);
+
     client.add([1]);
-    await delay(1);
-    expect(isget, true);
+    await delay(2);
+    expect(isClientReceived, true);
+    expect(clientListenClosed, true);
+    expect(clientDone, false);
+    expect(serverListenDone, false);
 
     await client.close();
     await delay(2);
-    expect(listenDone, true);
     expect(serverListenDone, true);
     expect(clientDone, true);
-  });
+  } //}}}
+
+  test('dart tcp', () async {
+    //{{{
+    var host = '127.0.0.1';
+    var port = await getUnusedPort(InternetAddress(host));
+    var server = await ServerSocket.bind(host, port);
+    await eventTest(server, host, port);
+  }); //}}}
 }

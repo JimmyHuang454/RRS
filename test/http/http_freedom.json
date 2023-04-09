@@ -18,22 +18,9 @@
       },
       "route": "freedom",
       "inStream": "tcp"
-    },
-    "HTTPIn_block": {
-      "protocol": "http",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5457
-      },
-      "route": "block",
-      "inStream": "tcp"
     }
   },
   "outbounds": {
-    "freedom": {
-      "protocol": "freedom",
-      "outStream": "tcp"
-    },
     "block": {
       "protocol": "block"
     }

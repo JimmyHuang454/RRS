@@ -10,11 +10,36 @@ void main() {
   test('http', () async {
     var f = File('./test/http/http_freedom.json');
     var config = jsonDecode(await f.readAsString());
-    var listen = '127.0.0.1';
-    var port1 = await getUnusedPort(InternetAddress(listen));
-    var port2 = await getUnusedPort(InternetAddress(listen));
+    var host = '127.0.0.1';
+    var port1 = await getUnusedPort(InternetAddress(host));
+    var serverPort = await getUnusedPort(InternetAddress(host));
+    var domain = '$host:$serverPort';
     config['inbounds']['HTTPIn']['setting']['port'] = port1;
-    config['inbounds']['HTTPIn_block']['setting']['port'] = port2;
     entry(config);
+
+    var httpServer = await ServerSocket.bind(host, serverPort);
+    httpServer.listen(
+      (event) {
+        event.add('Hello world'.codeUnits);
+        event.close();
+      },
+    );
+
+    var client = TCPClient(config: {});
+    var temp = await client.connect(host, port1);
+    var times = 0;
+    var clientClosed = false;
+    temp.listen((data) {
+      expect(utf8.decode(data).contains('Hello world'), true);
+      times += 1;
+    }, onDone: () {
+      clientClosed = true;
+    });
+    temp.add(buildHTTPProxyRequest(domain));
+    await delay(2);
+    expect(clientClosed, true);
+    expect(times, 1);
+
+    // expect(temp.isClosed, true);
   });
 }

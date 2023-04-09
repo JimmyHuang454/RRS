@@ -50,6 +50,7 @@ class RRSSocket {
 
       streamSubscription.add(temp);
     }, (e, s) {
+      isClosed = true;
       onError!(e);
     });
   }
