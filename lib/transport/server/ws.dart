@@ -13,9 +13,10 @@ class WSRRSServerScoket extends RRSServerSocket {
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
     var temp = (serverSocket as HttpServer).listen((httpClient) async {
-      if (path == '' || '/$path' == httpClient.uri.path) {
-        onData!(
-            RRSSocket(socket: await WebSocketTransformer.upgrade(httpClient)));
+      devPrint(httpClient.uri.path);
+      if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
+        var wsSocket = await WebSocketTransformer.upgrade(httpClient);
+        onData!(RRSSocket(socket: wsSocket));
       } else {
         httpClient.response.close();
       }
@@ -26,7 +27,7 @@ class WSRRSServerScoket extends RRSServerSocket {
 
 class WSServer extends TransportServer {
   late HttpServer httpServer;
-  late String path;
+  String? path;
 
   WSServer({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
@@ -35,6 +36,6 @@ class WSServer extends TransportServer {
   @override
   Future<RRSServerSocket> bind(address, int port) async {
     httpServer = await HttpServer.bind(address, port);
-    return WSRRSServerScoket(serverSocket: httpServer, path: path);
+    return WSRRSServerScoket(serverSocket: httpServer, path: path!);
   }
 }

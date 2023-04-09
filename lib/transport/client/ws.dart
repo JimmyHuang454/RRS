@@ -5,10 +5,9 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
 class WSClient extends TransportClient {
-  late String path;
-  late String userAgent;
-  late WebSocket ws;
-  late Map<String, String> header;
+  String? path;
+  WebSocket? ws;
+  Map<String, String>? header;
 
   String outAddress = '';
   int outPort = 0;
@@ -35,6 +34,6 @@ class WSClient extends TransportClient {
 
     outAddress = address;
     outPort = port;
-    return RRSSocket(socket: ws);
+    return RRSSocket(socket: ws!);
   }
 }

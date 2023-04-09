@@ -1,92 +1,82 @@
 import 'dart:io';
 
-import 'package:proxy/handler.dart';
 import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/server/ws.dart';
 import 'package:proxy/transport/client/ws.dart';
 
 void main() {
-  test('normal ws', () async {
+  eventTest(dynamic serverConfig, dynamic clientConfig) async {
+    //{{{
     var host = '127.0.0.1';
     var port = await getUnusedPort(InternetAddress(host));
-    var httpServer = await HttpServer.bind(host, port);
 
     var serverListenDone = false;
-    var clientClosed = false;
+    var serverClosed = false;
+    var server = await serverConfig.bind(host, port);
 
-    httpServer.listen((httpClient) async {
-      var s = await WebSocketTransformer.upgrade(httpClient);
-      s.listen((event) {}, onDone: () {
-        s.close();
+    server.listen((inClient) async {
+      inClient.listen((event) async {
+        inClient.add(event);
+        await delay(1);
+        inClient.close();
+      }, onDone: () async {
+        serverListenDone = true;
       });
-
-      s.done.then(
-        (value) {
-          serverListenDone = true;
-        },
-      );
+    }, onDone: () {
+      serverClosed = true;
     });
 
-    var client = await WebSocket.connect('ws://$host:$port');
+    var clientListenClosed = false;
+    var clientDone = false;
+    var isClientReceived = false;
+
+    var client = await clientConfig.connect(host, port);
     client.listen((event) {
-      print(event);
+      isClientReceived = true;
+    }, onDone: () {
+      clientListenClosed = true;
     });
 
-    client.done.then(
-      (value) {
-        print('client done.');
-        clientClosed = true;
-      },
-    );
+    client.done.then((v) {
+      clientDone = true;
+    });
+
+    expect(serverListenDone, false);
+    expect(isClientReceived, false);
+    expect(clientListenClosed, false);
+    expect(clientDone, false);
+    expect(serverClosed, false);
 
     client.add([1]);
-    await delay(1);
+    await delay(2);
+    expect(isClientReceived, true);
+    expect(clientListenClosed, true);
+    expect(clientDone, false);
+    expect(serverListenDone, false);
+    expect(serverClosed, false);
+
     await client.close();
     await delay(2);
-    expect(clientClosed, true);
     expect(serverListenDone, true);
-  });
+    expect(clientDone, true);
+    expect(serverClosed, false);
 
-  test('rrs ws', () async {
-    var host = '127.0.0.1';
-    var port = await getUnusedPort(InternetAddress(host));
+    await server.close();
+    await delay(1);
+    expect(serverClosed, true);
+  } //}}}
 
-    var server = buildInStream('s', {
-      'protocol': 'ws',
-      'setting': {'path': 'abc'}
+  test('RRS ws and RRS ws server. With path.', () async {
+    //{{{
+    var path = '';
+    var server = WSServer(config: {
+      'setting': {'path': path}
     });
 
-    var s = await server.bind(host, port);
-    var client = buildOutStream('c', {
-      'protocol': 'ws',
-      'setting': {'path': 'abc'}
+    var client = WSClient(config: {
+      'setting': {'path': path}
     });
-
-    var serverReceived = false;
-    var clientReceive = false;
-    s.listen(
-      (client) {
-        client.listen(
-          (data) {
-            serverReceived = true;
-            client.add(data);
-          },
-        );
-      },
-    );
-
-    var c = await client.connect(host, port);
-
-    c.listen((event) {
-      clientReceive = true;
-    },);
-
-    c.add([1]);
-
-    await delay(2);
-
-    expect(serverReceived, true);
-    expect(clientReceive, true);
-  });
+    await eventTest(server, client);
+  }); //}}}
 }
