@@ -21,17 +21,16 @@ Map<String, dynamic> defaultSetting = {
     },
     "tls_ws": {
       "protocol": "ws",
-      "tls": {
-        "enabled": true
-      },
-      "setting": {
-        "path": "uif_trojan"
-      }
+      "tls": {"enabled": true},
+      "setting": {"path": "uif_trojan"}
     }
   },
   "outbounds": {
     "default": {"protocol": "freedom", "outStream": "tcp"},
     "freedom": {"protocol": "freedom", "outStream": "tcp"},
+  },
+  "dns": {
+    "txDOH": {"type": "doh", "address": "https://doh.pub/dns-query"},
   },
   // "routes": {
   //   // key 'comment' is to fix type error. It's not really useful.

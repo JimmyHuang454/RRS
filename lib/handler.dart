@@ -1,3 +1,4 @@
+import 'package:proxy/dns/dns.dart';
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -115,16 +116,10 @@ OutboundStruct buildOutbounds(String tag, Map<String, dynamic> config) {
   return res;
 } //}}}
 
-Route _buildRoute(Map<String, dynamic> config) {
-  //{{{
-  var res = Route(config: config);
-  return res;
-} //}}}
-
 Route buildRoute(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = _buildRoute(config);
+  var res = Route(config: config);
   routeList[tag] = res;
   return res;
 } //}}}
@@ -140,9 +135,26 @@ void buildData(String tag, Map<String, dynamic> config) {
   }
 } //}}}
 
+void buildDNS(String tag, Map<String, dynamic> config) {
+  //{{{
+  config['tag'] = tag;
+  var type = getValue(config, 'type', 'doh');
+
+  DNS dns;
+  if (type == 'udp') {
+    // TODO
+    dns = DoH(config: config);
+  } else {
+    dns = DoH(config: config);
+  }
+
+  dnsList[tag] = dns;
+} //}}}
+
 void _entry(Map<String, dynamic> config) {
   var list = [
     ['data', buildData],
+    ['dns', buildDNS],
     ['outStream', buildOutStream],
     ['inStream', buildInStream],
     ['outbounds', buildOutbounds],

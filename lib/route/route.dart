@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
+import 'package:proxy/dns/dns.dart';
 import 'package:proxy/route/matcher.dart';
 import 'package:quiver/collection.dart';
 
@@ -16,6 +15,8 @@ class RouteRule {
   List<List<int>> allowedUser = [];
   List<Pattern> ipPattern = [];
   List<Pattern> domainPattern = [];
+
+  DNS? dns;
 
   Map<String, dynamic> config;
 
@@ -38,6 +39,21 @@ class RouteRule {
     buildIPPattern();
 
     buildCache(); // after build pattern.
+    buildDNS();
+  }
+
+  void buildDNS() {
+    if (ipPattern.isNotEmpty) {
+      var dnsTag = getValue(config, 'dns', '');
+      if (dnsTag == '') {
+        if (dnsList.isEmpty) {
+          throw Exception('required DNS config if you are using ip pattern.');
+        }
+        dns = dnsList['txDOH'];
+      } else {
+        dns = dnsList[dnsTag];
+      }
+    }
   }
 
   void buildCache() {
@@ -123,24 +139,6 @@ class RouteRule {
     }
   }
 
-  Future<String> resolveDomain(String domain) async {
-    if (domain == '') {
-      return '';
-    }
-    List<InternetAddress> record;
-    record = await doh.lookup(domain);
-
-    try {
-      record = await doh.lookup(domain);
-      if (record.isNotEmpty) {
-        return record[0].address;
-      }
-    } catch (e) {
-      return '';
-    }
-    return '';
-  }
-
   bool matchAllowedUser(Link link) {
     for (var i = 0, len = allowedUser.length; i < len; ++i) {
       if (listsEqual(allowedUser[i], link.userID)) {
@@ -184,7 +182,7 @@ class RouteRule {
       }
 
       if (ipPattern.isNotEmpty && ip == '') {
-        ip = await resolveDomain(domain);
+        ip = await dns!.resolve2(domain);
         link.targetIP = ip;
         if (!await matchIP(ip)) {
           return false;

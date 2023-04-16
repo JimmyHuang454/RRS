@@ -175,12 +175,8 @@
     }
   },
   "dns": {
-    "test": [{
-        "baidu.com": "8.8.8.8"
-      },
-      {
-        "regex:*": "https://doh.pub/dns-query"
-      }
-    ]
+    "txDOH": {
+      "address": "https://doh.pub/dns-query"
+    }
   }
 }
