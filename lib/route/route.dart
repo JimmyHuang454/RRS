@@ -2,11 +2,9 @@ import 'dart:io';
 
 import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
-import 'package:dcache/dcache.dart';
 import 'package:proxy/route/matcher.dart';
 import 'package:quiver/collection.dart';
 
-import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
@@ -21,7 +19,6 @@ class RouteRule {
   bool useCache = false;
 
   Map<String, dynamic> config;
-  Cache? ruleCache;
 
   RouteRule({required this.config}) {
     var temp = config['outbound'];
@@ -37,19 +34,26 @@ class RouteRule {
       }
     }
 
-    buildCache();
     buildUser();
     buildDomainPattern();
     buildIPPattern();
+
+    buildCache(); // after build pattern.
   }
 
   void buildCache() {
-    useCache = getValue(config, 'cache.enabled', false);
-    if (useCache) {
-      var storageSize = getValue(config, 'cache.size', 500);
-      ruleCache = LruCache<String, bool>(
-        storage: InMemoryStorage<String, bool>(storageSize),
-      );
+    useCache = getValue(config, 'cache.enable', false);
+    if (!useCache) {
+      return;
+    }
+    var cacheSize = getValue(config, 'cache.cacheSize', 500);
+
+    for (var i = 0, len = ipPattern.length; i < len; ++i) {
+      ipPattern[i].setCache(useCache, cacheSize);
+    }
+
+    for (var i = 0, len = domainPattern.length; i < len; ++i) {
+      domainPattern[i].setCache(useCache, cacheSize);
     }
   }
 
@@ -136,42 +140,7 @@ class RouteRule {
     return '';
   }
 
-  Future<bool> checkIP(String ip) async {
-    if (ip == '') {
-      return false;
-    }
-
-    for (var i = 0, len = ipPattern.length; i < len; ++i) {
-      var p = await ipPattern[i].match(ip);
-      if (p) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  Future<bool> matchIP(Link link) async {
-    if (link.targetIP == '') {
-      return false;
-    }
-
-    var address = link.targetAddress!.address;
-
-    if (useCache) {
-      var temp = checkCache(address);
-      if (temp != -1) {
-        link.ipUseCache = true;
-        return temp == 1 ? true : false;
-      }
-    }
-
-    var res = await checkIP(link.targetIP);
-    saveCache(address, res);
-    return res;
-  }
-
-  bool checkAllowedUser(Link link) {
+  bool matchAllowedUser(Link link) {
     for (var i = 0, len = allowedUser.length; i < len; ++i) {
       if (listsEqual(allowedUser[i], link.userID)) {
         return true;
@@ -180,49 +149,29 @@ class RouteRule {
     return false;
   }
 
-  Future<bool> matchDomain(String domain) async {
-    if (domain == '') {
+  Future<bool> patternMatch(String pattern, List<Pattern> patternList) async {
+    if (pattern == '') {
       return false;
     }
 
-    for (var i = 0, len = domainPattern.length; i < len; ++i) {
-      var temp = await domainPattern[i].match(domain);
-      if (temp) {
-        return temp;
+    for (var i = 0, len = patternList.length; i < len; ++i) {
+      var res = await patternList[i].match2(pattern);
+      if (res) {
+        return true;
       }
     }
     return false;
   }
 
-  int checkCache(String id) {
-    if (id != '' && useCache) {
-      var temp = ruleCache!.get(id);
-      if (temp == null) {
-        return -1;
-      }
-      if (temp) {
-        return 1;
-      }
-      return 0;
-    }
-    return -1;
-  }
-
-  void saveCache(String id, bool res) {
-    if (id != '' && useCache) {
-      ruleCache!.set(id, res);
-    }
-  }
-
   Future<bool> match(Link link) async {
     // false means not match.
 
-    if (allowedUser.isNotEmpty && !checkAllowedUser(link)) {
+    if (allowedUser.isNotEmpty && !matchAllowedUser(link)) {
       return false;
     }
 
     var ip = link.targetIP;
-    if (ipPattern.isNotEmpty && ip != '' && !await checkIP(ip)) {
+    if (ipPattern.isNotEmpty && ip != '' && !await matchIP(ip)) {
       return false;
     }
 
@@ -236,13 +185,21 @@ class RouteRule {
       if (ipPattern.isNotEmpty && ip == '') {
         ip = await resolveDomain(domain);
         link.targetIP = ip;
-        if (!await checkIP(ip)) {
+        if (!await matchIP(ip)) {
           return false;
         }
       }
     }
 
     return true;
+  }
+
+  Future<bool> matchDomain(String input) async {
+    return await patternMatch(input, domainPattern);
+  }
+
+  Future<bool> matchIP(String input) async {
+    return await patternMatch(input, ipPattern);
   }
 }
 

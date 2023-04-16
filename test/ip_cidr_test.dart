@@ -2,7 +2,7 @@ import 'package:test/test.dart';
 import 'package:proxy/route/ip_cidr.dart';
 
 void main() {
-  test('indexOfElements', () {
+  test('test ip CIDR.', () {
     var obj = CIDRIPv4();
     expect(obj.init('127.0.0.1'), false);
     expect(obj.init('127.0.0.1//23'), false);
@@ -35,5 +35,12 @@ void main() {
     expect(obj.matchByString('255.0.0.0/1'), true);
     expect(obj.matchByString('251.0.0.0/8'), false);
     expect(obj.matchByString('10.0.0.0/8'), false);
+
+    obj.init('192.168.1.2/24');
+    expect(obj.matchByString('192.168.0.0/16'), true);
+    expect(obj.matchByString('92.168.0.0/16'), false);
+    expect(obj.include('192.168.0.0'), false);
+    expect(obj.include('192.168.2.0'), false);
+    expect(obj.include('192.168.1.0'), true);
   });
 }

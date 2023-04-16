@@ -42,17 +42,17 @@ void main() {
     expect(rules.domainPattern[2].type, 'regex');
     expect(rules.domainPattern[2].pattern, 'a.com');
 
-    expect(rules.matchDomain('abc.com'), true);
-    expect(rules.matchDomain('1.com'), true);
-    expect(rules.matchDomain('2.com'), false);
-    expect(rules.matchDomain('a1.com'), false);
-    expect(rules.matchDomain('a.com'), true);
-    expect(rules.matchDomain('1a.com'), true);
-    expect(rules.matchDomain('1a2com'), true);
+    expect(await rules.matchDomain('abc.com'), true);
+    expect(await rules.matchDomain('1.com'), true);
+    expect(await rules.matchDomain('2.com'), false);
+    expect(await rules.matchDomain('a1.com'), false);
+    expect(await rules.matchDomain('a.com'), true);
+    expect(await rules.matchDomain('1a.com'), true);
+    expect(await rules.matchDomain('1a2com'), true);
 
-    expect(rules.matchDomain('abc1cn'), true);
-    expect(rules.matchDomain('a.b.c.cn'), true);
-    expect(rules.matchDomain('a.b.c.cnn'), true);
+    expect(await rules.matchDomain('abc1cn'), true);
+    expect(await rules.matchDomain('a.b.c.cn'), true);
+    expect(await rules.matchDomain('a.b.c.cnn'), true);
   });
 
   test('regex', () async {
@@ -124,8 +124,8 @@ void main() {
       "rules": [
         {
           "ip": [
-            '127.0.0.1',
-            '127.9.0.1/23',
+            '192.168.200.84',
+            '192.168.1.2/24',
             {'ipdb': 'geoip', 'type': 'CN'}
           ],
           "outbound": "out1"
@@ -141,12 +141,21 @@ void main() {
     var rule = obj.rules[0];
     expect(rule.ipPattern.isNotEmpty, true);
     expect(rule.ipPattern[0].type, 'full');
-    expect(rule.ipPattern[1].type, 'db');
-    expect(rule.ipPattern[1].pattern, 'CN');
+    expect(rule.ipPattern[1].type, 'cidr');
+    expect(rule.ipPattern[2].type, 'mmdb');
+    expect(rule.ipPattern[2].pattern, 'CN');
+    expect(rule.useCache, false);
+
+    expect(await rule.ipPattern[0].match2('192.168.200.84'), true);
+    expect(await rule.ipPattern[0].match2('192.168.200.83'), false);
+
+    expect(await rule.ipPattern[1].match2('192.168.1.0'), true);
+    expect(await rule.ipPattern[1].match2('192.168.1.2'), true);
+    expect(await rule.ipPattern[1].match2('192.168.0.0'), false);
+    expect(await rule.ipPattern[1].match2('192.169.0.0'), false);
 
     var ip = await rule.resolveDomain('baidu.com');
 
-    expect(await rule.checkIP('127.0.0.1'), true);
-    expect(await rule.checkIP(ip), true);
+    expect(await rule.matchIP(ip), true);
   });
 }

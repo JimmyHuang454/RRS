@@ -119,7 +119,6 @@ void main() {
     c.set('1', true);
 
     expect(c.get('1'), true);
-    expect(c.get('1'), 1);
     expect(c.get('2'), null);
   });
 }

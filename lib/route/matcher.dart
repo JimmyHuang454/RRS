@@ -1,3 +1,4 @@
+import 'package:dcache/dcache.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/route/ip_cidr.dart';
 import 'package:proxy/route/mmdb.dart';
@@ -5,10 +6,47 @@ import 'package:proxy/route/mmdb.dart';
 abstract class Pattern {
   String type = '';
   String pattern = '';
+  bool enabledCache;
+  int cacheSize;
+  Cache? cache;
 
-  Pattern({required this.type, required this.pattern});
+  Pattern(
+      {required this.type,
+      required this.pattern,
+      this.enabledCache = false,
+      this.cacheSize = 0}) {
+    setCache(enabledCache, cacheSize);
+  }
+
+  void setCache(bool enable, int size) {
+    enabledCache = enable;
+    cacheSize = cacheSize;
+
+    if (enabledCache) {
+      cache = LruCache<String, bool>(
+        storage: InMemoryStorage<String, bool>(cacheSize),
+      );
+    }
+  }
 
   Future<bool> match(String inputPattern);
+
+  Future<bool> match2(String inputPattern) async {
+    bool res;
+    if (enabledCache && inputPattern != '') {
+      var cachedRes = cache!.get(inputPattern);
+      if (cachedRes != null) {
+        return cachedRes;
+      }
+    }
+
+    res = await match(inputPattern);
+
+    if (enabledCache && inputPattern != '') {
+      cache!.set(inputPattern, res);
+    }
+    return res;
+  }
 }
 
 class RegexPattern extends Pattern {
@@ -68,13 +106,13 @@ class SubstringPattern extends Pattern {
 class IPCIDRPattern extends Pattern {
   late CIDRIPv4 cidriPv4;
 
-  IPCIDRPattern({required super.pattern}) : super(type: 'CIDR') {
+  IPCIDRPattern({required super.pattern}) : super(type: 'cidr') {
     cidriPv4 = CIDRIPv4();
     cidriPv4.init(pattern);
   }
 
   @override
   Future<bool> match(String inputPattern) async {
-    return cidriPv4.matchByString(inputPattern);
+    return cidriPv4.include(inputPattern);
   }
 }

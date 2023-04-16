@@ -54,4 +54,8 @@ class CIDRIPv4 {
     var minPrefix = int.parse('1' * minLen + '0' * (32 - minLen), radix: 2);
     return (inputIP.prefix & minPrefix) == (prefix & minPrefix);
   }
+
+  bool include(String rawIPAddress) {
+    return matchByString('$rawIPAddress/32');
+  }
 }
