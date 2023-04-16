@@ -16,7 +16,6 @@ Future<void> routeTest(Route obj) async {
   expect(rule.ipPattern[1].type, 'cidr');
   expect(rule.ipPattern[2].type, 'mmdb');
   expect(rule.ipPattern[2].pattern, 'CN');
-  expect(rule.useCache, false);
 
   expect(await rule.ipPattern[0].match2('192.168.200.84'), true);
   expect(await rule.ipPattern[0].match2('192.168.200.83'), false);
@@ -26,7 +25,7 @@ Future<void> routeTest(Route obj) async {
   expect(await rule.ipPattern[1].match2('192.168.0.0'), false);
   expect(await rule.ipPattern[1].match2('192.169.0.0'), false);
 
-  var ip = await rule.resolveDomain('baidu.com');
+  var ip = await rule.dns!.resolve2('baidu.com');
 
   expect(await rule.matchIP(ip), true);
 }

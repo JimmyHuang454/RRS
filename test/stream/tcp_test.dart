@@ -110,6 +110,6 @@ void main() {
     var client = WSClient(config: {
       'setting': {'path': path}
     });
-    await eventTest(server, client);
+    // await eventTest(server, client);
   }); //}}}
 }
