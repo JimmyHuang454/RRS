@@ -1,10 +1,39 @@
+import 'dart:io';
+
+import 'package:proxy/route/route.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:quiver/pattern.dart';
 
+Future<void> routeTest(Route obj) async {
+  expect(obj.rules.length, 1);
+
+  var rule = obj.rules[0];
+  expect(rule.ipPattern.isNotEmpty, true);
+  expect(rule.ipPattern[0].type, 'full');
+  expect(rule.ipPattern[1].type, 'cidr');
+  expect(rule.ipPattern[2].type, 'mmdb');
+  expect(rule.ipPattern[2].pattern, 'CN');
+  expect(rule.useCache, false);
+
+  expect(await rule.ipPattern[0].match2('192.168.200.84'), true);
+  expect(await rule.ipPattern[0].match2('192.168.200.83'), false);
+
+  expect(await rule.ipPattern[1].match2('192.168.1.0'), true);
+  expect(await rule.ipPattern[1].match2('192.168.1.2'), true);
+  expect(await rule.ipPattern[1].match2('192.168.0.0'), false);
+  expect(await rule.ipPattern[1].match2('192.169.0.0'), false);
+
+  var ip = await rule.resolveDomain('baidu.com');
+
+  expect(await rule.matchIP(ip), true);
+}
+
 void main() {
+  var dbFile = File('./bin/Country.mmdb');
+
   test('route match', () async {
     entry({
       'outbounds': {
@@ -113,11 +142,7 @@ void main() {
     });
 
     buildData('ipdb', {
-      "geoip": {
-        "type": "mmdb",
-        "path":
-            "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
-      }
+      "geoip": {"type": "mmdb", "path": dbFile.path}
     });
 
     buildRoute('test_route', {
@@ -133,29 +158,23 @@ void main() {
       ]
     });
 
+    buildRoute('test_route_cached', {
+      "rules": [
+        {
+          "ip": [
+            '192.168.200.84',
+            '192.168.1.2/24',
+            {'ipdb': 'geoip', 'type': 'CN'}
+          ],
+          "outbound": "out1"
+        }
+      ],
+      "cache": {'enable': true}
+    });
+
     expect(routeList.containsKey('test_route'), true);
 
-    var obj = routeList['test_route'];
-    expect(obj!.rules.length, 1);
-
-    var rule = obj.rules[0];
-    expect(rule.ipPattern.isNotEmpty, true);
-    expect(rule.ipPattern[0].type, 'full');
-    expect(rule.ipPattern[1].type, 'cidr');
-    expect(rule.ipPattern[2].type, 'mmdb');
-    expect(rule.ipPattern[2].pattern, 'CN');
-    expect(rule.useCache, false);
-
-    expect(await rule.ipPattern[0].match2('192.168.200.84'), true);
-    expect(await rule.ipPattern[0].match2('192.168.200.83'), false);
-
-    expect(await rule.ipPattern[1].match2('192.168.1.0'), true);
-    expect(await rule.ipPattern[1].match2('192.168.1.2'), true);
-    expect(await rule.ipPattern[1].match2('192.168.0.0'), false);
-    expect(await rule.ipPattern[1].match2('192.169.0.0'), false);
-
-    var ip = await rule.resolveDomain('baidu.com');
-
-    expect(await rule.matchIP(ip), true);
+    await routeTest(routeList['test_route']!);
+    await routeTest(routeList['test_route_cached']!);
   });
 }
