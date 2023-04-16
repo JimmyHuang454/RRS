@@ -16,7 +16,6 @@ class RouteRule {
   List<List<int>> allowedUser = [];
   List<Pattern> ipPattern = [];
   List<Pattern> domainPattern = [];
-  bool useCache = false;
 
   Map<String, dynamic> config;
 
@@ -42,10 +41,12 @@ class RouteRule {
   }
 
   void buildCache() {
-    useCache = getValue(config, 'cache.enable', false);
+    var useCache = getValue(config, 'cache.enable', false);
+
     if (!useCache) {
       return;
     }
+
     var cacheSize = getValue(config, 'cache.cacheSize', 500);
 
     for (var i = 0, len = ipPattern.length; i < len; ++i) {

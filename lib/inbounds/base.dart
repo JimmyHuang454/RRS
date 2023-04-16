@@ -34,6 +34,8 @@ class Link {
   OutboundStruct? outboundStruct; // assign after routing.
 
   Stopwatch createdTime = Stopwatch()..start();
+  Stopwatch routingTime = Stopwatch()..start();
+  Stopwatch? connectTime;
   String linkInfo = '';
 
   Link({required this.client, required this.inboundStruct});
@@ -79,6 +81,7 @@ class Link {
   Future<bool> bindServer() async {
     outboundStruct = await inboundStruct.doRoute(this);
     try {
+      connectTime = Stopwatch()..start();
       server = await outboundStruct!.newConnect(this);
     } catch (e) {
       logger.info(e);
@@ -89,7 +92,6 @@ class Link {
     bindUser();
 
     outboundStruct!.linkNr += 1;
-    logger.info('Created: ${buildLinkInfo()}');
 
     server!.listen((event) {
       clientAdd(event);
@@ -113,6 +115,8 @@ class Link {
       serverDone();
     });
 
+    connectTime!.stop();
+    logger.info('Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
     return true;
   }
 
@@ -187,8 +191,7 @@ abstract class InboundStruct {
     }
     var outbound = await routeList[route]!.match(link);
     link.outboundStruct = outboundsList[outbound]!;
-    logger.info(
-        '${link.targetAddress!.address} ${link.createdTime.elapsed} ${link.ipUseCache}');
+    link.routingTime.stop();
     return link.outboundStruct!;
   }
 }

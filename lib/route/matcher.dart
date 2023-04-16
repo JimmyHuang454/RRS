@@ -2,6 +2,7 @@ import 'package:dcache/dcache.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/route/ip_cidr.dart';
 import 'package:proxy/route/mmdb.dart';
+import 'package:proxy/utils/utils.dart';
 
 abstract class Pattern {
   String type = '';
