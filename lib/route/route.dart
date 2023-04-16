@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dcache/dcache.dart';
+import 'package:proxy/route/matcher.dart';
 import 'package:quiver/collection.dart';
 
 import 'package:proxy/route/mmdb.dart';
@@ -12,25 +13,11 @@ import 'package:proxy/obj_list.dart';
 
 var doh = DnsOverHttps('https://doh.pub/dns-query');
 
-class DomainPattern {
-  String type = 'substring';
-  String pattern;
-  DomainPattern(this.type, this.pattern);
-}
-
-class IPPattern {
-  String type = 'db';
-  String pattern;
-
-  late MMDB db;
-  IPPattern(this.type, this.pattern);
-}
-
 class RouteRule {
   List<String> outbound = [];
   List<List<int>> allowedUser = [];
-  List<IPPattern> ipPattern = [];
-  List<DomainPattern> domainPattern = [];
+  List<Pattern> ipPattern = [];
+  List<Pattern> domainPattern = [];
   bool useCache = false;
 
   Map<String, dynamic> config;
@@ -84,28 +71,23 @@ class RouteRule {
       ipList = [];
     }
 
+    Pattern pattern;
     for (var i = 0, len = ipList.length; i < len; ++i) {
-      IPPattern ip;
       if (ipList[i].runtimeType == String) {
         var temp = ipList[i] as String;
         if (temp.contains("/")) {
-          ip = IPPattern('CIDR', temp);
+          pattern = IPCIDRPattern(pattern: temp);
         } else {
-          ip = IPPattern('full', temp);
+          pattern = FullPattern(pattern: temp);
         }
       } else {
         var temp = ipList[i] as dynamic;
         if (!temp.containsKey('ipdb') || !temp.containsKey('type')) {
           throw "missing ipdb or type in ip RouteRule.";
         }
-        var name = temp['ipdb'];
-        ip = IPPattern('db', temp['type']);
-        if (!ipdbList.containsKey(name)) {
-          throw "wrong ipdb name: $name.";
-        }
-        ip.db = ipdbList[name]!;
+        pattern = MMDBPattern(pattern: temp['type'], dbName: temp['ipdb']);
       }
-      ipPattern.add(ip);
+      ipPattern.add(pattern);
     }
   }
 
@@ -115,18 +97,24 @@ class RouteRule {
       domain = [];
     }
 
+    Pattern pattern;
     for (var i = 0, len = domain.length; i < len; ++i) {
       var pos = domain[i].indexOf(':');
-      DomainPattern dp;
       if (pos == -1) {
-        dp = DomainPattern('substring', domain[i]);
+        pattern = SubstringPattern(pattern: domain[i]);
       } else {
         var str = domain[i] as String;
         var type = str.substring(0, pos);
-        var pattern = str.substring(pos + 1);
-        dp = DomainPattern(type, pattern);
+        var p = str.substring(pos + 1);
+        if (type == 'regex') {
+          pattern = RegexPattern(pattern: p);
+        } else if (type == 'full') {
+          pattern = FullPattern(pattern: p);
+        } else {
+          throw Exception('wrong pattern type named: $type');
+        }
       }
-      domainPattern.add(dp);
+      domainPattern.add(pattern);
     }
   }
 
@@ -154,21 +142,9 @@ class RouteRule {
     }
 
     for (var i = 0, len = ipPattern.length; i < len; ++i) {
-      var p = ipPattern[i];
-      if (p.type == 'full' && ip == p.pattern) {
+      var p = await ipPattern[i].match(ip);
+      if (p) {
         return true;
-      } else if (p.type == 'db') {
-        try {
-          await p.db.load();
-          var res = await p.db.search(ip);
-          if (res != null && res['country']['iso_code'] == p.pattern) {
-            return true;
-          }
-        } catch (e) {
-          return false;
-        }
-      } else if (p.type == 'CIDR') {
-        // TODO
       }
     }
 
@@ -204,20 +180,15 @@ class RouteRule {
     return false;
   }
 
-  bool matchDomain(String domain) {
+  Future<bool> matchDomain(String domain) async {
     if (domain == '') {
       return false;
     }
 
     for (var i = 0, len = domainPattern.length; i < len; ++i) {
-      var temp = domainPattern[i];
-      if (temp.type == 'substring' && domain.contains(temp.pattern)) {
-        return true;
-      } else if (temp.type == 'regex' &&
-          RegExp(temp.pattern).hasMatch(domain)) {
-        return true;
-      } else if (temp.type == 'full' && temp.pattern == domain) {
-        return true;
+      var temp = await domainPattern[i].match(domain);
+      if (temp) {
+        return temp;
       }
     }
     return false;
@@ -258,7 +229,7 @@ class RouteRule {
     if (link.targetAddress!.type == 'domain') {
       var domain = link.targetAddress!.address;
 
-      if (domainPattern.isNotEmpty && !matchDomain(domain)) {
+      if (domainPattern.isNotEmpty && !await matchDomain(domain)) {
         return false;
       }
 

@@ -26,10 +26,12 @@ void main() {
     expect(obj.init('127.0.0.1/0'), false);
 
     expect(obj.parse('255.1.2.3/8'), int.parse('1' * 8 + '0' * 24, radix: 2));
+    expect(obj.parse('255.255.255.255/32'), int.parse('1' * 32, radix: 2));
+    expect(obj.parse('255.255.255.255/0'), 0);
 
     obj.init('255.1.2.3/8');
     expect(obj.matchByString('255.0.0.0/8'), true);
-    expect(obj.matchByString('255.0.0.0/7'), true);
+    expect(obj.matchByString('254.1.2.3/7'), true);
     expect(obj.matchByString('255.0.0.0/1'), true);
     expect(obj.matchByString('251.0.0.0/8'), false);
     expect(obj.matchByString('10.0.0.0/8'), false);
