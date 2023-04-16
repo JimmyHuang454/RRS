@@ -10,6 +10,8 @@ engines_deps
 CompilerCache
 build
 dart_tool
+coverage
+.dart_tool
 
 # Session
 Session.vim
