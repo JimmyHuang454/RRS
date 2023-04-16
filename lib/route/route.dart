@@ -131,6 +131,9 @@ class RouteRule {
   }
 
   Future<String> resolveDomain(String domain) async {
+    if (domain == '') {
+      return '';
+    }
     List<InternetAddress> record;
     record = await doh.lookup(domain);
 
@@ -140,12 +143,16 @@ class RouteRule {
         return record[0].address;
       }
     } catch (e) {
-      return "";
+      return '';
     }
-    return "";
+    return '';
   }
 
-  Future<bool> _checkIP(String ip) async {
+  Future<bool> checkIP(String ip) async {
+    if (ip == '') {
+      return false;
+    }
+
     for (var i = 0, len = ipPattern.length; i < len; ++i) {
       var p = ipPattern[i];
       if (p.type == 'full' && ip == p.pattern) {
@@ -168,7 +175,11 @@ class RouteRule {
     return false;
   }
 
-  Future<bool> checkIP(Link link) async {
+  Future<bool> matchIP(Link link) async {
+    if (link.targetIP == '') {
+      return false;
+    }
+
     var address = link.targetAddress!.address;
 
     if (useCache) {
@@ -179,13 +190,7 @@ class RouteRule {
       }
     }
 
-    link.targetIP = await resolveDomain(address);
-
-    if (link.targetIP == '') {
-      return false;
-    }
-
-    var res = await _checkIP(link.targetIP);
+    var res = await checkIP(link.targetIP);
     saveCache(address, res);
     return res;
   }
@@ -199,7 +204,11 @@ class RouteRule {
     return false;
   }
 
-  bool checkDomain(String domain) {
+  bool matchDomain(String domain) {
+    if (domain == '') {
+      return false;
+    }
+
     for (var i = 0, len = domainPattern.length; i < len; ++i) {
       var temp = domainPattern[i];
       if (temp.type == 'substring' && domain.contains(temp.pattern)) {
@@ -235,20 +244,31 @@ class RouteRule {
   }
 
   Future<bool> match(Link link) async {
+    // false means not match.
+
     if (allowedUser.isNotEmpty && !checkAllowedUser(link)) {
       return false;
     }
 
-    if (domainPattern.isNotEmpty &&
-        link.targetAddress!.type == 'domain' &&
-        !checkDomain(link.targetAddress!.address)) {
+    var ip = link.targetIP;
+    if (ipPattern.isNotEmpty && ip != '' && !await checkIP(ip)) {
       return false;
     }
 
-    if (link.targetAddress!.type == 'domain' &&
-        ipPattern.isNotEmpty &&
-        !await checkIP(link)) {
-      return false;
+    if (link.targetAddress!.type == 'domain') {
+      var domain = link.targetAddress!.address;
+
+      if (domainPattern.isNotEmpty && !matchDomain(domain)) {
+        return false;
+      }
+
+      if (ipPattern.isNotEmpty && ip == '') {
+        ip = await resolveDomain(domain);
+        link.targetIP = ip;
+        if (!await checkIP(ip)) {
+          return false;
+        }
+      }
     }
 
     return true;

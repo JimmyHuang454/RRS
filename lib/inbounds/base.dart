@@ -81,8 +81,8 @@ class Link {
     try {
       server = await outboundStruct!.newConnect(this);
     } catch (e) {
-      closeAll();
       logger.info(e);
+      closeAll();
       return false;
     }
 

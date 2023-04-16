@@ -3,7 +3,25 @@
     "trojan_outbound": {
       "protocol": "trojan",
       "setting": {
-        "address": "normal.uif02.xyz",
+        "address": "uif03.top",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "ws_with_tls"
+    },
+    "trojan_outbound2": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "node1.uif03.top",
+        "port": 443,
+        "password": "password2"
+      },
+      "outStream": "ws_with_tls"
+    },
+    "trojan_outbound3": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "node.jimmyhuang454.com",
         "port": 443,
         "password": "password2"
       },
@@ -129,9 +147,9 @@
     "proxy": {
       "rules": [{
         "outbound": "freedom",
-        "domain": ["regex:.*.cn", "php", "hohovod.com", "192.168", "melogin.cn"]
+        "domain": ["regex:.*.cn", "php", "hohovod.com", "192.168", "melogin.cn", "172.168"]
       }, {
-        "outbound": "trojan_outbound",
+        "outbound": ["trojan_outbound", "trojan_outbound2", "trojan_outbound3"],
         "domain": ["google", "twitter", "instagram", "facebook"]
       }, {
         "outbound": "freedom",
@@ -144,7 +162,7 @@
           "size": 2000
         }
       }, {
-        "outbound": ["trojan_outbound"]
+        "outbound": ["trojan_outbound", "trojan_outbound2", "trojan_outbound3"]
       }]
     }
   },

@@ -1,4 +1,3 @@
-import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
@@ -43,17 +42,17 @@ void main() {
     expect(rules.domainPattern[2].type, 'regex');
     expect(rules.domainPattern[2].pattern, 'a.com');
 
-    expect(rules.checkDomain('abc.com'), true);
-    expect(rules.checkDomain('1.com'), true);
-    expect(rules.checkDomain('2.com'), false);
-    expect(rules.checkDomain('a1.com'), false);
-    expect(rules.checkDomain('a.com'), true);
-    expect(rules.checkDomain('1a.com'), true);
-    expect(rules.checkDomain('1a2com'), true);
+    expect(rules.matchDomain('abc.com'), true);
+    expect(rules.matchDomain('1.com'), true);
+    expect(rules.matchDomain('2.com'), false);
+    expect(rules.matchDomain('a1.com'), false);
+    expect(rules.matchDomain('a.com'), true);
+    expect(rules.matchDomain('1a.com'), true);
+    expect(rules.matchDomain('1a2com'), true);
 
-    expect(rules.checkDomain('abc1cn'), true);
-    expect(rules.checkDomain('a.b.c.cn'), true);
-    expect(rules.checkDomain('a.b.c.cnn'), true);
+    expect(rules.matchDomain('abc1cn'), true);
+    expect(rules.matchDomain('a.b.c.cn'), true);
+    expect(rules.matchDomain('a.b.c.cnn'), true);
   });
 
   test('regex', () async {
@@ -126,6 +125,7 @@ void main() {
         {
           "ip": [
             '127.0.0.1',
+            '127.9.0.1/23',
             {'ipdb': 'geoip', 'type': 'CN'}
           ],
           "outbound": "out1"
