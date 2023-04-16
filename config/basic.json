@@ -176,7 +176,8 @@
   },
   "dns": {
     "txDOH": {
-      "address": "https://doh.pub/dns-query"
+      "address": "https://doh.pub/dns-query",
+      "enabledCache": true
     }
   }
 }

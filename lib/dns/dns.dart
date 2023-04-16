@@ -30,8 +30,8 @@ abstract class DNS {
     }
 
     if (enabledCache!) {
-      cache = LruCache<String, bool>(
-        storage: InMemoryStorage<String, bool>(cacheSize!),
+      cache = LruCache<String, String>(
+        storage: InMemoryStorage<String, String>(cacheSize!),
       );
     }
   }
@@ -51,6 +51,7 @@ abstract class DNS {
         return cachedRes;
       }
     }
+
 
     res = await resolve(domain);
 
