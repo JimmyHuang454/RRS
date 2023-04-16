@@ -1,4 +1,4 @@
-class CIDR {
+class CIDRIPv4 {
   int len = 0;
   int prefix = 0;
 
@@ -22,7 +22,7 @@ class CIDR {
     var res = 0;
 
     for (var i = 0; i < 4; ++i) {
-      res |= (int.parse(tempPrefixStr[i]) << (24 - i * 8));
+      res |= int.parse(tempPrefixStr[i]) << (24 - (i * 8));
     }
 
     res &= int.parse('1' * len + '0' * (32 - len), radix: 2);
@@ -44,16 +44,14 @@ class CIDR {
   }
 
   bool matchByString(String inputRawIP) {
-    var obj = CIDR();
-    var res = obj.parse(inputRawIP);
-    if (res == 0) {
-      return false;
-    }
-
+    var obj = CIDRIPv4();
+    obj.init(inputRawIP);
     return match(obj);
   }
 
-  bool match(CIDR inputIP) {
-    return true;
+  bool match(CIDRIPv4 inputIP) {
+    var minLen = inputIP.len > len ? len : inputIP.len;
+    var minPrefix = int.parse('1' * minLen + '0' * (32 - minLen), radix: 2);
+    return (inputIP.prefix & minPrefix) == (prefix & minPrefix);
   }
 }
