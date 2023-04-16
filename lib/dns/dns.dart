@@ -65,7 +65,6 @@ abstract class DNS {
 class DoH extends DNS {
   DnsOverHttps? dnsOverHttps;
   DoH({required super.config}) : super(type: 'doh') {
-    // dnsServerAddress = 'https://doh.pub/dns-query'
     dnsOverHttps = DnsOverHttps(dnsServerAddress!);
   }
 
