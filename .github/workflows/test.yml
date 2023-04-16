@@ -18,4 +18,14 @@ jobs:
       - run: dart pub get
 
       - name: test
-        run: dart test
+        run: dart test --coverage=./coverage
+
+      - name: generate coverage
+        run: dart pub global activate coverage
+        run: dart pub global run coverage:format_coverage --packages=.dart_tool/package_config.json --report-on=lib --lcov -o ./coverage/lcov.info -i ./coverage
+
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          verbose: true # optional (default = false)
