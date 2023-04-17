@@ -17,4 +17,4 @@ Map<String, Route> routeList = {};
 
 Map<String, MMDB> ipdbList = {};
 Map<String, DNS> dnsList = {};
-Map<List<int>, User> userList = {};
+Map<String, User> userList = {};

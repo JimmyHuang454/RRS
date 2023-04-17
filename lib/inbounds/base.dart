@@ -68,14 +68,18 @@ class Link {
   }
 
   void bindUser() {
-    User tempUser;
-    if (userList.containsKey(userID)) {
-      tempUser = userList[userID]!;
-    } else {
-      tempUser = User();
-      userList[userID] = tempUser;
+    if (userID.isEmpty) {
+      userID = [0];
     }
-    user = tempUser;
+
+    var userIDStr = userID.toString();
+
+    if (userList.containsKey(userIDStr)) {
+      user = userList[userIDStr]!;
+    } else {
+      user = User();
+      userList[userIDStr] = user!;
+    }
   }
 
   Future<bool> bindServer() async {
@@ -116,7 +120,8 @@ class Link {
     });
 
     connectTime!.stop();
-    logger.info('Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
+    logger.info(
+        'Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
     return true;
   }
 

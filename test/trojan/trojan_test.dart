@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import 'package:proxy/obj_list.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
@@ -45,5 +47,16 @@ void main() {
     }
     await delay(2);
     expect(times2, times);
+
+    expect(userList.length, 2);
+    var userName =
+        sha224.convert('123'.codeUnits).toString().codeUnits.toString();
+    var user = userList[userName]!;
+    expect(user.traffic.uplink > 0, true);
+    expect(user.traffic.downlink > 0, true);
+
+    user.clearTraffic();
+    expect(user.traffic.downlink, 0);
+    expect(user.traffic.uplink, 0);
   });
 }
