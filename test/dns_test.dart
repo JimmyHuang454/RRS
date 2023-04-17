@@ -8,12 +8,12 @@ void main() {
       'dns': {
         'cache': {
           'type': 'doh',
-          'address': 'https://doh.pub/dns-query',
+          'address': 'https://cloudflare-dns.com/dns-query',
           'cache': {'enable': true}
         }
       }
     });
-    var doh = dnsList['txDOH']!;
+    var doh = dnsList['cloudflare']!;
 
     expect(doh.type, 'doh');
     expect(doh.enabledCache, false);

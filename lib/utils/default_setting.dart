@@ -31,6 +31,10 @@ Map<String, dynamic> defaultSetting = {
   },
   "dns": {
     "txDOH": {"type": "doh", "address": "https://doh.pub/dns-query"},
+    "cloudflare": {
+      "type": "doh",
+      "address": "https://cloudflare-dns.com/dns-query"
+    }
   },
   // "routes": {
   //   // key 'comment' is to fix type error. It's not really useful.
