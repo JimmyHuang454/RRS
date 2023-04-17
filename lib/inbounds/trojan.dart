@@ -9,11 +9,10 @@ class TrojanRequest extends Link {
   bool isAuth = false;
   bool isParseDST = false;
   bool isTunnel = false;
-  int isGetRRSID = 0;
   int authMethod = 0;
-  int socks5Version = 5;
   List<int> content = [];
-  List<int> pwdSHA224 = [];
+
+  List<int> pwdSHA224;
 
   TrojanRequest(
       {required super.client,
@@ -39,15 +38,6 @@ class TrojanRequest extends Link {
   Future<void> parseDST(List<int> data) async {
     //{{{
     content += data;
-    if (isGetRRSID == 1) {
-      if (content.length < 56) {
-        return;
-      }
-      userID += content.sublist(0, 56);
-      content = content.sublist(56);
-      isGetRRSID = 2; // got it.
-    }
-
     if (content.length < 3) {
       return;
     }
@@ -71,7 +61,7 @@ class TrojanRequest extends Link {
     }
 
     var addressAndPortLength = addressEnd + 2;
-    var trojanRequestLength = addressAndPortLength + 2; // with crlf.
+    var trojanRequestLength = addressAndPortLength + 2; // with CRLF.
     if (content.length < trojanRequestLength) {
       return;
     }
@@ -108,7 +98,6 @@ class TrojanRequest extends Link {
     }
 
     var pwd = content.sublist(0, 56);
-    var tempCrlf = content.sublist(56, 58);
     if (!listsEqual(pwd, pwdSHA224)) {
       isTunnel = true;
       passToTunnel([]);
@@ -116,9 +105,6 @@ class TrojanRequest extends Link {
     }
     content = content.sublist(58);
 
-    if (listsEqual(tempCrlf, [0, 0])) {
-      isGetRRSID = 1; // need to get.
-    }
     userID = pwdSHA224;
     isAuth = true;
     await parseDST([]);

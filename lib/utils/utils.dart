@@ -81,9 +81,9 @@ String toMetric(int nr, [int round = 0]) {
 }
 
 Future<int> getUnusedPort(InternetAddress address) {
-  return ServerSocket.bind(address, 0).then((socket) {
+  return ServerSocket.bind(address, 0).then((socket) async {
     var port = socket.port;
-    socket.close();
+    await socket.close();
     return port;
   });
 }
