@@ -18,12 +18,12 @@ abstract class DNS {
   Cache? cache;
 
   DNS({required this.config, required this.type}) {
-    enabledCache = getValue(config, 'enabledCache', false);
+    enabledCache = getValue(config, 'cache.enable', false);
     dnsServerAddress = getValue(config, 'address', '');
     dnsServerPort = getValue(config, 'port', 443);
     ttl = getValue(config, 'ttl', 18000);
     type = getValue(config, 'type', 'doh');
-    cacheSize = getValue(config, 'cacheSize', 500);
+    cacheSize = getValue(config, 'cache.size', 1000);
 
     if (dnsServerAddress == '') {
       throw Exception('required dnsServerAddress.');

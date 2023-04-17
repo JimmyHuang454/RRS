@@ -1,8 +1,4 @@
-import 'dart:io';
-
-import 'package:maxminddb/maxminddb.dart';
 import 'package:quiver/collection.dart';
-import 'package:dns_client/dns_client.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/utils/utils.dart';
