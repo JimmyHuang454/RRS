@@ -13,7 +13,6 @@ class WSRRSServerScoket extends RRSServerSocket {
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
     var temp = (serverSocket as HttpServer).listen((httpClient) async {
-      devPrint(httpClient.uri.path);
       if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
         var wsSocket = await WebSocketTransformer.upgrade(httpClient);
         onData!(RRSSocket(socket: wsSocket));

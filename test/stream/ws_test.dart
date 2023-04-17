@@ -4,24 +4,7 @@ import 'package:test/test.dart';
 
 import 'package:proxy/transport/client/ws.dart';
 import 'package:proxy/transport/server/ws.dart';
-import 'package:proxy/transport/client/tcp.dart';
-import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
-
-class ServerBind {
-  Future<ServerSocket> bind(dynamic host, dynamic port) async {
-    return ServerSocket.bind(host, port);
-  }
-}
-
-class ClientConnect {
-  Future<Socket> connect(dynamic host, dynamic port) async {
-    return Socket.connect(host, port);
-  }
-}
-
-var serverBind = ServerBind();
-var clientConnect = ClientConnect();
 
 void main() {
   eventTest(dynamic serverConfig, dynamic clientConfig) async {
@@ -70,8 +53,8 @@ void main() {
     await delay(2);
     expect(isClientReceived, true);
     expect(clientListenClosed, true);
-    expect(clientDone, false);
-    expect(serverListenDone, false);
+    expect(clientDone, true);
+    expect(serverListenDone, true);
     expect(serverClosed, false);
 
     await client.close();
@@ -85,18 +68,16 @@ void main() {
     expect(serverClosed, true);
   } //}}}
 
-  test('dart tcp client and dart tcp server.', () async {
+  test('RRS ws and RRS ws server. With path.', () async {
     //{{{
-    await eventTest(serverBind, clientConnect);
-  }); //}}}
+    var path = '';
+    var server = WSServer(config: {
+      'setting': {'path': path}
+    });
 
-  test('RRS tcp client and dart tcp server.', () async {
-    //{{{
-    await eventTest(serverBind, TCPClient(config: {}));
-  }); //}}}
-
-  test('RRS tcp and RRS tcp server.', () async {
-    //{{{
-    await eventTest(TCPServer(config: {}), TCPClient(config: {}));
+    var client = WSClient(config: {
+      'setting': {'path': path}
+    });
+    await eventTest(server, client);
   }); //}}}
 }
