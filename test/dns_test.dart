@@ -32,5 +32,22 @@ void main() {
 
     res = await cache.resolve2('baidu.com');
     expect(temp, res);
+
+    var isError = false;
+    try {
+      entry({
+        'dns': {
+          'cache2': {
+            'type': 'doh',
+            'address': '',
+            'cache': {'enable': true}
+          }
+        }
+      });
+    } catch (_) {
+      isError = true;
+    }
+
+    expect(isError, true);
   });
 }
