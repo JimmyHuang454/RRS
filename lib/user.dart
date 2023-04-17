@@ -5,34 +5,20 @@ class Traffic {
 
 class User {
   int lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
-  int uplinkByte = 0;
-  int downlinkByte = 0;
-  bool isPermitted = false;
-
-  String getAllInfo() {
-    return '';
-  }
+  Traffic traffic = Traffic();
 
   void addUplink(int nr) {
-    uplinkByte += nr;
+    traffic.uplink += nr;
     lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   }
 
   void addDownlink(int nr) {
-    downlinkByte += nr;
+    traffic.downlink += nr;
     lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   }
 
   void clearTraffic() {
-    uplinkByte = 0;
-    downlinkByte = 0;
-  }
-
-  void disable() {
-    isPermitted = false;
-  }
-
-  void enable() {
-    isPermitted = true;
+    traffic.downlink = 0;
+    traffic.uplink = 0;
   }
 }

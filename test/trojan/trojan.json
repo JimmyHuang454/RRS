@@ -1,21 +1,4 @@
-// get proxy request from 127.0.0.1:5454 then transmit it to 127.0.0.1:5453 by http outbound.
 {
-  "outStream": {
-    "tcp": {
-      "protocol": "tcp"
-    },
-    "ws": {
-      "protocol": "ws"
-    }
-  },
-  "inStream": {
-    "tcp": {
-      "protocol": "tcp"
-    },
-    "ws": {
-      "protocol": "ws"
-    }
-  },
   "inbounds": {
     "HTTPIn": {
       "protocol": "http",
@@ -23,17 +6,7 @@
         "address": "127.0.0.1",
         "port": 5455
       },
-      "route": "out",
-      "inStream": "tcp"
-    },
-    "HTTPIn_ws": {
-      "protocol": "http",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5455
-      },
-      "route": "out_ws",
-      "inStream": "tcp"
+      "route": "out"
     },
     "TrojanIn": {
       "protocol": "trojan",
@@ -44,66 +17,28 @@
         "tunnelPort": 1,
         "password": "123"
       },
-      "route": "freedom",
-      "inStream": "tcp"
-    },
-    "TrojanIn_ws": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5454,
-        "tunnelAddress": "1",
-        "tunnelPort": 1,
-        "password": "123"
-      },
-      "route": "freedom",
-      "inStream": "ws"
+      "route": "freedom"
     }
   },
   "outbounds": {
-    "freedom": {
-      "protocol": "freedom",
-      "outStream": "tcp"
-    },
-    "block": {
-      "protocol": "block"
-    },
     "TrojanOut": {
       "protocol": "trojan",
       "setting": {
         "address": "127.0.0.1",
         "port": 5454,
         "password": "123"
-      },
-      "outStream": "tcp"
-    },
-    "TrojanOut_ws": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5454,
-        "password": "123"
-      },
-      "outStream": "ws"
+      }
     }
   },
   "routes": {
-    "freedom": {
-      "rules": [{
-        "domain": ["baidu.com"],
-        "outbound": "block"
-      }, {
-        "outbound": "freedom"
-      }]
-    },
     "out": {
       "rules": [{
         "outbound": "TrojanOut"
       }]
     },
-    "out_ws": {
+    "freedom": {
       "rules": [{
-        "outbound": "TrojanOut_ws"
+        "outbound": "freedom"
       }]
     }
   }

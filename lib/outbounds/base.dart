@@ -30,7 +30,7 @@ abstract class OutboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = getValue(config, 'tag', '');
-    outStreamTag = getValue(config, 'outStream', '');
+    outStreamTag = getValue(config, 'outStream', 'tcp');
     outAddress = getValue(config, 'setting.address', '');
     outPort = getValue(config, 'setting.port', 0);
 

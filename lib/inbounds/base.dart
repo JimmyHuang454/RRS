@@ -164,7 +164,7 @@ abstract class InboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = config['tag'];
-    inStream = getValue(config, 'inStream', '');
+    inStream = getValue(config, 'inStream', 'tcp');
     route = getValue(config, 'route', '');
     inAddress = getValue(config, 'setting.address', '');
     inPort = getValue(config, 'setting.port', 0);

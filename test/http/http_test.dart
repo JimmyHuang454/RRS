@@ -18,9 +18,10 @@ void main() {
     entry(config);
 
     var httpServer = await ServerSocket.bind(host, serverPort);
+    var msg = 'Hello world'.codeUnits;
     httpServer.listen(
       (event) {
-        event.add('Hello world'.codeUnits);
+        event.add(msg);
         event.close();
       },
     );
