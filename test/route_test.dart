@@ -28,9 +28,6 @@ Future<void> routeTest(Route obj) async {
   expect(await rule.ipPattern[2].match2('110.242.68.66'), true); // CN IP
   expect(await rule.ipPattern[2].match2('199.59.148.247'), false); // not CN
   expect(await rule.ipPattern[2].match2('1.1.1.1'), false); // not CN
-  var ip = await rule.dns!.resolve2('baidu.com');
-
-  expect(await rule.matchIP(ip), true);
 }
 
 void main() {

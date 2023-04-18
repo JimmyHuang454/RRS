@@ -53,6 +53,7 @@ class Link {
   void closeAll() {
     closeServer();
     closeClient();
+    user!.linkCount -= 1;
   }
 
   void clientAdd(List<int> data) {
@@ -120,6 +121,7 @@ class Link {
     });
 
     connectTime!.stop();
+    user!.linkCount += 1;
     logger.info(
         'Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
     return true;

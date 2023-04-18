@@ -4,10 +4,9 @@ import 'package:dcache/dcache.dart';
 import 'package:dns_client/dns_client.dart';
 import 'package:proxy/utils/utils.dart';
 
+// such as 'udp://1.1.1.1:53', 'tcp://1.1.1.1:80'
 abstract class DNS {
   Map<String, dynamic> config;
-
-  // such as 'udp://1.1.1.1:53', 'tcp://1.1.1.1:80'
   String? dnsServerAddress;
   int? dnsServerPort;
   String type; // udp, tcp, doh
@@ -51,7 +50,6 @@ abstract class DNS {
         return cachedRes;
       }
     }
-
 
     res = await resolve(domain);
 

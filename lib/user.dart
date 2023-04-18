@@ -6,6 +6,7 @@ class Traffic {
 class User {
   int lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   Traffic traffic = Traffic();
+  int linkCount = 0;
 
   void addUplink(int nr) {
     traffic.uplink += nr;

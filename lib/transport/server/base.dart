@@ -10,7 +10,7 @@ class RRSServerSocket {
 
   RRSServerSocket({required this.serverSocket});
 
-  void close() async {
+  Future<void> close() async {
     await serverSocket.close();
   }
 

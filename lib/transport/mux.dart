@@ -130,8 +130,8 @@ class RRSServerSocketMux extends RRSServerSocket {
   }
 
   @override
-  void close() {
-    rrsServerSocket.close();
+  Future<void> close() async {
+    await rrsServerSocket.close();
   }
 } //}}}
 

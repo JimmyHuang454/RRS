@@ -90,18 +90,5 @@
         "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
       }
     }
-  },
-  "dns": {
-    "case1": [{
-      "type": "map",
-      "domain": "google.com",
-      "address": ["127.0.0.1"]
-    }, {
-      "type": "doh",
-      "address": "https://doh.pub/dns-query"
-    }, {
-      "type": "udp",
-      "address": "1.1.1.1"
-    }]
   }
 }

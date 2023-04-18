@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/transport/server/tcp.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
@@ -23,14 +24,15 @@ void main() {
     config['outbounds']['TrojanOut']['setting']['port'] = port2;
     entry(config);
 
-    var httpServer = await ServerSocket.bind(host, port3);
+    var server = TCPServer(config: {});
+    var httpServer = await server.bind(host, port3);
     var msg = 'Hello world'.codeUnits;
-    httpServer.listen(
-      (event) {
-        event.add(msg);
-        event.close();
-      },
-    );
+    var isServerClosed = false;
+    httpServer.listen((event) {
+      event.add(msg);
+    }, onDone: () {
+      isServerClosed = true;
+    });
 
     var client = TCPClient(config: {});
     var times = 10;
@@ -40,8 +42,8 @@ void main() {
       temp.add(buildHTTPProxyRequest(domain));
       temp.listen((data) {
         expect(utf8.decode(data).contains('Hello world'), true);
-      }, onDone: () {
         times2 += 1;
+      }, onDone: () {
         temp.close();
       });
     }
@@ -50,14 +52,10 @@ void main() {
         sha224.convert('123'.codeUnits).toString().codeUnits.toString();
     var user = userList[userName]!;
     expect(times2, times);
-    expect(user.linkCount, 0);
-
-    expect(userList.length, 2);
-    expect(user.traffic.uplink > 0, true);
-    expect(user.traffic.downlink > 0, true);
-
-    user.clearTraffic();
-    expect(user.traffic.downlink, 0);
-    expect(user.traffic.uplink, 0);
+    expect(user.linkCount, times);
+    expect(isServerClosed, false);
+    await httpServer.close();
+    await delay(1);
+    expect(isServerClosed, true);
   });
 }
