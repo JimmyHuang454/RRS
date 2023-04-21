@@ -148,7 +148,7 @@
         ]
       }, {
         "outbound": ["trojan_outbound2", "trojan_outbound2"],
-        "domain": ["google", "twitter", "instagram", "facebook"]
+        "domain": ["google", "twitter", "instagram", "facebook", "youtube", 'github']
       }, {
         "outbound": "freedom",
         "ip": [{

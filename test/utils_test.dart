@@ -121,4 +121,9 @@ void main() {
     expect(c.get('1'), true);
     expect(c.get('2'), null);
   });
+
+  test('test random String', () {
+    var temp = generateRandomString(10);
+    expect(temp.length, 10);
+  });
 }
