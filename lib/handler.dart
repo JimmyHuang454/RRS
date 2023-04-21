@@ -1,5 +1,4 @@
-import 'package:proxy/dns/dns.dart';
-import 'package:proxy/route/mmdb.dart';
+
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
@@ -8,6 +7,7 @@ import 'package:proxy/transport/client/h2.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/h2.dart';
 import 'package:proxy/transport/server/tcp.dart';
+import 'package:proxy/transport/server/ws.dart';
 
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/inbounds/http.dart';
@@ -20,12 +20,15 @@ import 'package:proxy/outbounds/block.dart';
 import 'package:proxy/outbounds/http.dart';
 import 'package:proxy/outbounds/trojan.dart';
 
+import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/route/route.dart';
-import 'package:proxy/transport/server/ws.dart';
 
 import 'package:proxy/utils/default_setting.dart';
 import 'package:proxy/utils/utils.dart';
+
 import 'package:proxy/obj_list.dart';
+
+import 'package:proxy/dns/dns.dart';
 
 import 'transport/mux.dart';
 

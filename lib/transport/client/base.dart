@@ -61,17 +61,16 @@ class TransportClient {
   String protocolName;
   Map<String, dynamic> config;
 
-  late Socket socket;
+  Socket? socket;
   List<dynamic> streamSubscription = [];
 
   // TLS
-  late bool useTLS;
+  bool? useTLS;
   late bool allowInsecure;
   late bool useSystemRoot;
   late List<String> supportedProtocols;
 
-  late int connectionTimeout;
-  late Duration timeout;
+  Duration? timeout;
   late SecurityContext securityContext;
   late bool isMux;
   late int maxThread;
@@ -92,21 +91,21 @@ class TransportClient {
     }
     muxPassword = getValue(config, 'mux.password', '');
 
-    connectionTimeout = getValue(config, 'connectionTimeout', 100);
+    var connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);
   }
 
   Future<RRSSocket> connect(host, int port) async {
-    if (useTLS) {
+    if (useTLS!) {
       socket = await SecureSocket.connect(host, port,
           context: securityContext,
           supportedProtocols: supportedProtocols,
           onBadCertificate: onBadCertificate,
-          timeout: timeout);
+          timeout: timeout!);
     } else {
       socket = await Socket.connect(host, port, timeout: timeout);
     }
-    return RRSSocket(socket: socket);
+    return RRSSocket(socket: socket!);
   }
 
   bool onBadCertificate(X509Certificate certificate) {

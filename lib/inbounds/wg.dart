@@ -21,8 +21,6 @@ class HandshakeInitiation {
 
   HandshakeInitiation(
       {required this.unencryptedEphemeral,
-      // required this.encryptedStatic,
-      // required this.encryptedTimestamp,
       required this.mac2,
       required this.mac1}){
     senderIndex = 0;
@@ -40,9 +38,9 @@ class WGRequest extends Link {
 
 class TrojanIn extends InboundStruct {
   List<int> pwdSHA224 = [];
-  late String password;
-  late String tunnelAddress;
-  late int tunnelPort;
+  String? password;
+  String? tunnelAddress;
+  int? tunnelPort;
 
   TrojanIn({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
@@ -55,7 +53,7 @@ class TrojanIn extends InboundStruct {
         tunnelAddress == '') {
       throw 'trojan required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
     }
-    pwdSHA224 = sha224.convert(password.codeUnits).toString().codeUnits;
+    pwdSHA224 = sha224.convert(password!.codeUnits).toString().codeUnits;
   }
 
   @override

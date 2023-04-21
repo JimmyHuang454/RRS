@@ -18,6 +18,7 @@ class TrojanRequest extends Link {
       {required super.client,
       required super.inboundStruct,
       required this.pwdSHA224}) {
+
     client.listen((data) async {
       if (isTunnel) {
         passToTunnel(data);
@@ -117,9 +118,9 @@ class TrojanRequest extends Link {
 
 class TrojanIn extends InboundStruct {
   List<int> pwdSHA224 = [];
-  late String password;
-  late String tunnelAddress;
-  late int tunnelPort;
+  String? password;
+  String? tunnelAddress;
+  int? tunnelPort;
 
   TrojanIn({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
@@ -132,7 +133,7 @@ class TrojanIn extends InboundStruct {
         tunnelAddress == '') {
       throw 'trojan required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
     }
-    pwdSHA224 = sha224.convert(password.codeUnits).toString().codeUnits;
+    pwdSHA224 = sha224.convert(password!.codeUnits).toString().codeUnits;
   }
 
   @override

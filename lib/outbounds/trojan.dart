@@ -90,7 +90,6 @@ class TrojanOut extends OutboundStruct {
 
   bool isBalancer = false;
   bool redirected = false;
-  late Link link;
 
   TrojanOut({required super.config})
       : super(protocolName: 'trojan', protocolVersion: '1') {
