@@ -25,7 +25,7 @@ class WSClient extends TransportClient {
       address = '$host:$port/$path';
     }
 
-    if (useTLS) {
+    if (useTLS!) {
       address = 'wss://$address';
     } else {
       address = 'ws://$address';

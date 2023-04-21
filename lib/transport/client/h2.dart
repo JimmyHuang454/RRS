@@ -136,7 +136,7 @@ class H2Client extends TransportClient {
       address = '$host:$port/$path';
     }
 
-    if (useTLS) {
+    if (useTLS!) {
       address = 'https://$address';
     } else {
       address = 'http://$address';

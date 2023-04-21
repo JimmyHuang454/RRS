@@ -10,7 +10,7 @@ void main() {
     expect(res.useTLS, false);
     expect(res.allowInsecure, false);
     expect(res.useSystemRoot, true);
-    expect(res.connectionTimeout, 100);
+    expect(res.timeout!.inSeconds, 100);
     expect(res.supportedProtocols, ['http/1.1']);
 
     expect(outStreamList.containsKey('TCPClient'), true);
