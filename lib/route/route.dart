@@ -182,7 +182,7 @@ class RouteRule {
       }
 
       if (ipPattern.isNotEmpty && ip == '') {
-        ip = await dns!.resolve2(domain);
+        ip = await dns!.resolveWithCache(domain);
         link.targetIP = ip;
         if (!await matchIP(ip)) {
           return false;

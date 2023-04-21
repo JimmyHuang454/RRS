@@ -8,31 +8,34 @@ void main() {
       'dns': {
         'cache': {
           'type': 'doh',
-          'address': 'https://cloudflare-dns.com/dns-query',
+          'address': 'https://doh.pub/dns-query',
           'cache': {'enable': true}
         }
       }
     });
-    var doh = dnsList['cloudflare']!;
+    var doh = dnsList['txDOH']!;
 
     expect(doh.type, 'doh');
     expect(doh.enabledCache, false);
-    var res = await doh.resolve2('');
+    var res = await doh.resolveWithCache('');
     expect(res, '');
-    res = await doh.resolve2('baidu.com');
+    res = await doh.resolveWithCache('baidu.com');
     expect(res != '', true);
 
     var cache = dnsList['cache']!;
     expect(cache.enabledCache, true);
-    res = await cache.resolve2('');
+    res = await cache.resolveWithCache('');
     expect(res, '');
-    var temp = await cache.resolve2('baidu.com');
-    expect(temp != '', true);
+    var res2 = await cache.resolveWithCache('baidu.com');
+    expect(res2 != '', true);
     expect(cache.cache!.length, 1);
+    expect(cache.cache!.get('baidu.com'), res2);
 
-    res = await cache.resolve2('baidu.com');
-    expect(temp, res);
+    res = await cache.resolveWithCache('baidu.com');
+    expect(res, res2);
+  });
 
+  test('dns missing address.', () {
     var isError = false;
     try {
       entry({

@@ -37,9 +37,7 @@ abstract class DNS {
 
   Future<String> resolve(String domain);
 
-  Future<String> resolve2(String domain) async {
-    String res;
-
+  Future<String> resolveWithCache(String domain) async {
     if (domain == '') {
       return '';
     }
@@ -51,7 +49,7 @@ abstract class DNS {
       }
     }
 
-    res = await resolve(domain);
+    var res = await resolve(domain);
 
     if (enabledCache!) {
       cache!.set(domain, res);
@@ -63,7 +61,10 @@ abstract class DNS {
 class DoH extends DNS {
   DnsOverHttps? dnsOverHttps;
   DoH({required super.config}) : super(type: 'doh') {
-    dnsOverHttps = DnsOverHttps(dnsServerAddress!);
+    var timeout = getValue(config, 'timeout', 10);
+
+    dnsOverHttps =
+        DnsOverHttps(dnsServerAddress!, timeout: Duration(seconds: timeout));
   }
 
   @override
@@ -72,7 +73,6 @@ class DoH extends DNS {
       return '';
     }
     List<InternetAddress> record;
-    record = await dnsOverHttps!.lookup(domain);
 
     try {
       record = await dnsOverHttps!.lookup(domain);

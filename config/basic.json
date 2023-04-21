@@ -138,7 +138,14 @@
     "proxy": {
       "rules": [{
         "outbound": "freedom",
-        "domain": ["regex:.*.cn", "php", "hohovod.com", "192.168", "melogin.cn", "172.168"]
+        "domain": [
+          "regex:.*.cn",
+          "php",
+          "hohovod.com",
+          "192.168",
+          "melogin.cn",
+          "172.168",
+        ]
       }, {
         "outbound": ["trojan_outbound2", "trojan_outbound2"],
         "domain": ["google", "twitter", "instagram", "facebook"]
@@ -169,7 +176,7 @@
     "txDOH": {
       "address": "https://doh.pub/dns-query",
       "cache": {
-        "enabled": true
+        "enable": true
       }
     }
   }
