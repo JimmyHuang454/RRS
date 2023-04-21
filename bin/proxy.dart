@@ -10,12 +10,11 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 
-late Map<String, dynamic> config;
-
-Future<void> loadConfig(path) async {
+Future<Map<String, dynamic>> loadConfig(path) async {
   var configFile = File(path);
   var temp = await configFile.readAsString();
-  config = (JSON5.parse(temp) as Map<String, dynamic>);
+  var config = (JSON5.parse(temp) as Map<String, dynamic>);
+  return config;
 }
 
 void setLoggerLevel(String debugLevelStr) {
@@ -37,10 +36,8 @@ void setLoggerLevel(String debugLevelStr) {
   });
 }
 
-void main(List<String> argument) async {
-  ////////////////
-  //  argument  //
-  ////////////////
+// return config path.
+String loadArgv(List<String> argument) {
   var argsParser = ArgParser();
   var root = getRunningDir();
 
@@ -52,26 +49,17 @@ void main(List<String> argument) async {
   argsParser.addOption('debug_level',
       defaultsTo: 'debug', allowed: ['debug', 'info', 'none']);
 
-  argsParser.addOption('ipdb',
-      defaultsTo: '$root/ip.mmdb', help: 'database for ip region.');
-
   var args = argsParser.parse(argument);
+  var configPath = args['config_path'];
 
-  ////////////
-  //  init  //
-  ////////////
   setLoggerLevel(args['debug_level']);
 
-  // root
   logger.config('Running at: $root');
-
-  // load config.
-  var configPath = args['config_path'];
   logger.config('Using config at: $configPath');
-  await loadConfig(configPath);
+  return configPath;
+}
 
-  ////////////
-  //  main  //
-  ////////////
-  entry(config);
+void main(List<String> argument) async {
+  // load config, parse it and run main process.
+  entry(await loadConfig(loadArgv(argument)));
 }
