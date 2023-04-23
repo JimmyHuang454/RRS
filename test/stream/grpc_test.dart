@@ -34,31 +34,47 @@ void main() {
     var port = await getUnusedPort(InternetAddress(host));
     var s = await server.bind(host, port);
 
+    var serverDoneTimes = 0;
+    var serverErrorTimes = 0;
+
     s.listen(
       (inClient) {
         inClient.listen((event) {
           inClient.add(event);
-        }, onDone: (() {}));
+          inClient.close();
+        }, onDone: () {
+          serverDoneTimes += 1;
+        }, onError: (e, r) {
+          serverErrorTimes += 1;
+        });
       },
     );
 
     var msg = 'f'.codeUnits;
-    var times = 10;
+    var times = 1;
     var time = 0;
-    for (var i = 0; i < 10; ++i) {
+    var doneTimes = 0;
+    var errorTimes = 0;
+    for (var i = 0; i < times; ++i) {
       var c = await client.connect(host, port);
-      c.listen(
-        (event) {
-          expect(event, msg);
-          time += 1;
-        },
-      );
+      c.listen((event) {
+        expect(event, msg);
+        time += 1;
+      }, onDone: () {
+        doneTimes += 1;
+      }, onError: (e, r) {
+        errorTimes += 1;
+      });
       c.add(msg);
+      c.close();
     }
 
-    await delay(1);
-    expect(times, time);
+    await delay(3);
+    expect(time, times);
+    expect(doneTimes, times);
+    expect(errorTimes, 0);
 
-    await delay(1);
+    expect(serverDoneTimes, times);
+    expect(serverErrorTimes, 0);
   }); //}}}
 }
