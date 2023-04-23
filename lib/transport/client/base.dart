@@ -128,13 +128,19 @@ class RRSSocketBase extends RRSSocket {
         onData!(data);
       }, onDone: () {
         isClosed = true;
-        onDone!();
+        if (onDone != null) {
+          onDone();
+        }
       }, onError: (e, s) {
         isClosed = true;
-        onError!(e, s);
+        if (onError != null) {
+          onError(e, s);
+        }
       });
     }, ((e, s) {
-      onError!(e, s);
+      if (onError != null) {
+        onError(e, s);
+      }
       devPrint(e);
     }));
   }

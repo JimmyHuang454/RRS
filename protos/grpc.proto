@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "io.grpc.RRS.transport";
+option java_outer_classname = "RRSTransport";
+option objc_class_prefix = "RRSTransport";
+
+package RRSTransport;
+
+service RRS{
+    rpc Connect(stream StreamMsg) returns (stream StreamMsg);
+}
+ 
+message StreamMsg{
+    bytes data = 1;
+}

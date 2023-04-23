@@ -1,8 +1,10 @@
 import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/transport/client/grpc.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
 
 import 'package:proxy/transport/server/base.dart';
+import 'package:proxy/transport/server/grpc.dart';
 import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/transport/server/ws.dart';
 
@@ -33,6 +35,8 @@ TransportClient _buildOutStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return WSClient(config: config);
+  } else if (protocol == 'grpc') {
+    return GRPCClient(config: config);
   }
   return TCPClient(config: config);
 } //}}}
@@ -51,6 +55,8 @@ TransportServer _buildInStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return WSServer(config: config);
+  } else if (protocol == 'grpc') {
+    return GRPCServer(config: config);
   }
   return TCPServer(config: config);
 } //}}}
