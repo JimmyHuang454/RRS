@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
@@ -90,10 +91,15 @@ class HTTPIn extends InboundStruct {
   Future<void> bind() async {
     var server = await transportServer!.bind(inAddress, inPort);
 
-    server.listen((client) {
-      HTTPRequest(client: client, inboundStruct: this);
-    }, onError: (e) {
-      print(e);
-    }, onDone: () {});
+    runZonedGuarded(() {
+      server.listen((client) {
+        HTTPRequest(client: client, inboundStruct: this);
+      }, onError: (e) {
+        print(e);
+      });
+    }, ((e, s) {
+      devPrint('bind : $e');
+      devPrint('bind : $s');
+    }));
   }
 }

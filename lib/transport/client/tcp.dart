@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class TCPRRSSocket extends RRSSocket {
   Socket socket;
@@ -24,8 +26,13 @@ class TCPRRSSocket extends RRSSocket {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    socket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: true);
+    runZonedGuarded(() {
+      socket.listen(onData,
+          onError: onError, onDone: onDone, cancelOnError: true);
+    }, ((e, s) {
+      onError!(e, s);
+      devPrint(e);
+    }));
   }
 }
 

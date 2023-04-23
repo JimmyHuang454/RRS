@@ -26,8 +26,14 @@ class WSRRSSocket extends RRSSocket {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    socket.listen(onData as dynamic,
-        onError: onError, onDone: onDone, cancelOnError: true);
+    runZonedGuarded(() {
+      socket.listen((data) {
+        onData!((data as Uint8List));
+      }, onError: onError, onDone: onDone, cancelOnError: true);
+    }, ((e, s) {
+      onError!(e, s);
+      devPrint(e);
+    }));
   }
 }
 
@@ -60,6 +66,6 @@ class WSClient extends TransportClient {
 
     outAddress = address;
     outPort = port;
-    return WSRRSSocket(socket: ws);
+    return RRSSocketBase(rrsSocket: WSRRSSocket(socket: ws));
   }
 }

@@ -39,10 +39,7 @@ class TransportClient {
   List<String>? supportedProtocols;
 
   Duration? timeout;
-  late SecurityContext securityContext;
-  late bool isMux;
-  late int maxThread;
-  late String muxPassword;
+  SecurityContext? securityContext;
 
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
@@ -53,13 +50,6 @@ class TransportClient {
     if (temp != ['']) {
       supportedProtocols = temp;
     }
-
-    isMux = getValue(config, 'mux.enabled', false);
-    maxThread = getValue(config, 'mux.maxThread', 8);
-    if (isMux && (maxThread <= 0 || maxThread > 255)) {
-      throw "maxThread should more than 0 and len than 255 .";
-    }
-    muxPassword = getValue(config, 'mux.password', '');
 
     var connectionTimeout = getValue(config, 'connectionTimeout', 100);
     timeout = Duration(seconds: connectionTimeout);
@@ -125,9 +115,6 @@ class RRSSocketBase extends RRSSocket {
 
   @override
   void close() {
-    if (isClosed) {
-      return;
-    }
     isClosed = true;
     rrsSocket.close();
   }
@@ -135,24 +122,21 @@ class RRSSocketBase extends RRSSocket {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    rrsSocket.listen((data) {
-      traffic.downlink += data.length;
-      onData!(data);
-    }, onDone: () {
-      isClosed = true;
-      onDone!();
-    }, onError: (e, s) {
-      isClosed = true;
+    runZonedGuarded(() {
+      rrsSocket.listen((data) {
+        traffic.downlink += data.length;
+        onData!(data);
+      }, onDone: () {
+        isClosed = true;
+        onDone!();
+      }, onError: (e, s) {
+        isClosed = true;
+        onError!(e, s);
+      });
+    }, ((e, s) {
       onError!(e, s);
-    });
-    // runZonedGuarded(() {
-    // }, (e, s) {
-    //   if (onError != null) {
-    //     onError(e);
-    //     devPrint(e);
-    //     devPrint(s);
-    //   }
-    // });
+      devPrint(e);
+    }));
   }
 
   @override

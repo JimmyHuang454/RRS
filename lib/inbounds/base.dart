@@ -63,8 +63,8 @@ class Link {
   void serverAdd(List<int> data) {
     if (server != null) {
       server!.add(data);
-      user!.addUplink(data.length);
     }
+    user!.addUplink(data.length);
   }
 
   void bindUser() {
@@ -102,6 +102,12 @@ class Link {
     }, onError: (e) {
       closeAll();
     });
+
+    server!.done!.then(
+      (value) {
+        serverDone();
+      },
+    );
 
     connectTime!.stop();
     outboundStruct!.linkCount += 1;
