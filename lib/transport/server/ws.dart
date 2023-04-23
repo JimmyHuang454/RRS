@@ -1,26 +1,32 @@
 import 'dart:io';
 
+import 'package:proxy/transport/client/ws.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class WSRRSServerScoket extends RRSServerSocket {
+class TCPRRSServerSocket extends RRSServerSocket {
+  HttpServer httpServer;
   String path;
 
-  WSRRSServerScoket({super.serverSocket, required this.path});
+  TCPRRSServerSocket({required this.httpServer, required this.path});
+
+  @override
+  Future<void> close() async {
+    await httpServer.close();
+  }
 
   @override
   void listen(void Function(RRSSocket event)? onData,
       {Function? onError, void Function()? onDone}) {
-    var temp = (serverSocket as HttpServer).listen((httpClient) async {
+    httpServer.listen((httpClient) async {
       if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
         var wsSocket = await WebSocketTransformer.upgrade(httpClient);
-        onData!(RRSSocket(socket: wsSocket));
+        onData!(WSRRSSocket(socket: wsSocket));
       } else {
         httpClient.response.close();
       }
     }, onError: onError, onDone: onDone, cancelOnError: true);
-    streamSubscription.add(temp);
   }
 }
 
@@ -35,6 +41,6 @@ class WSServer extends TransportServer {
   @override
   Future<RRSServerSocket> bind(address, int port) async {
     httpServer = await HttpServer.bind(address, port);
-    return WSRRSServerScoket(serverSocket: httpServer, path: path!);
+    return TCPRRSServerSocket(httpServer: httpServer, path: path!);
   }
 }

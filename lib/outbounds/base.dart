@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:proxy/transport/mux.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -23,7 +22,7 @@ abstract class OutboundStruct {
   String realOutAddress = '';
   int realOutPort = 0;
 
-  late MuxClient _muxClient;
+  TransportClient? transportClient;
 
   OutboundStruct(
       {required this.protocolName,
@@ -42,19 +41,15 @@ abstract class OutboundStruct {
     }
 
     if (protocolName != 'block') {
-      _muxClient = outStreamList[outStreamTag]!;
+      transportClient = outStreamList[outStreamTag]!;
     }
-  }
-
-  MuxClient getClient() {
-    return _muxClient;
   }
 
   Future<RRSSocket> newConnect(Link l) async {
     realOutAddress = l.targetAddress!.address;
     realOutPort = l.targetport;
     return Connect(
-        rrsSocket: await getClient().connect(realOutAddress, realOutPort),
+        rrsSocket: await transportClient!.connect(realOutAddress, realOutPort),
         link: l,
         outboundStruct: this);
   }

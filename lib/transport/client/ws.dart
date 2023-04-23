@@ -1,12 +1,38 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
+class WSRRSSocket extends RRSSocket {
+  WebSocket socket;
+
+  WSRRSSocket({required this.socket});
+
+  @override
+  Future<dynamic>? get done => socket.done;
+
+  @override
+  void add(List<int> data) {
+    socket.add(data);
+  }
+
+  @override
+  void close() {
+    socket.close();
+  }
+
+  @override
+  void listen(void Function(Uint8List event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    socket.listen(onData as dynamic,
+        onError: onError, onDone: onDone, cancelOnError: true);
+  }
+}
+
 class WSClient extends TransportClient {
   String? path;
-  WebSocket? ws;
   Map<String, String>? header;
 
   String outAddress = '';
@@ -30,10 +56,10 @@ class WSClient extends TransportClient {
     } else {
       address = 'ws://$address';
     }
-    ws = await WebSocket.connect(address);
+    var ws = await WebSocket.connect(address);
 
     outAddress = address;
     outPort = port;
-    return RRSSocket(socket: ws!);
+    return WSRRSSocket(socket: ws);
   }
 }

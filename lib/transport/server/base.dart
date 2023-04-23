@@ -1,38 +1,17 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 
-class RRSServerSocket {
+abstract class RRSServerSocket {
   //{{{
-  dynamic serverSocket;
-  List<dynamic> streamSubscription = [];
+  RRSServerSocket();
 
-  RRSServerSocket({required this.serverSocket});
-
-  Future<void> close() async {
-    await serverSocket.close();
-  }
-
-  void clearListen() async {
-    for (var i = 0, len = streamSubscription.length; i < len; ++i) {
-      await streamSubscription[i].cancel();
-    }
-    streamSubscription = [];
-  }
+  Future<void> close();
 
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
-    runZonedGuarded(() {
-      var temp = serverSocket.listen((client) {
-        onData!(RRSSocket(socket: client));
-      }, onError: onError, onDone: onDone, cancelOnError: true);
-
-      streamSubscription.add(temp);
-    }, (e, s) {
-      onError!(e);
-    });
-  }
+      {Function? onError, void Function()? onDone});
 } //}}}
 
 class TransportServer {
@@ -65,15 +44,15 @@ class TransportServer {
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
-    dynamic serverSocket;
+    ServerSocket serverSocket;
     if (useTLS) {
-      serverSocket = await SecureServerSocket.bind(
+      serverSocket = (await SecureServerSocket.bind(
           address, port, securityContext,
-          shared: false);
+          shared: false)) as ServerSocket;
     } else {
       serverSocket = await ServerSocket.bind(address, port, shared: false);
     }
 
-    return RRSServerSocket(serverSocket: serverSocket);
+    return TCPRRSServerSocket(serverSocket: serverSocket);
   }
 } //}}}

@@ -88,7 +88,7 @@ class HTTPIn extends InboundStruct {
 
   @override
   Future<void> bind() async {
-    var server = await getServer().bind(inAddress, inPort);
+    var server = await transportServer!.bind(inAddress, inPort);
 
     server.listen((client) {
       HTTPRequest(client: client, inboundStruct: this);

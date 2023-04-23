@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:proxy/outbounds/base.dart';
-import 'package:proxy/transport/mux.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -124,12 +124,8 @@ class Link {
 
   String buildLinkInfo() {
     if (linkInfo == '') {
-      var isMux = '';
-      if (outboundStruct!.getClient().transportClient.isMux) {
-        isMux = ':mux';
-      }
       linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.getClient().transportClient.protocolName}$isMux>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.realOutAddress}:${outboundStruct!.realOutPort}}";
+          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.realOutAddress}:${outboundStruct!.realOutPort}}";
     }
     return '$linkInfo (${createdTime.elapsed})';
   }
@@ -151,7 +147,7 @@ abstract class InboundStruct {
   Map<String, dynamic> config;
 
   int totalClient = 0;
-  late MuxServer _muxServer;
+  TransportServer? transportServer;
 
   InboundStruct(
       {required this.protocolName,
@@ -170,14 +166,10 @@ abstract class InboundStruct {
     if (!inStreamList.containsKey(inStream)) {
       throw 'wrong inStream tag named "$inStream"';
     }
-    _muxServer = inStreamList[inStream]!;
+    transportServer = inStreamList[inStream]!;
   }
 
   Future<void> bind();
-
-  MuxServer getServer() {
-    return _muxServer;
-  }
 
   Future<OutboundStruct> doRoute(Link link) async {
     if (!routeList.containsKey(route)) {

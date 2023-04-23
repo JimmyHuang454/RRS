@@ -4,45 +4,24 @@ import 'dart:typed_data';
 
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
-class RRSSocket {
+abstract class RRSSocket {
   //{{{
-  dynamic socket;
   bool isClosed = false;
-
   Traffic traffic = Traffic();
+  Future<dynamic>? done;
 
-  RRSSocket({required this.socket});
+  RRSSocket();
 
-  void add(List<int> data) {
-    if (isClosed) {
-      return;
-    }
-    traffic.uplink += data.length;
-    socket.add(data);
-  }
+  void add(List<int> data);
 
-  void close() {
-    isClosed = true;
-    socket.close();
-  }
+  void close();
 
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
-    runZonedGuarded(() {
-      socket.listen((data) {
-        onData!(data);
-        traffic.downlink += (data as Uint8List).length;
-      }, onDone: onDone, onError: onError, cancelOnError: true);
-    }, (e, s) {
-      isClosed = true;
-      onError!(e);
-    });
-  }
-
-  Future<dynamic> get done => socket.done;
+      {Function? onError, void Function()? onDone});
 } //}}}
 
 class TransportClient {
@@ -51,7 +30,6 @@ class TransportClient {
   String protocolName;
   Map<String, dynamic> config;
 
-  Socket? socket;
   List<dynamic> streamSubscription = [];
 
   // TLS
@@ -88,6 +66,7 @@ class TransportClient {
   }
 
   Future<RRSSocket> connect(host, int port) async {
+    Socket socket;
     if (useTLS!) {
       socket = await SecureSocket.connect(host, port,
           context: securityContext,
@@ -97,7 +76,7 @@ class TransportClient {
     } else {
       socket = await Socket.connect(host, port, timeout: timeout);
     }
-    return RRSSocket(socket: socket!);
+    return RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
   }
 
   bool onBadCertificate(X509Certificate certificate) {
@@ -117,9 +96,9 @@ class Connect extends RRSSocketBase {
 
   @override
   void close() {
-    rrsSocket.close();
-    outboundStruct.traffic.uplink += rrsSocket.traffic.uplink;
-    outboundStruct.traffic.downlink += rrsSocket.traffic.downlink;
+    super.close();
+    outboundStruct.traffic.uplink += super.traffic.uplink;
+    outboundStruct.traffic.downlink += super.traffic.downlink;
   }
 } //}}}
 
@@ -127,33 +106,55 @@ class RRSSocketBase extends RRSSocket {
   //{{{
   RRSSocket rrsSocket;
 
-  RRSSocketBase({required this.rrsSocket}) : super(socket: rrsSocket.socket);
+  RRSSocketBase({required this.rrsSocket});
 
   @override
   bool get isClosed => rrsSocket.isClosed;
-
-  @override
-  dynamic get socket => rrsSocket.socket;
 
   @override
   Traffic get traffic => rrsSocket.traffic;
 
   @override
   void add(List<int> data) {
+    if (isClosed) {
+      return;
+    }
+    traffic.uplink += data.length;
     rrsSocket.add(data);
   }
 
   @override
   void close() {
+    if (isClosed) {
+      return;
+    }
+    isClosed = true;
     rrsSocket.close();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
-    rrsSocket.listen(onData, onDone: onDone, onError: onError);
+    rrsSocket.listen((data) {
+      traffic.downlink += data.length;
+      onData!(data);
+    }, onDone: () {
+      isClosed = true;
+      onDone!();
+    }, onError: (e, s) {
+      isClosed = true;
+      onError!(e, s);
+    });
+    // runZonedGuarded(() {
+    // }, (e, s) {
+    //   if (onError != null) {
+    //     onError(e);
+    //     devPrint(e);
+    //     devPrint(s);
+    //   }
+    // });
   }
 
   @override
-  Future<dynamic> get done => rrsSocket.done;
+  Future<dynamic>? get done => rrsSocket.done;
 } //}}}

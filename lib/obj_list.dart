@@ -2,13 +2,14 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/route/route.dart';
+import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
 
 import 'dns/dns.dart';
-import 'transport/mux.dart';
 
-Map<String, MuxClient> outStreamList = {};
-Map<String, MuxServer> inStreamList = {};
+Map<String, TransportClient> outStreamList = {};
+Map<String, TransportServer> inStreamList = {};
 
 Map<String, OutboundStruct> outboundsList = {};
 Map<String, InboundStruct> inboundsList = {};

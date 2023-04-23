@@ -8,13 +8,13 @@ class User {
   Traffic traffic = Traffic();
   int linkCount = 0;
 
-  void addUplink(int nr) {
-    traffic.uplink += nr;
+  void addUplink(int count) {
+    traffic.uplink += count;
     lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   }
 
-  void addDownlink(int nr) {
-    traffic.downlink += nr;
+  void addDownlink(int count) {
+    traffic.downlink += count;
     lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   }
 

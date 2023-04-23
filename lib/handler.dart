@@ -1,11 +1,8 @@
-
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
-import 'package:proxy/transport/client/h2.dart';
 
 import 'package:proxy/transport/server/base.dart';
-import 'package:proxy/transport/server/h2.dart';
 import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/transport/server/ws.dart';
 
@@ -30,24 +27,20 @@ import 'package:proxy/obj_list.dart';
 
 import 'package:proxy/dns/dns.dart';
 
-import 'transport/mux.dart';
-
 TransportClient _buildOutStream(Map<String, dynamic> config) {
   //{{{
   var protocol = getValue(config, 'protocol', 'tcp');
 
   if (protocol == 'ws') {
     return WSClient(config: config);
-  } else if (protocol == 'h2') {
-    return H2Client(config: config);
   }
   return TCPClient(config: config);
 } //}}}
 
-MuxClient buildOutStream(String tag, Map<String, dynamic> config) {
+TransportClient buildOutStream(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = MuxClient(transportClient: _buildOutStream(config));
+  var res = _buildOutStream(config);
   outStreamList[tag] = res;
   return res;
 } //}}}
@@ -58,16 +51,14 @@ TransportServer _buildInStream(Map<String, dynamic> config) {
 
   if (protocol == 'ws') {
     return WSServer(config: config);
-  } else if (protocol == 'h2') {
-    return H2Server(config: config);
   }
   return TCPServer(config: config);
 } //}}}
 
-MuxServer buildInStream(String tag, Map<String, dynamic> config) {
+TransportServer buildInStream(String tag, Map<String, dynamic> config) {
   //{{{
   config['tag'] = tag;
-  var res = MuxServer(transportServer: _buildInStream(config));
+  var res = _buildInStream(config);
   inStreamList[tag] = res;
   return res;
 } //}}}
