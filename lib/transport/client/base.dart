@@ -10,19 +10,11 @@ import 'package:proxy/utils/utils.dart';
 class RRSSocket {
   //{{{
   dynamic socket;
-  List<dynamic> streamSubscription = [];
-  bool isClosed = false; //is remote channel closed?
+  bool isClosed = false;
 
   Traffic traffic = Traffic();
 
   RRSSocket({required this.socket});
-
-  void clearListen() async {
-    for (var i = 0, len = streamSubscription.length; i < len; ++i) {
-      await streamSubscription[i].cancel();
-    }
-    streamSubscription = [];
-  }
 
   void add(List<int> data) {
     if (isClosed) {
@@ -40,12 +32,10 @@ class RRSSocket {
   void listen(void Function(Uint8List event)? onData,
       {Function? onError, void Function()? onDone}) {
     runZonedGuarded(() {
-      var temp = socket.listen((data) {
+      socket.listen((data) {
         onData!(data);
         traffic.downlink += (data as Uint8List).length;
       }, onDone: onDone, onError: onError, cancelOnError: true);
-
-      streamSubscription.add(temp);
     }, (e, s) {
       isClosed = true;
       onError!(e);
@@ -66,9 +56,9 @@ class TransportClient {
 
   // TLS
   bool? useTLS;
-  late bool allowInsecure;
-  late bool useSystemRoot;
-  late List<String> supportedProtocols;
+  bool? allowInsecure;
+  bool? useSystemRoot;
+  List<String>? supportedProtocols;
 
   Duration? timeout;
   late SecurityContext securityContext;
@@ -81,8 +71,10 @@ class TransportClient {
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    supportedProtocols =
-        getValue(config, 'tls.supportedProtocols', ['http/1.1']);
+    var temp = getValue(config, 'tls.supportedProtocols', ['']);
+    if (temp != ['']) {
+      supportedProtocols = temp;
+    }
 
     isMux = getValue(config, 'mux.enabled', false);
     maxThread = getValue(config, 'mux.maxThread', 8);
@@ -109,7 +101,7 @@ class TransportClient {
   }
 
   bool onBadCertificate(X509Certificate certificate) {
-    return allowInsecure;
+    return allowInsecure!;
   }
 } //}}}
 
@@ -144,15 +136,7 @@ class RRSSocketBase extends RRSSocket {
   dynamic get socket => rrsSocket.socket;
 
   @override
-  List get streamSubscription => rrsSocket.streamSubscription;
-
-  @override
   Traffic get traffic => rrsSocket.traffic;
-
-  @override
-  void clearListen() {
-    rrsSocket.clearListen();
-  }
 
   @override
   void add(List<int> data) {

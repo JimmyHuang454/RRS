@@ -18,7 +18,7 @@ abstract class OutboundStruct {
   int outPort = 0;
   Traffic traffic = Traffic();
 
-  int linkNr = 0;
+  int linkCount = 0;
 
   String realOutAddress = '';
   int realOutPort = 0;

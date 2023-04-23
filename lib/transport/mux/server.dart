@@ -41,12 +41,6 @@ class MuxServerHandler extends MuxClientHandler {
       devPrint('mux server listen: $e');
       closeAll();
     });
-
-    rrsSocket.done.then((value) {
-      rrsSocket.clearListen();
-    }, onError: (e) {
-      rrsSocket.clearListen();
-    });
   }
 
   @override

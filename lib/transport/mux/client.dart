@@ -23,12 +23,6 @@ class MuxClientHandler extends MuxHandler {
     }, onError: (e) {
       closeAll();
     });
-
-    rrsSocket.done.then((value) {
-      rrsSocket.clearListen();
-    }, onError: (e) {
-      rrsSocket.clearListen();
-    });
   }
 
   void closeAll() {

@@ -53,7 +53,6 @@ class Link {
   void closeAll() {
     closeServer();
     closeClient();
-    user!.linkCount -= 1;
   }
 
   void clientAdd(List<int> data) {
@@ -96,8 +95,6 @@ class Link {
 
     bindUser();
 
-    outboundStruct!.linkNr += 1;
-
     server!.listen((event) {
       clientAdd(event);
     }, onDone: () {
@@ -106,33 +103,23 @@ class Link {
       closeAll();
     });
 
-    client.done.then((value) {
-      client.clearListen();
-    }, onError: (e) {
-      client.clearListen();
-    });
-
-    server!.done.then((e) {
-      server!.clearListen();
-      serverDone();
-    }, onError: (e) {
-      server!.clearListen();
-      serverDone();
-    });
-
     connectTime!.stop();
+    outboundStruct!.linkCount += 1;
     user!.linkCount += 1;
+
     logger.info(
         'Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
     return true;
   }
 
   void serverDone() {
-    outboundStruct!.linkNr -= 1;
+    user!.linkCount -= 1;
+    outboundStruct!.linkCount -= 1;
+
     logger.info(
         'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
-        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkNr}');
+        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkCount}');
   }
 
   String buildLinkInfo() {
