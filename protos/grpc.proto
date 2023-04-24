@@ -1,16 +1,16 @@
+// protoc --dart_out=grpc:lib/transport/grpc -Iprotos protos/grpc.proto
+
 syntax = "proto3";
 
-option java_multiple_files = true;
-option java_package = "io.grpc.RRS.transport";
-option java_outer_classname = "RRSTransport";
-option objc_class_prefix = "RRSTransport";
+package v2ray.core.transport.internet.grpc.encoding;
+option csharp_namespace = "V2Ray.Core.Transport.Internet.Grpc.Encoding";
+option go_package = "github.com/v2fly/v2ray-core/v5/transport/internet/grpc/encoding";
+option java_package = "com.v2ray.core.transport.internet.grpc.encoding";
 
-package RRSTransport;
-
-service RRS{
-    rpc Connect(stream StreamMsg) returns (stream StreamMsg);
+message Hunk {
+  bytes data = 1;
 }
- 
-message StreamMsg{
-    bytes data = 1;
+
+service GunService {
+  rpc Tun (stream Hunk) returns (stream Hunk);
 }

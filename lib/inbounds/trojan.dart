@@ -18,7 +18,6 @@ class TrojanRequest extends Link {
       {required super.client,
       required super.inboundStruct,
       required this.pwdSHA224}) {
-
     client.listen((data) async {
       if (isTunnel) {
         passToTunnel(data);
@@ -29,7 +28,7 @@ class TrojanRequest extends Link {
       } else {
         serverAdd(data);
       }
-    }, onError: (e) {
+    }, onError: (e, s) {
       closeAll();
     }, onDone: () async {
       closeAll();
@@ -140,9 +139,9 @@ class TrojanIn extends InboundStruct {
   Future<void> bind() async {
     var server = await transportServer!.bind(inAddress, inPort);
 
-    server.listen((client) async {
+    server.listen((client) {
       TrojanRequest(client: client, inboundStruct: this, pwdSHA224: pwdSHA224);
-    }, onError: (e) {
+    }, onError: (e, r) {
       print(e);
     }, onDone: () {});
   }

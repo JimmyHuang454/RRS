@@ -17,7 +17,7 @@ class HTTPRequest extends Link {
       } else {
         await parse(data);
       }
-    }, onError: (e) {
+    }, onError: (e, s) {
       closeServer();
     }, onDone: () {
       closeServer();
@@ -94,12 +94,11 @@ class HTTPIn extends InboundStruct {
     runZonedGuarded(() {
       server.listen((client) {
         HTTPRequest(client: client, inboundStruct: this);
-      }, onError: (e) {
+      }, onError: (e, s) {
         print(e);
       });
     }, ((e, s) {
       devPrint('bind : $e');
-      devPrint('bind : $s');
     }));
   }
 }

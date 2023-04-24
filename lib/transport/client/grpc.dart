@@ -4,24 +4,26 @@ import 'package:grpc/grpc.dart';
 
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/grpc/grpc.pbgrpc.dart';
+import 'package:proxy/utils/utils.dart';
 
 class GRPCSocket extends RRSSocket {
-  StreamController<StreamMsg> to;
-  Stream<StreamMsg> from;
+  StreamController<Hunk> to;
+
+  Stream<Hunk> from;
 
   GRPCSocket({required this.to, required this.from});
 
   @override
   void add(List<int> data) {
-    to.add(StreamMsg(data: data));
+    to.add(Hunk(data: data));
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone, cancelOnError = true}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     from.listen((event) {
       onData!(Uint8List.fromList(event.data));
-    }, onDone: onDone, onError: onError, cancelOnError: cancelOnError);
+    }, onDone: onDone, onError: onError, cancelOnError: true);
   }
 
   @override
@@ -37,7 +39,7 @@ class GRPCClient extends TransportClient {
   ClientChannel? clientChannel;
   ChannelCredentials? channelCredentials;
   ChannelOptions? channelOptions;
-  RRSClient? rrsClient;
+  GunServiceClient? rrsClient;
 
   GRPCClient({required super.config}) : super(protocolName: 'grpc') {
     if (useTLS!) {
@@ -45,15 +47,21 @@ class GRPCClient extends TransportClient {
     } else {
       channelCredentials = ChannelCredentials.insecure();
     }
-    channelOptions = ChannelOptions(credentials: channelCredentials!);
+    var idleTimeout = getValue(config, 'idleTimeout', 10);
+    var connectTime = getValue(config, 'connectTime', 10);
+    channelOptions = ChannelOptions(
+        credentials: channelCredentials!,
+        idleTimeout: Duration(seconds: idleTimeout),
+        // codecRegistry: CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
+        connectionTimeout: Duration(seconds: connectTime));
   }
 
   @override
   Future<RRSSocket> connect(host, int port) async {
-    final contr = StreamController<StreamMsg>();
+    final contr = StreamController<Hunk>();
     clientChannel = ClientChannel(host, port: port, options: channelOptions!);
-    rrsClient = RRSClient(clientChannel!);
-    var from = rrsClient!.connect(contr.stream);
+    rrsClient = GunServiceClient(clientChannel!);
+    var from = rrsClient!.tun(contr.stream);
 
     return RRSSocketBase(rrsSocket: GRPCSocket(to: contr, from: from));
   }

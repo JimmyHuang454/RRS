@@ -51,7 +51,7 @@ void main() {
     );
 
     var msg = 'f'.codeUnits;
-    var times = 1;
+    var times = 10;
     var time = 0;
     var doneTimes = 0;
     var errorTimes = 0;

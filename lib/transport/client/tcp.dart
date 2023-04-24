@@ -25,7 +25,7 @@ class TCPRRSSocket extends RRSSocket {
 
   @override
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e,dynamic s)? onError, void Function()? onDone}) {
     runZonedGuarded(() {
       socket.listen(onData,
           onError: onError, onDone: onDone, cancelOnError: true);

@@ -25,13 +25,12 @@ class WSRRSSocket extends RRSSocket {
 
   @override
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     runZonedGuarded(() {
       socket.listen((data) {
-        onData!((data as Uint8List));
+        onData!(data as Uint8List);
       }, onError: onError, onDone: onDone, cancelOnError: true);
     }, ((e, s) {
-      onError!(e, s);
       devPrint(e);
     }));
   }

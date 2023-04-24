@@ -37,7 +37,7 @@ class HTTPOut extends OutboundStruct {
         } else {
           streamController.add(1); // created
         }
-      }, onError: (e) {
+      }, onError: (e, s) {
         streamController.add(0);
       });
       conn.add(

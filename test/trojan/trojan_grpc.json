@@ -1,0 +1,57 @@
+{
+  "inbounds": {
+    "HTTPIn": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "route": "out"
+    },
+    "TrojanIn": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "tunnelAddress": "1",
+        "tunnelPort": 1,
+        "password": "123"
+      },
+      "inStream": "grpc",
+      "route": "freedom"
+    }
+  },
+  "outbounds": {
+    "TrojanOut": {
+      "protocol": "trojan",
+      "outStream": "grpc",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5454,
+        "password": "123"
+      }
+    }
+  },
+  "routes": {
+    "out": {
+      "rules": [{
+        "outbound": "TrojanOut"
+      }]
+    },
+    "freedom": {
+      "rules": [{
+        "outbound": "freedom"
+      }]
+    }
+  },
+  "outStream": {
+    "grpc": {
+      "protocol": "grpc"
+    }
+  },
+  "inStream": {
+    "grpc": {
+      "protocol": "grpc"
+    }
+  }
+}

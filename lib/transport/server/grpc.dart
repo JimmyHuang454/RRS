@@ -27,14 +27,14 @@ class GRPCServerScoket extends RRSServerSocket {
   }
 }
 
-class RRSService extends RRSServiceBase {
+class RRSService extends GunServiceBase {
   StreamController<RRSSocket> streamController;
 
   RRSService({required this.streamController});
 
   @override
-  Stream<StreamMsg> connect(ServiceCall call, Stream<StreamMsg> request) {
-    final contr = StreamController<StreamMsg>();
+  Stream<Hunk> tun(ServiceCall call, Stream<Hunk> request) {
+    final contr = StreamController<Hunk>();
     streamController
         .add(RRSSocketBase(rrsSocket: GRPCSocket(to: contr, from: request)));
     return contr.stream;

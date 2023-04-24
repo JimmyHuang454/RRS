@@ -13,37 +13,37 @@ import 'package:grpc/service_api.dart' as $grpc;
 import 'grpc.pb.dart' as $0;
 export 'grpc.pb.dart';
 
-class RRSClient extends $grpc.Client {
-  static final _$connect = $grpc.ClientMethod<$0.StreamMsg, $0.StreamMsg>(
-      '/RRSTransport.RRS/Connect',
-      ($0.StreamMsg value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.StreamMsg.fromBuffer(value));
+class GunServiceClient extends $grpc.Client {
+  static final _$tun = $grpc.ClientMethod<$0.Hunk, $0.Hunk>(
+      '/v2ray.core.transport.internet.grpc.encoding.GunService/Tun',
+      ($0.Hunk value) => value.writeToBuffer(),
+      ($core.List<$core.int> value) => $0.Hunk.fromBuffer(value));
 
-  RRSClient($grpc.ClientChannel channel,
+  GunServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
       $core.Iterable<$grpc.ClientInterceptor>? interceptors})
       : super(channel, options: options, interceptors: interceptors);
 
-  $grpc.ResponseStream<$0.StreamMsg> connect(
-      $async.Stream<$0.StreamMsg> request,
+  $grpc.ResponseStream<$0.Hunk> tun($async.Stream<$0.Hunk> request,
       {$grpc.CallOptions? options}) {
-    return $createStreamingCall(_$connect, request, options: options);
+    return $createStreamingCall(_$tun, request, options: options);
   }
 }
 
-abstract class RRSServiceBase extends $grpc.Service {
-  $core.String get $name => 'RRSTransport.RRS';
+abstract class GunServiceBase extends $grpc.Service {
+  $core.String get $name =>
+      'v2ray.core.transport.internet.grpc.encoding.GunService';
 
-  RRSServiceBase() {
-    $addMethod($grpc.ServiceMethod<$0.StreamMsg, $0.StreamMsg>(
-        'Connect',
-        connect,
+  GunServiceBase() {
+    $addMethod($grpc.ServiceMethod<$0.Hunk, $0.Hunk>(
+        'Tun',
+        tun,
         true,
         true,
-        ($core.List<$core.int> value) => $0.StreamMsg.fromBuffer(value),
-        ($0.StreamMsg value) => value.writeToBuffer()));
+        ($core.List<$core.int> value) => $0.Hunk.fromBuffer(value),
+        ($0.Hunk value) => value.writeToBuffer()));
   }
 
-  $async.Stream<$0.StreamMsg> connect(
-      $grpc.ServiceCall call, $async.Stream<$0.StreamMsg> request);
+  $async.Stream<$0.Hunk> tun(
+      $grpc.ServiceCall call, $async.Stream<$0.Hunk> request);
 }

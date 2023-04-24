@@ -99,7 +99,7 @@ class Link {
       clientAdd(event);
     }, onDone: () {
       closeAll();
-    }, onError: (e) {
+    }, onError: (e, s) {
       closeAll();
     });
 

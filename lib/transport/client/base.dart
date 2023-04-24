@@ -21,7 +21,7 @@ abstract class RRSSocket {
   void close();
 
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone});
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone});
 } //}}}
 
 class TransportClient {
@@ -121,7 +121,7 @@ class RRSSocketBase extends RRSSocket {
 
   @override
   void listen(void Function(Uint8List event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     rrsSocket.listen((data) {
       traffic.downlink += data.length;
       onData!(data);
@@ -132,6 +132,7 @@ class RRSSocketBase extends RRSSocket {
       }
     }, onError: (e, s) {
       isClosed = true;
+      devPrint(e);
       if (onError != null) {
         onError(e, s);
       }
