@@ -163,7 +163,7 @@
           "size": 2000
         }
       }, {
-        "outbound": ["trojan_outbound", "tojan_outbound"]
+        "outbound": ["trojan_outbound", "trojan_outbound"]
       }]
     }
   },

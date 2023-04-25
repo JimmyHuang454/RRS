@@ -115,6 +115,9 @@ class RRSSocketBase extends RRSSocket {
 
   @override
   void close() {
+    if (isClosed) {
+      return;
+    }
     isClosed = true;
     rrsSocket.close();
   }

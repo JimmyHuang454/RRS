@@ -103,18 +103,12 @@ class Link {
       closeAll();
     });
 
-    client.done!.then((value) {
-      serverDone();
-    }, onError: (e, s) {
-      serverDone();
-      closeAll();
-    });
-
     server!.done!.then((value) {
+      closeAll();
       serverDone();
     }, onError: (e, s) {
-      serverDone();
       closeAll();
+      serverDone();
     });
 
     connectTime!.stop();
