@@ -126,12 +126,15 @@ class TrojanIn extends InboundStruct {
     password = getValue(config, 'setting.password', '');
     tunnelAddress = getValue(config, 'setting.tunnelAddress', '');
     tunnelPort = getValue(config, 'setting.tunnelPort', 0);
-    if (inAddress == '' ||
-        inPort == 0 ||
-        password == '' ||
-        tunnelAddress == '') {
-      throw 'trojan required "address", "port", "tunnelAddress", "tunnelPort" and "password" in config.';
+    if (password == '' || inPort == 0 || inAddress == '') {
+      throw 'trojan required "password", "address" and "port" in config.';
     }
+
+    if (tunnelAddress == '' || tunnelPort == 0) {
+      logger.config(
+          "tunnelAddress and tunnelPort should be filled to avoid detection.");
+    }
+
     pwdSHA224 = sha224.convert(password!.codeUnits).toString().codeUnits;
   }
 
