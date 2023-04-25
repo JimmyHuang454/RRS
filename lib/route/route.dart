@@ -15,6 +15,7 @@ class RouteRule {
   List<List<int>> allowedUser = [];
   List<Pattern> ipPattern = [];
   List<Pattern> domainPattern = [];
+  List<Pattern> portPattern = [];
 
   DNS? dns;
 
@@ -37,6 +38,7 @@ class RouteRule {
     buildUser();
     buildDomainPattern();
     buildIPPattern();
+    buildPortPattern();
 
     buildCache(); // after build pattern.
     buildDNS();
@@ -82,6 +84,18 @@ class RouteRule {
         continue;
       }
       allowedUser.add(sha224.convert(allowedUserTemp[i]).toString().codeUnits);
+    }
+  }
+
+  void buildPortPattern() {
+    List<dynamic> portList = getValue(config, 'port', ['']);
+
+    if (listsEqual(portList, [''])) {
+      portList = [];
+    }
+
+    for (var i = 0, len = portList.length; i < len; ++i) {
+      portPattern.add(PortPattern(pattern: portList[i]));
     }
   }
 
@@ -148,24 +162,16 @@ class RouteRule {
     return false;
   }
 
-  Future<bool> patternMatch(String pattern, List<Pattern> patternList) async {
-    if (pattern == '') {
-      return false;
-    }
-
-    for (var i = 0, len = patternList.length; i < len; ++i) {
-      var res = await patternList[i].match2(pattern);
-      if (res) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   Future<bool> match(Link link) async {
     // false means not match.
 
     if (allowedUser.isNotEmpty && !matchAllowedUser(link)) {
+      return false;
+    }
+
+    if (portPattern.isNotEmpty &&
+        link.targetport != 0 &&
+        !await matchPort(link.targetport.toString())) {
       return false;
     }
 
@@ -193,12 +199,30 @@ class RouteRule {
     return true;
   }
 
+  Future<bool> matchPort(String input) async {
+    return await patternMatch(input, portPattern);
+  }
+
   Future<bool> matchDomain(String input) async {
     return await patternMatch(input, domainPattern);
   }
 
   Future<bool> matchIP(String input) async {
     return await patternMatch(input, ipPattern);
+  }
+
+  Future<bool> patternMatch(String pattern, List<Pattern> patternList) async {
+    if (pattern == '') {
+      return false;
+    }
+
+    for (var i = 0, len = patternList.length; i < len; ++i) {
+      var res = await patternList[i].match2(pattern);
+      if (res) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

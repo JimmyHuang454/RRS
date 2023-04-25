@@ -116,3 +116,31 @@ class IPCIDRPattern extends Pattern {
     return cidriPv4.include(inputPattern);
   }
 }
+
+class PortPattern extends Pattern {
+  int start = 0;
+  int end = 0;
+
+  PortPattern({required super.pattern}) : super(type: 'port') {
+    var temp = pattern.split('-');
+    if (temp.length == 2) {
+      start = int.parse(temp[0]);
+      end = int.parse(temp[1]);
+    } else if (temp.length == 1) {
+      start = end = int.parse(temp[0]);
+    }
+
+    if (start <= 0 || end <= 0) {
+      throw "port can not be negaive.";
+    }
+  }
+
+  @override
+  Future<bool> match(String inputPattern) async {
+    var temp = int.parse(inputPattern);
+    if (temp < 0) {
+      return false;
+    }
+    return start <= temp && temp <= end;
+  }
+}

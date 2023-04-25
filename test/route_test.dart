@@ -179,15 +179,50 @@ void main() {
 
   test('require dbName', () async {
     try {
-      entry({
-        "outbound": "freedom",
-        "ip": [
-          {"ipdb": "geoip", "type": "CN"}
+      buildRoute('test', {
+        "rules": [
+          {
+            "outbound": "freedom",
+            "ip": [
+              {"ipdb": "geoip", "type": "CN"}
+            ],
+            "cache": {"enabled": true, "size": 2000}
+          }
         ],
-        "cache": {"enabled": true, "size": 2000}
       });
     } catch (e) {
+      print(e);
       expect(e.toString().contains('ipdb'), true);
     }
+  });
+
+  test('port matcher', () async {
+    buildRoute('test', {
+      'rules': [
+        {
+          "outbound": "freedom",
+          "port": ['123', '3-10']
+        }
+      ]
+    });
+    var rule = routeList['test']!.rules[0];
+    expect(rule.portPattern.length, 2);
+
+    var p1 = rule.portPattern[0];
+    expect(await p1.match('-1'), false);
+    expect(await p1.match('0'), false);
+    expect(await p1.match('122'), false);
+    expect(await p1.match('124'), false);
+    expect(await p1.match('123'), true);
+
+
+    var p2 = rule.portPattern[1];
+    expect(await p1.match('-1'), false);
+    expect(await p2.match('0'), false);
+    expect(await p2.match('2'), false);
+    expect(await p2.match('11'), false);
+    expect(await p2.match('3'), true);
+    expect(await p2.match('10'), true);
+    expect(await p2.match('5'), true);
   });
 }

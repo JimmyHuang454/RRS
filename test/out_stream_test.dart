@@ -12,7 +12,8 @@ void main() {
     expect(res.useSystemRoot, true);
     expect(res.timeout!.inSeconds, 100);
 
-    expect(outStreamList.containsKey('TCPClient'.toLowerCase()), true);
-    expect(outStreamList.containsKey('tCPClient'.toLowerCase()), false);
+    expect(outStreamList.containsKey('TCPClient'), true);
+    expect(outStreamList.containsKey('tcpcLIENT'.toLowerCase()), false);
+    expect(outStreamList.containsKey('abc'.toLowerCase()), false);
   });
 }
