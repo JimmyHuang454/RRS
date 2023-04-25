@@ -176,4 +176,18 @@ void main() {
     await routeTest(routeList['test_route']!);
     await routeTest(routeList['test_route_cached']!);
   });
+
+  test('require dbName', () async {
+    try {
+      entry({
+        "outbound": "freedom",
+        "ip": [
+          {"ipdb": "geoip", "type": "CN"}
+        ],
+        "cache": {"enabled": true, "size": 2000}
+      });
+    } catch (e) {
+      expect(e.toString().contains('ipdb'), true);
+    }
+  });
 }
