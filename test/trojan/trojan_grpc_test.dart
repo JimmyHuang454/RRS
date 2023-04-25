@@ -20,7 +20,7 @@ void main() {
     var domain = '$host:$port3';
     config['inbounds']['HTTPIn']['setting']['port'] = port1;
     config['inbounds']['TrojanIn']['setting']['port'] = port2;
-    config['outbounds']['TrojanOut']['setting']['port'] = 10001;
+    config['outbounds']['TrojanOut']['setting']['port'] = port2;
     entry(config);
 
     var httpServer = await ServerSocket.bind(host, port3);
