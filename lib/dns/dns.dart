@@ -61,7 +61,7 @@ abstract class DNS {
 class DoH extends DNS {
   DnsOverHttps? dnsOverHttps;
   DoH({required super.config}) : super(type: 'doh') {
-    var timeout = getValue(config, 'timeout', 10);
+    var timeout = getValue(config, 'timeout', 20);
 
     dnsOverHttps =
         DnsOverHttps(dnsServerAddress!, timeout: Duration(seconds: timeout));
