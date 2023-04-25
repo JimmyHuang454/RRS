@@ -104,10 +104,8 @@ class Link {
     });
 
     server!.done!.then((value) {
-      closeAll();
       serverDone();
     }, onError: (e, s) {
-      closeAll();
       serverDone();
     });
 
