@@ -122,17 +122,23 @@ class RRSSocketBase extends RRSSocket {
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    rrsSocket.listen((data) {
-      traffic.downlink += data.length;
-      onData!(data);
-    }, onDone: () {
-      isClosed = true;
-      if (onDone != null) {
-        onDone();
-      }
-    }, onError: (e, s) {
-      isClosed = true;
-      devPrint(e);
+    runZonedGuarded(() {
+      rrsSocket.listen((data) {
+        traffic.downlink += data.length;
+        onData!(data);
+      }, onDone: () {
+        isClosed = true;
+        if (onDone != null) {
+          onDone();
+        }
+      }, onError: (e, s) {
+        isClosed = true;
+        if (onError != null) {
+          onError(e, s);
+        }
+      });
+    }, (e, s) {
+      devPrint('bind : $e \n $s');
       if (onError != null) {
         onError(e, s);
       }

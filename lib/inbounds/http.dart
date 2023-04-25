@@ -105,10 +105,6 @@ class HTTPIn extends InboundStruct {
   Future<void> bind() async {
     rrsServerSocket = await transportServer!.bind(inAddress, inPort);
 
-      listen();
-    // runZonedGuarded(() {
-    // }, (e, s) {
-    //   devPrint('bind : $e \n $s');
-    // });
+    listen();
   }
 }

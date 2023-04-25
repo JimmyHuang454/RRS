@@ -22,7 +22,7 @@ class TCPRRSServerSocket extends RRSServerSocket {
     httpServer.listen((httpClient) async {
       if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
         var wsSocket = await WebSocketTransformer.upgrade(httpClient);
-        onData!(WSRRSSocket(socket: wsSocket));
+        onData!(RRSSocketBase(rrsSocket: WSRRSSocket(socket: wsSocket)));
       } else {
         httpClient.response.close();
       }

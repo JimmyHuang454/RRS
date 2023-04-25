@@ -95,16 +95,18 @@ class Link {
 
     bindUser();
 
-    runZonedGuarded(() {
-      server!.listen((event) {
-        clientAdd(event);
-      }, onDone: () {
-        closeAll();
-      }, onError: (e, s) {
-        closeAll();
-      });
-    }, (e, s) {
-      devPrint('bind : $e \n $s');
+    server!.listen((event) {
+      clientAdd(event);
+    }, onDone: () {
+      closeAll();
+    }, onError: (e, s) {
+      closeAll();
+    });
+
+    client!.done!.then((value) {
+      serverDone();
+    }, onError: (e, s) {
+      serverDone();
       closeAll();
     });
 
