@@ -54,7 +54,7 @@
         "port": 8848,
         "tunnelPort": 1,
         "tunnelAddress": "fake",
-        "password": "password",
+        "password": "password"
       },
       "inStream": "tcp_mux_instream",
       "route": "proxy"
@@ -144,11 +144,14 @@
           "hohovod.com",
           "192.168",
           "melogin.cn",
-          "172.168",
+          "172.168"
         ]
       }, {
-        "outbound": ["trojan_outbound2", "trojan_outbound2"],
-        "domain": ["google", "twitter", "instagram", "facebook", "youtube", 'github']
+        "outbound": ["trojan_outbound", "trojan_outbound"],
+        "domain": [
+          "google", "twitter",
+          "instagram", "facebook", "youtube", "github"
+        ]
       }, {
         "outbound": "freedom",
         "ip": [{
@@ -160,7 +163,7 @@
           "size": 2000
         }
       }, {
-        "outbound": ["trojan_outbound2", "trojan_outbound2"]
+        "outbound": ["trojan_outbound", "tojan_outbound"]
       }]
     }
   },

@@ -5,11 +5,11 @@ import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class TCPRRSServerSocket extends RRSServerSocket {
+class WSRRSServerSocket extends RRSServerSocket {
   HttpServer httpServer;
   String path;
 
-  TCPRRSServerSocket({required this.httpServer, required this.path});
+  WSRRSServerSocket({required this.httpServer, required this.path});
 
   @override
   Future<void> close() async {
@@ -31,7 +31,6 @@ class TCPRRSServerSocket extends RRSServerSocket {
 }
 
 class WSServer extends TransportServer {
-  late HttpServer httpServer;
   String? path;
 
   WSServer({required super.config}) : super(protocolName: 'ws') {
@@ -40,7 +39,9 @@ class WSServer extends TransportServer {
 
   @override
   Future<RRSServerSocket> bind(address, int port) async {
-    httpServer = await HttpServer.bind(address, port);
-    return TCPRRSServerSocket(httpServer: httpServer, path: path!);
+    var httpServer = await HttpServer.bind(address, port);
+    return RRSServerSocketBase(
+        rrsServerSocket:
+            WSRRSServerSocket(httpServer: httpServer, path: path!));
   }
 }

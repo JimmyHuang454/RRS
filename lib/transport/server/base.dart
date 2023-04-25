@@ -14,6 +14,31 @@ abstract class RRSServerSocket {
       {Function? onError, void Function()? onDone});
 } //}}}
 
+class RRSServerSocketBase extends RRSServerSocket {
+  RRSServerSocket rrsServerSocket;
+
+  RRSServerSocketBase({required this.rrsServerSocket});
+
+  @override
+  Future<void> close() async {
+    await rrsServerSocket.close();
+  }
+
+  @override
+  void listen(void Function(RRSSocket event)? onData,
+      {Function? onError, void Function()? onDone}) {
+    runZonedGuarded(() {
+      rrsServerSocket.listen((event) {
+        onData!(event);
+      }, onDone: onDone, onError: onError);
+    }, (e, s) {
+      if (onError != null) {
+        onError(e, s);
+      }
+    });
+  }
+}
+
 class TransportServer {
   //{{{
   String protocolName;
@@ -53,6 +78,7 @@ class TransportServer {
       serverSocket = await ServerSocket.bind(address, port, shared: false);
     }
 
-    return TCPRRSServerSocket(serverSocket: serverSocket);
+    return RRSServerSocketBase(
+        rrsServerSocket: TCPRRSServerSocket(serverSocket: serverSocket));
   }
 } //}}}

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
-import 'package:proxy/utils/utils.dart';
 
 class TCPRRSSocket extends RRSSocket {
   Socket socket;
