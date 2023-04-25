@@ -30,9 +30,11 @@ class WSRRSSocket extends RRSSocket {
       socket.listen((data) {
         onData!(data as Uint8List);
       }, onError: onError, onDone: onDone, cancelOnError: true);
-    }, ((e, s) {
-      devPrint(e);
-    }));
+    }, (e, s) {
+      if (onError != null) {
+        onError(e, s);
+      }
+    });
   }
 }
 

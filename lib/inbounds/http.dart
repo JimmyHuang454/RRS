@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/utils/utils.dart';
 
 class HTTPRequest extends Link {
@@ -80,6 +81,8 @@ class HTTPRequest extends Link {
 }
 
 class HTTPIn extends InboundStruct {
+  RRSServerSocket? rrsServerSocket;
+
   HTTPIn({required super.config})
       : super(protocolName: 'http', protocolVersion: '1.1') {
     if (inAddress == '' || inPort == 0) {
@@ -87,18 +90,25 @@ class HTTPIn extends InboundStruct {
     }
   }
 
+  void listen() {
+    rrsServerSocket!.listen((client) {
+      HTTPRequest(client: client, inboundStruct: this);
+    }, onError: (e, s) {
+      print(e);
+      print(s);
+    }, onDone: () {
+      print('done');
+    });
+  }
+
   @override
   Future<void> bind() async {
-    var server = await transportServer!.bind(inAddress, inPort);
+    rrsServerSocket = await transportServer!.bind(inAddress, inPort);
 
-    runZonedGuarded(() {
-      server.listen((client) {
-        HTTPRequest(client: client, inboundStruct: this);
-      }, onError: (e, s) {
-        print(e);
-      });
-    }, ((e, s) {
-      devPrint('bind : $e');
-    }));
+      listen();
+    // runZonedGuarded(() {
+    // }, (e, s) {
+    //   devPrint('bind : $e \n $s');
+    // });
   }
 }

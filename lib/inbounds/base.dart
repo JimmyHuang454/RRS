@@ -95,19 +95,25 @@ class Link {
 
     bindUser();
 
-    server!.listen((event) {
-      clientAdd(event);
-    }, onDone: () {
-      closeAll();
-    }, onError: (e, s) {
+    runZonedGuarded(() {
+      server!.listen((event) {
+        clientAdd(event);
+      }, onDone: () {
+        closeAll();
+      }, onError: (e, s) {
+        closeAll();
+      });
+    }, (e, s) {
+      devPrint('bind : $e \n $s');
       closeAll();
     });
 
-    server!.done!.then(
-      (value) {
-        serverDone();
-      },
-    );
+    server!.done!.then((value) {
+      serverDone();
+    }, onError: (e, s) {
+      serverDone();
+      closeAll();
+    });
 
     connectTime!.stop();
     outboundStruct!.linkCount += 1;
