@@ -103,7 +103,7 @@ class Link {
       closeAll();
     });
 
-    client!.done!.then((value) {
+    client.done!.then((value) {
       serverDone();
     }, onError: (e, s) {
       serverDone();
