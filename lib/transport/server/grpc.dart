@@ -6,6 +6,7 @@ import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/client/grpc.dart';
 
 import 'package:proxy/transport/grpc/grpc.pbgrpc.dart';
+import 'package:proxy/utils/utils.dart';
 
 class GRPCServerScoket extends RRSServerSocket {
   StreamController<RRSSocket> streamController;
@@ -30,7 +31,12 @@ class GRPCServerScoket extends RRSServerSocket {
 class RRSService extends GunServiceBase {
   StreamController<RRSSocket> streamController;
 
-  RRSService({required this.streamController});
+  String serverName;
+
+  @override
+  String get $name => serverName;
+
+  RRSService({required this.streamController, required this.serverName});
 
   @override
   Stream<Hunk> tun(ServiceCall call, Stream<Hunk> request) {
@@ -42,13 +48,19 @@ class RRSService extends GunServiceBase {
 }
 
 class GRPCServer extends TransportServer {
-  GRPCServer({required super.config}) : super(protocolName: 'grpc');
+  String? serverName;
+
+  GRPCServer({required super.config}) : super(protocolName: 'grpc') {
+    serverName = getValue(config, 'setting.serverName', 'GunService');
+  }
 
   @override
   Future<RRSServerSocket> bind(address, int port) async {
     var streamController = StreamController<RRSSocket>();
 
-    var service = [RRSService(streamController: streamController)];
+    var service = [
+      RRSService(streamController: streamController, serverName: serverName!)
+    ];
     var server = Server(service);
     await server.serve(address: address, port: port);
     return GRPCServerScoket(server: server, streamController: streamController);

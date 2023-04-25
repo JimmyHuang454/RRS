@@ -39,7 +39,8 @@ class GRPCClient extends TransportClient {
   ClientChannel? clientChannel;
   ChannelCredentials? channelCredentials;
   ChannelOptions? channelOptions;
-  GunServiceClient? rrsClient;
+  GunServiceClient? gunServiceClient;
+  String? serverName;
 
   GRPCClient({required super.config}) : super(protocolName: 'grpc') {
     if (useTLS!) {
@@ -54,14 +55,17 @@ class GRPCClient extends TransportClient {
         idleTimeout: Duration(seconds: idleTimeout),
         // codecRegistry: CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
         connectionTimeout: Duration(seconds: connectTime));
+
+    serverName = getValue(config, 'setting.serverName', 'GunService');
   }
 
   @override
   Future<RRSSocket> connect(host, int port) async {
     final contr = StreamController<Hunk>();
     clientChannel = ClientChannel(host, port: port, options: channelOptions!);
-    rrsClient = GunServiceClient(clientChannel!);
-    var from = rrsClient!.tun(contr.stream);
+    gunServiceClient =
+        GunServiceClient(clientChannel!, serverName: serverName!);
+    var from = gunServiceClient!.tun(contr.stream);
 
     return RRSSocketBase(rrsSocket: GRPCSocket(to: contr, from: from));
   }

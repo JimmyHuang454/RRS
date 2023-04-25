@@ -14,19 +14,24 @@ import 'grpc.pb.dart' as $0;
 export 'grpc.pb.dart';
 
 class GunServiceClient extends $grpc.Client {
-  static final _$tun = $grpc.ClientMethod<$0.Hunk, $0.Hunk>(
-      '/v2ray.core.transport.internet.grpc.encoding.GunService/Tun',
-      ($0.Hunk value) => value.writeToBuffer(),
-      ($core.List<$core.int> value) => $0.Hunk.fromBuffer(value));
+  $core.String serverName;
+
+  $grpc.ClientMethod<$0.Hunk, $0.Hunk>? _$tun;
 
   GunServiceClient($grpc.ClientChannel channel,
       {$grpc.CallOptions? options,
-      $core.Iterable<$grpc.ClientInterceptor>? interceptors})
-      : super(channel, options: options, interceptors: interceptors);
+      $core.Iterable<$grpc.ClientInterceptor>? interceptors,
+      required this.serverName})
+      : super(channel, options: options, interceptors: interceptors) {
+    _$tun = $grpc.ClientMethod<$0.Hunk, $0.Hunk>(
+        '/$serverName/Tun',
+        ($0.Hunk value) => value.writeToBuffer(),
+        ($core.List<$core.int> value) => $0.Hunk.fromBuffer(value));
+  }
 
   $grpc.ResponseStream<$0.Hunk> tun($async.Stream<$0.Hunk> request,
       {$grpc.CallOptions? options}) {
-    return $createStreamingCall(_$tun, request, options: options);
+    return $createStreamingCall(_$tun!, request, options: options);
   }
 }
 
