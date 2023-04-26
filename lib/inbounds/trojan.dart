@@ -144,8 +144,6 @@ class TrojanIn extends InboundStruct {
 
     server.listen((client) {
       TrojanRequest(client: client, inboundStruct: this, pwdSHA224: pwdSHA224);
-    }, onError: (e, r) {
-      print(e);
-    }, onDone: () {});
+    }, onError: (e, s) {}, onDone: () {});
   }
 }

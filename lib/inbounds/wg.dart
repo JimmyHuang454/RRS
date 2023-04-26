@@ -22,7 +22,7 @@ class HandshakeInitiation {
   HandshakeInitiation(
       {required this.unencryptedEphemeral,
       required this.mac2,
-      required this.mac1}){
+      required this.mac1}) {
     senderIndex = 0;
   }
 }
@@ -61,9 +61,10 @@ class TrojanIn extends InboundStruct {
     var server = await transportServer!.bind(inAddress, inPort);
 
     server.listen((client) async {
-      WGRequest(client: client, inboundStruct: this, );
-    }, onError: (e) {
-      print(e);
-    }, onDone: () {});
+      WGRequest(
+        client: client,
+        inboundStruct: this,
+      );
+    }, onError: (e) {}, onDone: () {});
   }
 }

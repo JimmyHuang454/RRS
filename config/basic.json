@@ -149,7 +149,7 @@
       }, {
         "outbound": ["trojan_outbound", "trojan_outbound"],
         "domain": [
-          "google", "twitter",
+          "google", "twitter","wiki",
           "instagram", "facebook", "youtube", "github"
         ]
       }, {

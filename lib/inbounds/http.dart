@@ -93,12 +93,7 @@ class HTTPIn extends InboundStruct {
   void listen() {
     rrsServerSocket!.listen((client) {
       HTTPRequest(client: client, inboundStruct: this);
-    }, onError: (e, s) {
-      print(e);
-      print(s);
-    }, onDone: () {
-      print('done');
-    });
+    }, onError: (e, s) {}, onDone: () {});
   }
 
   @override
