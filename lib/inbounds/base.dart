@@ -39,6 +39,8 @@ class Link {
 
   Stopwatch createdTime = Stopwatch()..start();
   Stopwatch routingTime = Stopwatch()..start();
+  Stopwatch? firstReceivedTime;
+  int receivedState = 0;
   Stopwatch? connectTime;
   String linkInfo = '';
 
@@ -61,12 +63,20 @@ class Link {
 
   void clientAdd(List<int> data) {
     client.add(data);
+    if (receivedState == 1) {
+      receivedState = 2;
+      firstReceivedTime!.stop();
+    }
     user!.addDownlink(data.length);
   }
 
   void serverAdd(List<int> data) {
     if (server != null) {
       server!.add(data);
+    }
+    if (firstReceivedTime == null) {
+      firstReceivedTime = Stopwatch()..start();
+      receivedState = 1;
     }
     user!.addUplink(data.length);
   }
@@ -113,12 +123,12 @@ class Link {
       serverDone();
     });
 
-    connectTime!.stop();
     outboundStruct!.linkCount += 1;
     user!.linkCount += 1;
-
     logger.info(
         'Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
+
+    connectTime!.stop();
     return true;
   }
 
@@ -127,7 +137,7 @@ class Link {
     outboundStruct!.linkCount -= 1;
 
     logger.info(
-        'Closed: ${buildLinkInfo()} [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
+        'Closed: ${buildLinkInfo()} (${firstReceivedTime!.elapsed}) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
         '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkCount}');
   }

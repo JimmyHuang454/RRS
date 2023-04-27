@@ -8,7 +8,7 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": true
+        "enable": false
       },
       "outStream": "ws_with_tls"
     }
@@ -21,7 +21,7 @@
         "port": 8080
       },
       "inStream": "tcp",
-      "route": "all"
+      "route": "proxy"
     },
     "socks5_inbound": {
       "protocol": "socks5",
