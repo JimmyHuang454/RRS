@@ -7,6 +7,52 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
+class ConnectionRes {
+  int stats = 0; // means ok.
+
+  Duration timeout;
+  dynamic error, stack;
+  RRSSocket rrsSocket;
+
+  ConnectionRes(
+      {this.timeout = const Duration(seconds: 10), required this.rrsSocket}) {
+    rrsSocket.done!.then((value) {
+      expire('server closed.', '');
+    }, onError: (e, s) {
+      expire(e, s);
+    });
+
+    Future.delayed(timeout).then(
+      (value) {
+        expire('timeout', '');
+      },
+    );
+  }
+
+  // Connection can not be used anymore.
+  void expire(dynamic e, dynamic s) {
+    error = e;
+    stack = s;
+    stats = 2;
+    rrsSocket.close();
+  }
+
+  // Connection may be timeout or closed by server, so we check before we actually use it.
+  bool isOK() {
+    if (stats != 0) {
+      return false;
+    }
+    return true;
+  }
+
+  RRSSocket take() {
+    if (!isOK()) {
+      throw error;
+    }
+    return rrsSocket;
+  }
+}
+
 abstract class OutboundStruct {
   String protocolName;
   String protocolVersion;
@@ -26,8 +72,9 @@ abstract class OutboundStruct {
   bool isFastOpen = false;
   int queueLen = 10;
   int waittingQueueLen = 0;
-  StreamQueue<RRSSocket>? fastOpenQueue;
-  StreamController<RRSSocket>? fastOpenStream;
+  Duration? fastOpenTimeout;
+  StreamQueue<ConnectionRes>? fastOpenQueue;
+  StreamController<ConnectionRes>? fastOpenStream;
 
   TransportClient? transportClient;
 
@@ -51,18 +98,24 @@ abstract class OutboundStruct {
       transportClient = outStreamList[outStreamTag]!;
     }
 
-    isFastOpen = getValue(config, 'fastopen.enable', false);
+    if (protocolName != 'freedom' && protocolName != 'block') {
+      isFastOpen = getValue(config, 'fastopen.enable', false);
+    }
+
     if (isFastOpen) {
       queueLen = getValue(config, 'fastopen.size', 10);
-      fastOpenStream = StreamController<RRSSocket>.broadcast(sync: true);
-      fastOpenQueue = StreamQueue<RRSSocket>(fastOpenStream!.stream);
+      fastOpenStream = StreamController<ConnectionRes>.broadcast(sync: true);
+      fastOpenQueue = StreamQueue<ConnectionRes>(fastOpenStream!.stream);
+      fastOpenTimeout =
+          Duration(seconds: getValue(config, 'fastopen.size', 40));
     }
   }
 
   void updateFastOpenQueue() async {
     while (waittingQueueLen < queueLen) {
       var res = await transportClient!.connect(realOutAddress, realOutPort);
-      fastOpenStream!.add(res);
+      fastOpenStream!
+          .add(ConnectionRes(timeout: fastOpenTimeout!, rrsSocket: res));
       waittingQueueLen += 1;
     }
   }
@@ -70,9 +123,19 @@ abstract class OutboundStruct {
   Future<RRSSocket> connect(dynamic host, int port) async {
     if (isFastOpen) {
       updateFastOpenQueue();
-      var res = await fastOpenQueue!.next;
-      waittingQueueLen -= 1;
-      return res;
+      ConnectionRes connectionRes;
+      while (true) {
+        try {
+          connectionRes =
+              await fastOpenQueue!.next.timeout(transportClient!.timeout!);
+          waittingQueueLen -= 1;
+          if (connectionRes.isOK()) {
+            return connectionRes.take();
+          }
+        } catch (e) {
+          throw 'timeout';
+        }
+      }
     }
     return await transportClient!.connect(host, port);
   }

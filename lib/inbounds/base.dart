@@ -63,7 +63,7 @@ class Link {
 
   void clientAdd(List<int> data) {
     client.add(data);
-    if (receivedState == 1) {
+    if (receivedState == 1 && firstReceivedTime != null) {
       receivedState = 2;
       firstReceivedTime!.stop();
     }
@@ -136,8 +136,15 @@ class Link {
     user!.linkCount -= 1;
     outboundStruct!.linkCount -= 1;
 
+    var time = '';
+    if (firstReceivedTime != null) {
+      time = firstReceivedTime!.elapsed.toString();
+    }else{
+      time = 'ERRO';
+    }
+
     logger.info(
-        'Closed: ${buildLinkInfo()} (${firstReceivedTime!.elapsed}) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
+        'Closed: ${buildLinkInfo()} ($time) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
         '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkCount}');
   }

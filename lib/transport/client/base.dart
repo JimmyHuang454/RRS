@@ -141,7 +141,7 @@ class RRSSocketBase extends RRSSocket {
         }
       });
     }, (e, s) {
-      devPrint('listen error: $e');
+      devPrint('listen error: $e \n $s');
       if (onError != null) {
         onError(e, s);
       }

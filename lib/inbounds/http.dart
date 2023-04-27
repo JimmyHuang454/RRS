@@ -99,7 +99,6 @@ class HTTPIn extends InboundStruct {
   @override
   Future<void> bind() async {
     rrsServerSocket = await transportServer!.bind(inAddress, inPort);
-
     listen();
   }
 }
