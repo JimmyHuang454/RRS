@@ -10,7 +10,7 @@
       "fastopen": {
         "enable": true,
         "size": 13,
-        "timeout": 100
+        "timeout": 5
       },
       "outStream": "ws_with_tls"
     }

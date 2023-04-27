@@ -8,7 +8,7 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
 class ConnectionRes {
-  int stats = 0; // means ok.
+  int stats = 0; // 0 means not took, 1 means took, 2 means error.
 
   Duration timeout;
   dynamic error, stack;
@@ -23,13 +23,19 @@ class ConnectionRes {
 
     Future.delayed(timeout).then(
       (value) async {
-        await expire('timeout', '');
+        if (stats == 0) {
+          // not took.
+          await expire('timeout', '');
+        }
       },
     );
   }
 
   // Connection can not be used anymore.
   Future<void> expire(dynamic e, dynamic s) async {
+    if (stats != 0) {
+      return;
+    }
     stats = 2;
     error = e;
     stack = s;
@@ -48,6 +54,7 @@ class ConnectionRes {
     if (!isOK()) {
       throw error;
     }
+    stats = 1;
     return rrsSocket;
   }
 }
@@ -134,6 +141,7 @@ abstract class OutboundStruct {
       if (connectionRes.isOK()) {
         return await connectionRes.take();
       }
+      updateFastOpenQueue();
     }
   }
 

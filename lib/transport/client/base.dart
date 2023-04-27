@@ -52,7 +52,7 @@ class TransportClient {
       supportedProtocols = temp;
     }
 
-    var connectionTimeout = getValue(config, 'connectionTimeout', 100);
+    var connectionTimeout = getValue(config, 'connectionTimeout', 10);
     timeout = Duration(seconds: connectionTimeout);
   }
 
@@ -148,7 +148,7 @@ class RRSSocketBase extends RRSSocket {
         }
       });
     }, (e, s) {
-      devPrint('listen error: $e \n $s');
+      logger.info('listen error: $e');
       if (onError != null) {
         onError(e, s);
       }
