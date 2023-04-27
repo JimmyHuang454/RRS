@@ -19,6 +19,7 @@ abstract class RRSSocket {
   void add(List<int> data);
 
   Future<void> close();
+  Future<void> clearListen() async {}
 
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone});
@@ -114,11 +115,17 @@ class RRSSocketBase extends RRSSocket {
   }
 
   @override
+  Future<void> clearListen() async {
+    await rrsSocket.clearListen();
+  }
+
+  @override
   Future<void> close() async {
     if (isClosed) {
       return;
     }
     isClosed = true;
+    await clearListen();
     await rrsSocket.close();
   }
 

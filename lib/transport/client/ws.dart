@@ -7,8 +7,17 @@ import 'package:proxy/utils/utils.dart';
 
 class WSRRSSocket extends RRSSocket {
   WebSocket webSocket;
+  StreamSubscription<dynamic>? streamSubscription;
 
   WSRRSSocket({required this.webSocket});
+
+  @override
+  Future<void> clearListen() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+    }
+    streamSubscription = null;
+  }
 
   @override
   Future<dynamic>? get done => webSocket.done;
@@ -20,13 +29,14 @@ class WSRRSSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
+    await clearListen();
     await webSocket.close();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    webSocket.listen((data) {
+    streamSubscription = webSocket.listen((data) {
       onData!(data as Uint8List);
     }, onError: onError, onDone: onDone, cancelOnError: true);
   }

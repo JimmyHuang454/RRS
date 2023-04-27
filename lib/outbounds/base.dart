@@ -44,7 +44,7 @@ class ConnectionRes {
     return true;
   }
 
-  RRSSocket take() {
+  Future<RRSSocket> take() async {
     if (!isOK()) {
       throw error;
     }
@@ -132,7 +132,7 @@ abstract class OutboundStruct {
           await fastOpenQueue!.next.timeout(transportClient!.timeout!);
       waittingQueueLen -= 1;
       if (connectionRes.isOK()) {
-        return connectionRes.take();
+        return await connectionRes.take();
       }
     }
   }

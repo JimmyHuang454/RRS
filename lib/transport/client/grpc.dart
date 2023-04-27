@@ -8,6 +8,7 @@ import 'package:proxy/utils/utils.dart';
 
 class GRPCSocket extends RRSSocket {
   StreamController<Hunk> to;
+  StreamSubscription<Hunk>? streamSubscription;
 
   Stream<Hunk> from;
 
@@ -19,15 +20,24 @@ class GRPCSocket extends RRSSocket {
   }
 
   @override
+  Future<void> clearListen() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+    }
+    streamSubscription = null;
+  }
+
+  @override
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    from.listen((event) {
+    streamSubscription = from.listen((event) {
       onData!(Uint8List.fromList(event.data));
     }, onDone: onDone, onError: onError, cancelOnError: true);
   }
 
   @override
   Future<void> close() async {
+    await clearListen();
     await to.close();
   }
 

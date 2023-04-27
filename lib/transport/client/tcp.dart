@@ -7,6 +7,8 @@ import 'package:proxy/transport/client/base.dart';
 class TCPRRSSocket extends RRSSocket {
   Socket socket;
 
+  StreamSubscription<Uint8List>? streamSubscription;
+
   TCPRRSSocket({required this.socket});
 
   @override
@@ -19,13 +21,22 @@ class TCPRRSSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
+    await clearListen();
     await socket.close();
+  }
+
+  @override
+  Future<void> clearListen() async {
+    if (streamSubscription != null) {
+      await streamSubscription!.cancel();
+    }
+    streamSubscription = null;
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    socket.listen(onData,
+    streamSubscription = socket.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: true);
   }
 }
