@@ -52,8 +52,8 @@ class GRPCClient extends TransportClient {
     // idleTimeout = getValue(config, 'idleTimeout', 3);
     // connectTime = getValue(config, 'connectTime', 1);
 
-    idleTimeout = Duration(milliseconds: 10);
-    connectTime = Duration(milliseconds: 10);
+    idleTimeout = Duration(seconds: 50);
+    connectTime = Duration(seconds: 50);
 
     serverName = getValue(config, 'setting.serviceName', 'GunService');
   }

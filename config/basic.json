@@ -5,9 +5,9 @@
       "setting": {
         "address": "uif03.top",
         "port": 443,
-        "password": "f75fdcd8-7e01-401f-b571-7000e78a2dcb"
+        "password": "17146021026"
       },
-      "outStream": "grpc_with_tls"
+      "outStream": "ws_with_tls"
     }
   },
   "inbounds": {
@@ -47,7 +47,7 @@
         "enabled": true
       },
       "setting": {
-        "path": "uif_trojan"
+        "path": "trojan_ws"
       }
     }
   },

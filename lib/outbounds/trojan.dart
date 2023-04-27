@@ -139,7 +139,7 @@ class TrojanOut extends OutboundStruct {
   Future<RRSSocket> newConnect(Link l) async {
     await handleBalance(); // init realOutAddress and realOutPort.
 
-    var temp = await transportClient!.connect(realOutAddress, realOutPort);
+    var temp = await connect(realOutAddress, realOutPort);
     var res = TrojanConnect(
         rrsSocket: temp,
         link: l,

@@ -7,6 +7,10 @@ import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
+enum StreamType { TCP, UDP }
+
+enum MethodType { GET, POST, PUT, DELETE, CONNECT }
+
 class Link {
   RRSSocket client; // in
   RRSSocket? server; // out
