@@ -6,27 +6,27 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
 class WSRRSSocket extends RRSSocket {
-  WebSocket socket;
+  WebSocket webSocket;
 
-  WSRRSSocket({required this.socket});
+  WSRRSSocket({required this.webSocket});
 
   @override
-  Future<dynamic>? get done => socket.done;
+  Future<dynamic>? get done => webSocket.done;
 
   @override
   void add(List<int> data) {
-    socket.add(data);
+    webSocket.add(data);
   }
 
   @override
-  void close() {
-    socket.close();
+  Future<void> close() async {
+    await webSocket.close();
   }
 
   @override
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    socket.listen((data) {
+    webSocket.listen((data) {
       onData!(data as Uint8List);
     }, onError: onError, onDone: onDone, cancelOnError: true);
   }
@@ -61,6 +61,6 @@ class WSClient extends TransportClient {
 
     outAddress = address;
     outPort = port;
-    return RRSSocketBase(rrsSocket: WSRRSSocket(socket: ws));
+    return RRSSocketBase(rrsSocket: WSRRSSocket(webSocket: ws));
   }
 }

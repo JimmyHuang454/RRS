@@ -8,7 +8,9 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": true
+        "enable": true,
+        "size": 13,
+        "timeout": 100
       },
       "outStream": "ws_with_tls"
     }

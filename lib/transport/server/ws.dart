@@ -22,7 +22,7 @@ class WSRRSServerSocket extends RRSServerSocket {
     httpServer.listen((httpClient) async {
       if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
         var wsSocket = await WebSocketTransformer.upgrade(httpClient);
-        onData!(RRSSocketBase(rrsSocket: WSRRSSocket(socket: wsSocket)));
+        onData!(RRSSocketBase(rrsSocket: WSRRSSocket(webSocket: wsSocket)));
       } else {
         httpClient.response.close();
       }

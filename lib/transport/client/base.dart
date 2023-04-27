@@ -18,7 +18,7 @@ abstract class RRSSocket {
 
   void add(List<int> data);
 
-  void close();
+  Future<void> close();
 
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone});
@@ -85,10 +85,10 @@ class Connect extends RRSSocketBase {
       required this.outboundStruct});
 
   @override
-  void close() {
-    super.close();
+  Future<void> close() async {
     outboundStruct.traffic.uplink += super.traffic.uplink;
     outboundStruct.traffic.downlink += super.traffic.downlink;
+    await super.close();
   }
 } //}}}
 
@@ -114,12 +114,12 @@ class RRSSocketBase extends RRSSocket {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     if (isClosed) {
       return;
     }
     isClosed = true;
-    rrsSocket.close();
+    await rrsSocket.close();
   }
 
   @override

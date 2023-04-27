@@ -31,10 +31,10 @@ class Socks5Request extends Link {
       } else {
         handleUDP(data);
       }
-    }, onError: (e, s) {
-      closeAll();
-    }, onDone: () {
-      closeAll();
+    }, onError: (e, s) async {
+      await closeAll();
+    }, onDone: () async {
+      await closeAll();
     });
   }
 
@@ -51,7 +51,7 @@ class Socks5Request extends Link {
       clientAdd(res);
       isValidRequest = true;
       if (!isConnectedServer) {
-        closeAll();
+        await closeAll();
       }
     } else if (cmd == 3) {
       // UDP TODO
@@ -83,7 +83,7 @@ class Socks5Request extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      closeAll();
+      await closeAll();
       return -1;
     }
 
@@ -115,7 +115,7 @@ class Socks5Request extends Link {
     }
 
     if (content[0] != socks5Version) {
-      closeAll();
+      await closeAll();
       return;
     }
     cmd = content[1];
@@ -144,7 +144,7 @@ class Socks5Request extends Link {
     content += data;
 
     if (content[0] != socks5Version) {
-      closeAll();
+      await closeAll();
       return;
     }
 

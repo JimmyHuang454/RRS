@@ -18,8 +18,8 @@ class TCPRRSSocket extends RRSSocket {
   }
 
   @override
-  void close() {
-    socket.close();
+  Future<void> close() async {
+    await socket.close();
   }
 
   @override

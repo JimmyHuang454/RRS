@@ -28,10 +28,10 @@ class TrojanRequest extends Link {
       } else {
         serverAdd(data);
       }
-    }, onError: (e, s) {
-      closeAll();
+    }, onError: (e, s) async {
+      await closeAll();
     }, onDone: () async {
-      closeAll();
+      await closeAll();
     });
   }
 

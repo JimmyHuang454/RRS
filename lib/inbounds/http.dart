@@ -38,7 +38,7 @@ class HTTPRequest extends Link {
     var firstLine = utf8.decode(content.sublist(0, pos2));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
-      closeAll();
+      await closeAll();
       return;
     }
     method = temp2[0];
@@ -58,7 +58,7 @@ class HTTPRequest extends Link {
     isParsed = true;
 
     if (!await bindServer()) {
-      closeAll();
+      await closeAll();
       return;
     }
 

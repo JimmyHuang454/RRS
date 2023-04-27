@@ -14,27 +14,26 @@ class ConnectionRes {
   dynamic error, stack;
   RRSSocket rrsSocket;
 
-  ConnectionRes(
-      {this.timeout = const Duration(seconds: 10), required this.rrsSocket}) {
-    rrsSocket.done!.then((value) {
-      expire('server closed.', '');
-    }, onError: (e, s) {
-      expire(e, s);
+  ConnectionRes({required this.timeout, required this.rrsSocket}) {
+    rrsSocket.done!.then((value) async {
+      await expire('server closed.', '');
+    }, onError: (e, s) async {
+      await expire(e, s);
     });
 
     Future.delayed(timeout).then(
-      (value) {
-        expire('timeout', '');
+      (value) async {
+        await expire('timeout', '');
       },
     );
   }
 
   // Connection can not be used anymore.
-  void expire(dynamic e, dynamic s) {
+  Future<void> expire(dynamic e, dynamic s) async {
+    stats = 2;
     error = e;
     stack = s;
-    stats = 2;
-    rrsSocket.close();
+    await rrsSocket.close();
   }
 
   // Connection may be timeout or closed by server, so we check before we actually use it.
@@ -70,7 +69,7 @@ abstract class OutboundStruct {
   int realOutPort = 0;
 
   bool isFastOpen = false;
-  int queueLen = 10;
+  int? queueLen;
   int waittingQueueLen = 0;
   Duration? fastOpenTimeout;
   StreamQueue<ConnectionRes>? fastOpenQueue;
@@ -103,16 +102,17 @@ abstract class OutboundStruct {
     }
 
     if (isFastOpen) {
-      queueLen = getValue(config, 'fastopen.size', 10);
+      queueLen = getValue(config, 'fastopen.size', 15);
+      fastOpenTimeout =
+          Duration(seconds: getValue(config, 'fastopen.timeout', 40));
+
       fastOpenStream = StreamController<ConnectionRes>.broadcast(sync: true);
       fastOpenQueue = StreamQueue<ConnectionRes>(fastOpenStream!.stream);
-      fastOpenTimeout =
-          Duration(seconds: getValue(config, 'fastopen.size', 40));
     }
   }
 
   void updateFastOpenQueue() async {
-    while (waittingQueueLen < queueLen) {
+    while (waittingQueueLen < queueLen!) {
       var res = await transportClient!.connect(realOutAddress, realOutPort);
       fastOpenStream!
           .add(ConnectionRes(timeout: fastOpenTimeout!, rrsSocket: res));
@@ -121,23 +121,20 @@ abstract class OutboundStruct {
   }
 
   Future<RRSSocket> connect(dynamic host, int port) async {
-    if (isFastOpen) {
-      updateFastOpenQueue();
-      ConnectionRes connectionRes;
-      while (true) {
-        try {
-          connectionRes =
-              await fastOpenQueue!.next.timeout(transportClient!.timeout!);
-          waittingQueueLen -= 1;
-          if (connectionRes.isOK()) {
-            return connectionRes.take();
-          }
-        } catch (e) {
-          throw 'timeout';
-        }
+    if (!isFastOpen) {
+      return await transportClient!.connect(host, port);
+    }
+
+    updateFastOpenQueue();
+    ConnectionRes connectionRes;
+    while (true) {
+      connectionRes =
+          await fastOpenQueue!.next.timeout(transportClient!.timeout!);
+      waittingQueueLen -= 1;
+      if (connectionRes.isOK()) {
+        return connectionRes.take();
       }
     }
-    return await transportClient!.connect(host, port);
   }
 
   Future<RRSSocket> newConnect(Link l) async {
