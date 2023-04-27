@@ -40,6 +40,8 @@ class GRPCClient extends TransportClient {
   ChannelOptions? channelOptions;
   GunServiceClient? gunServiceClient;
   String? serverName;
+  Duration? idleTimeout;
+  Duration? connectTime;
 
   GRPCClient({required super.config}) : super(protocolName: 'grpc') {
     if (useTLS!) {
@@ -47,25 +49,30 @@ class GRPCClient extends TransportClient {
     } else {
       channelCredentials = ChannelCredentials.insecure();
     }
-    var idleTimeout = getValue(config, 'idleTimeout', 10);
-    var connectTime = getValue(config, 'connectTime', 10);
-    channelOptions = ChannelOptions(
-        credentials: channelCredentials!,
-        idleTimeout: Duration(seconds: idleTimeout),
-        // codecRegistry: CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
-        connectionTimeout: Duration(seconds: connectTime));
+    // idleTimeout = getValue(config, 'idleTimeout', 3);
+    // connectTime = getValue(config, 'connectTime', 1);
 
-    serverName = getValue(config, 'setting.serverName', 'GunService');
+    idleTimeout = Duration(milliseconds: 10);
+    connectTime = Duration(milliseconds: 10);
+
+    serverName = getValue(config, 'setting.serviceName', 'GunService');
   }
 
   @override
   Future<RRSSocket> connect(host, int port) async {
     final contr = StreamController<Hunk>();
+
+    channelOptions = ChannelOptions(
+        credentials: channelCredentials!,
+        idleTimeout: idleTimeout!,
+        codecRegistry:
+            CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
+        connectionTimeout: connectTime!);
+
     var clientChannel =
         ClientChannel(host, port: port, options: channelOptions!);
     gunServiceClient = GunServiceClient(clientChannel, serverName: serverName!);
     var from = gunServiceClient!.tun(contr.stream);
-
     return RRSSocketBase(rrsSocket: GRPCSocket(to: contr, from: from));
   }
 }

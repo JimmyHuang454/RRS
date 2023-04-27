@@ -7,18 +7,13 @@ import 'package:path/path.dart';
 
 final logger = Logger('RRS');
 
-// case-insensitive.
 dynamic getValue(Map<String, dynamic> map, String key, dynamic defaultValue) {
-  key = key.toLowerCase();
   var temp = key.split('.');
   dynamic deep = map;
   for (var i = 0, len = temp.length; i < len; ++i) {
     try {
-      if (deep.containsKey(temp[i].toLowerCase())) {
+      if (deep.containsKey(temp[i])) {
         deep = deep[temp[i]];
-        if (deep.runtimeType == String) {
-          deep = (deep as String).toLowerCase();
-        }
         continue;
       }
     } catch (_) {}

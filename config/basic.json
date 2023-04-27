@@ -5,27 +5,9 @@
       "setting": {
         "address": "uif03.top",
         "port": 443,
-        "password": "password2"
+        "password": "f75fdcd8-7e01-401f-b571-7000e78a2dcb"
       },
-      "outStream": "ws_with_tls"
-    },
-    "trojan_outbound2": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "node.jimmyhuang454.com",
-        "port": 443,
-        "password": "password2"
-      },
-      "outStream": "ws_with_tls"
-    },
-    "trojan_outbound_mux": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 8848,
-        "password": "password"
-      },
-      "outStream": "tcp_mux_outstream"
+      "outStream": "grpc_with_tls"
     }
   },
   "inbounds": {
@@ -36,28 +18,7 @@
         "port": 8080
       },
       "inStream": "tcp",
-      "route": "proxy"
-    },
-    "http_inbound_mux": {
-      "protocol": "http",
-      "setting": {
-        "address": "0.0.0.0",
-        "port": 8087
-      },
-      "inStream": "tcp",
-      "route": "mux_route"
-    },
-    "trojan_inbound_mux": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 8848,
-        "tunnelPort": 1,
-        "tunnelAddress": "fake",
-        "password": "password"
-      },
-      "inStream": "tcp_mux_instream",
-      "route": "proxy"
+      "route": "all"
     },
     "socks5_inbound": {
       "protocol": "socks5",
@@ -67,32 +28,17 @@
       },
       "inStream": "tcp",
       "route": "proxy"
-    },
-    "socks5_inbound_mux": {
-      "protocol": "socks5",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 8083
-      },
-      "inStream": "tcp",
-      "route": "mux_route"
-    },
+    }
   },
   "outStream": {
-    "tcp_with_tls": {
-      "protocol": "tcp",
-      "setting": {},
+    "grpc_with_tls": {
+      "protocol": "grpc",
+      "setting": {
+        "serviceName": "qdlftrojangrpc"
+      },
       "connectionTimeout": 100,
       "tls": {
-        "enabled": true,
-      },
-    },
-    "tcp_mux_outstream": {
-      "protocol": "tcp",
-      "mux": {
-        "enabled": true,
-        "maxThread": 4,
-        "password": "123"
+        "enabled": true
       }
     },
     "ws_with_tls": {
@@ -103,36 +49,12 @@
       "setting": {
         "path": "uif_trojan"
       }
-    },
-    "ws_with_ipv6": {
-      "protocol": "ws",
-      "tls": {
-        "enabled": true
-      },
-      "setting": {
-        "path": "uif_ipv6"
-      }
-    }
-  },
-  "inStream": {
-    "tcp_mux_instream": {
-      "protocol": "tcp",
-      "mux": {
-        "enabled": true,
-        "password": "123"
-      }
     }
   },
   "routes": {
-    "allowUser": {
+    "all": {
       "rules": [{
-        "user": ["1"],
-        "outbound": "freedom"
-      }]
-    },
-    "mux_route": {
-      "rules": [{
-        "outbound": "trojan_outbound_mux"
+        "outbound": "trojan_outbound"
       }]
     },
     "proxy": {
@@ -149,7 +71,7 @@
       }, {
         "outbound": ["trojan_outbound", "trojan_outbound"],
         "domain": [
-          "google", "twitter","wiki",
+          "google", "twitter", "wiki",
           "instagram", "facebook", "youtube", "github"
         ]
       }, {
