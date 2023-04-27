@@ -7,6 +7,9 @@
         "port": 443,
         "password": "17146021026"
       },
+      "fastopen": {
+        "enable": true
+      },
       "outStream": "ws_with_tls"
     }
   },

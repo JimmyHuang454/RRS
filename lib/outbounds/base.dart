@@ -25,6 +25,7 @@ abstract class OutboundStruct {
 
   bool isFastOpen = false;
   int queueLen = 10;
+  int waittingQueueLen = 0;
   StreamQueue<RRSSocket>? fastOpenQueue;
   StreamController<RRSSocket>? fastOpenStream;
 
@@ -52,22 +53,26 @@ abstract class OutboundStruct {
 
     isFastOpen = getValue(config, 'fastopen.enable', false);
     if (isFastOpen) {
-      fastOpenStream = StreamController<RRSSocket>();
+      queueLen = getValue(config, 'fastopen.size', 10);
+      fastOpenStream = StreamController<RRSSocket>.broadcast(sync: true);
       fastOpenQueue = StreamQueue<RRSSocket>(fastOpenStream!.stream);
     }
   }
 
   void updateFastOpenQueue() async {
-    while (await fastOpenStream!.stream.length < queueLen) {
+    while (waittingQueueLen < queueLen) {
       var res = await transportClient!.connect(realOutAddress, realOutPort);
       fastOpenStream!.add(res);
+      waittingQueueLen += 1;
     }
   }
 
   Future<RRSSocket> connect(dynamic host, int port) async {
     if (isFastOpen) {
       updateFastOpenQueue();
-      return await fastOpenQueue!.next;
+      var res = await fastOpenQueue!.next;
+      waittingQueueLen -= 1;
+      return res;
     }
     return await transportClient!.connect(host, port);
   }

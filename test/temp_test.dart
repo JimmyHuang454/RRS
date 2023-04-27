@@ -1,43 +1,28 @@
 import 'dart:async';
+import 'package:async/async.dart';
 
 import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
+  var fastOpenStream = StreamController<int>.broadcast(sync: true);
+  var fastOpenQueue = StreamQueue<int>(fastOpenStream.stream);
+  void p() async {
+    devPrint(await fastOpenQueue.next);
+  }
+
   test('temp test.', () async {
-    // Create Stream
-    StreamController<int> client = StreamController<int>();
-    StreamController<int> server = StreamController<int>();
-    int nr = 60;
-// add event/data to stream controller using sink
-    client.stream.listen((data) {
-      devPrint('client.');
-      devPrint(data);
-    }, onDone: () {
-      devPrint('client ondone.');
-      server.sink.close();
-    });
+    for (var i = 0; i < 10; ++i) {
+      p();
+    }
 
-    server.sink.add(nr);
+    devPrint(fastOpenQueue.eventsDispatched);
+    await delay(2);
 
-    server.stream.listen((data) {
-      devPrint('server.');
-      client.sink.add(data);
-      client.sink.close();
-    }, onDone: () {
-      devPrint('server ondone.');
-    });
-
-    client.done.then(
-      (value) {
-        devPrint('client done.');
-      },
-    );
-
-    server.done.then(
-      (value) {
-        devPrint('server done.');
-      },
-    );
+    for (var i = 0; i < 10; ++i) {
+      fastOpenStream.add(i);
+    devPrint(fastOpenQueue.eventsDispatched);
+      await delay(1);
+    }
   });
 }
