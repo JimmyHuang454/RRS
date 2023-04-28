@@ -18,6 +18,7 @@ Session.vim
 Sessionx.vim
 ECY_config.ini
 ECY_server.log
+pubspec.lock
 
 # Temporary
 .netrwhist
