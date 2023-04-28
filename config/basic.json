@@ -8,9 +8,9 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": true,
-        "size": 13,
-        "timeout": 5
+        "enable": false,
+        "size": 10,
+        "timeout": 10
       },
       "outStream": "ws_with_tls"
     }
@@ -90,7 +90,7 @@
           "size": 2000
         }
       }, {
-        "outbound": ["trojan_outbound", "trojan_outbound"]
+        "outbound": ["trojan_outbound"]
       }]
     }
   },

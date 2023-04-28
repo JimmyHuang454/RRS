@@ -23,10 +23,7 @@ class ConnectionRes {
 
     Future.delayed(timeout).then(
       (value) async {
-        if (stats == 0) {
-          // not took.
-          await expire('timeout', '');
-        }
+        await expire('timeout', '');
       },
     );
   }
@@ -119,10 +116,16 @@ abstract class OutboundStruct {
   }
 
   void updateFastOpenQueue() async {
+    RRSSocket temp;
     while (waittingQueueLen < queueLen!) {
-      var res = await transportClient!.connect(realOutAddress, realOutPort);
+      try {
+        temp = await transportClient!.connect(realOutAddress, realOutPort);
+      } catch (e) {
+        logger.info('failed to connect: $e');
+        continue;
+      }
       fastOpenStream!
-          .add(ConnectionRes(timeout: fastOpenTimeout!, rrsSocket: res));
+          .add(ConnectionRes(timeout: fastOpenTimeout!, rrsSocket: temp));
       waittingQueueLen += 1;
     }
   }

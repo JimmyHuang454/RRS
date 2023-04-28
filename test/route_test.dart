@@ -26,6 +26,7 @@ Future<void> routeTest(Route obj) async {
   expect(await rule.ipPattern[1].match2('192.169.0.0'), false);
 
   expect(await rule.ipPattern[2].match2('110.242.68.66'), true); // CN IP
+  expect(await rule.ipPattern[2].match2('91.108.56.136'), false); // not CN
   expect(await rule.ipPattern[2].match2('199.59.148.247'), false); // not CN
   expect(await rule.ipPattern[2].match2('1.1.1.1'), false); // not CN
 }

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
+import 'package:proxy/inbounds/base.dart';
 
 final logger = Logger('RRS');
 
@@ -175,14 +176,14 @@ class Address {
   bool get isMulticast =>
       _type == 'domain' ? false : internetAddress.isMulticast;
 
-  String get type {
+  AddressType get type {
     if (_type == 'domain') {
-      return 'domain';
+      return AddressType.domain;
     }
     if (internetAddress.type == InternetAddressType.IPv4) {
-      return 'ipv4';
+      return AddressType.ipv4;
     }
-    return 'ipv6';
+    return AddressType.ipv6;
   }
 
   Uint8List get rawAddress {

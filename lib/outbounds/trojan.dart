@@ -32,10 +32,12 @@ class TrojanConnect extends Connect {
       request = [3];
     }
 
-    if (link.targetAddress!.type == 'domain') {
+    var addressType = link.targetAddress!.type;
+
+    if (addressType == AddressType.domain) {
       request.add(3);
       request.add(link.targetAddress!.rawAddress.lengthInBytes);
-    } else if (link.targetAddress!.type == 'ipv4') {
+    } else if (addressType == AddressType.ipv4) {
       request.add(1);
     } else {
       request.add(4);
@@ -51,10 +53,12 @@ class TrojanConnect extends Connect {
     //{{{
     List<int> request = [];
 
-    if (link.targetAddress!.type == 'domain') {
+    var addressType = link.targetAddress!.type;
+
+    if (addressType == AddressType.domain) {
       request.add(3);
       request.add(link.targetAddress!.rawAddress.lengthInBytes);
-    } else if (link.targetAddress!.type == 'ipv4') {
+    } else if (addressType == AddressType.ipv4) {
       request.add(1);
     } else {
       request.add(4);

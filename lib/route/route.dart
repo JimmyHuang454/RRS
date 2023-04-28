@@ -175,24 +175,28 @@ class RouteRule {
       return false;
     }
 
-    var ip = link.targetIP;
-    if (ipPattern.isNotEmpty && ip != '' && !await matchIP(ip)) {
-      return false;
-    }
+    var addressType = link.targetAddress!.type;
 
-    if (link.targetAddress!.type == 'domain') {
-      var domain = link.targetAddress!.address;
-
-      if (domainPattern.isNotEmpty && !await matchDomain(domain)) {
+    if (addressType == AddressType.domain) {
+      if (domainPattern.isNotEmpty &&
+          !await matchDomain(link.targetAddress!.address)) {
         return false;
       }
 
-      if (ipPattern.isNotEmpty && ip == '') {
-        ip = await dns!.resolveWithCache(domain);
+      if (ipPattern.isNotEmpty) {
+        var ip = await dns!.resolveWithCache(link.targetAddress!.address);
         link.targetIP = ip;
         if (!await matchIP(ip)) {
           return false;
         }
+      }
+    } else {
+      if (domainPattern.isNotEmpty) {
+        return false;
+      }
+
+      if (ipPattern.isNotEmpty && !await matchIP(link.targetAddress!.address)) {
+        return false;
       }
     }
 
