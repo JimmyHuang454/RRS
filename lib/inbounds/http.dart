@@ -55,12 +55,13 @@ class HTTPRequest extends Link {
     }
     targetAddress = Address(targetUri!.host);
     targetport = targetUri!.port;
-    isParsed = true;
 
     if (!await bindServer()) {
       await closeAll();
       return;
     }
+
+    isParsed = true;
 
     if (method == 'CONNECT') {
       clientAdd(buildConnectionResponse());
