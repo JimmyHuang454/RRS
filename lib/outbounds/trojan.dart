@@ -26,7 +26,7 @@ class TrojanConnect extends Connect {
     List<int> header, request;
     header = passwordSha224 + crlf;
 
-    if (link.streamType == 'TCP') {
+    if (link.streamType == StreamType.tcp) {
       request = [1];
     } else {
       request = [3];
@@ -75,7 +75,7 @@ class TrojanConnect extends Connect {
 
   @override
   void add(List<int> data) {
-    if (link.streamType == 'UDP') {
+    if (link.streamType == StreamType.udp) {
       data = _buildUDPHead(data.length) + data;
     }
 

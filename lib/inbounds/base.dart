@@ -24,7 +24,7 @@ class Link {
   Address? targetAddress;
   String targetIP = '';
   int targetport = 0;
-  String streamType = 'TCP'; // TCP | UDP
+  StreamType streamType = StreamType.tcp;
   bool ipUseCache = false;
 
   String protocolVersion = '';

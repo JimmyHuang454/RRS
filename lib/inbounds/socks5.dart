@@ -26,7 +26,7 @@ class Socks5Request extends Link {
         await parseRequest([]);
       } else if (!isParseDST) {
         await parseRequest(data);
-      } else if (streamType == 'TCP') {
+      } else if (streamType == StreamType.tcp) {
         serverAdd(data);
       } else {
         handleUDP(data);
@@ -55,7 +55,7 @@ class Socks5Request extends Link {
       }
     } else if (cmd == 3) {
       // UDP TODO
-      streamType = 'UDP';
+      streamType = StreamType.udp;
       throw "TODO";
     } else if (cmd == 2) {
       // BIND TODO
@@ -129,7 +129,7 @@ class Socks5Request extends Link {
     await handleCMD();
     isParseDST = true;
 
-    if (streamType == 'TCP') {
+    if (streamType == StreamType.tcp) {
       if (content.isNotEmpty) {
         serverAdd(content);
       }
