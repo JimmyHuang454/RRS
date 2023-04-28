@@ -1,2 +1,5 @@
-A sample command-line application with an entrypoint in `bin/`, library code
-in `lib/`, and example unit test in `test/`.
+RRS 一个基于 Trojan 协议的代理工具
+
+---
+
+下载页面 | 快速上手 | 配置文档
