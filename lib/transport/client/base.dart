@@ -52,7 +52,7 @@ class TransportClient {
       supportedProtocols = temp;
     }
 
-    var connectionTimeout = getValue(config, 'connectionTimeout', 10);
+    var connectionTimeout = getValue(config, 'connectionTimeout', 5);
     timeout = Duration(seconds: connectionTimeout);
   }
 

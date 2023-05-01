@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'package:async/async.dart';
 
 import 'package:proxy/user.dart';
@@ -6,6 +7,53 @@ import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
+
+class Dispacher {
+  Queue<ConnectionRes>? resQueue;
+
+  int queueLen;
+  bool isMakingFood = false;
+
+  Future<RRSSocket> Function() generator;
+
+  Dispacher({required this.queueLen, required this.generator}) {
+    resQueue = Queue<ConnectionRes>();
+  }
+
+  void makeFood() async {
+    if (isMakingFood) {
+      return;
+    }
+    isMakingFood = true;
+
+    var i = 0;
+    while (resQueue!.length < queueLen && i < queueLen) {
+      i += 1;
+      RRSSocket rrsSocket;
+      try {
+        rrsSocket = await generator();
+      } catch (e) {
+        logger.info(e);
+        continue;
+      }
+      resQueue!.add(
+          ConnectionRes(rrsSocket: rrsSocket, timeout: Duration(seconds: 2)));
+    }
+
+    isMakingFood = false;
+  }
+
+  Future<RRSSocket> eat() async {
+    if (resQueue!.isNotEmpty) {
+      var res = resQueue!.removeFirst();
+      if (res.isOK()) {
+        return res.take();
+      }
+    }
+    makeFood();
+    return await generator();
+  }
+}
 
 class ConnectionRes {
   int stats = 0; // 0 means not took, 1 means took, 2 means error.
@@ -71,13 +119,12 @@ abstract class OutboundStruct {
 
   String realOutAddress = '';
   int realOutPort = 0;
+  bool isMakingFood = false;
 
   bool isFastOpen = false;
   int? queueLen;
-  int waittingQueueLen = 0;
   Duration? fastOpenTimeout;
-  StreamQueue<ConnectionRes>? fastOpenQueue;
-  StreamController<ConnectionRes>? fastOpenStream;
+  Queue<ConnectionRes>? fastOpenQueue;
 
   TransportClient? transportClient;
 
@@ -107,27 +154,38 @@ abstract class OutboundStruct {
 
     if (isFastOpen) {
       queueLen = getValue(config, 'fastopen.size', 15);
-      fastOpenTimeout =
-          Duration(seconds: getValue(config, 'fastopen.timeout', 40));
 
-      fastOpenStream = StreamController<ConnectionRes>.broadcast(sync: true);
-      fastOpenQueue = StreamQueue<ConnectionRes>(fastOpenStream!.stream);
+      var temp = getValue(config, 'fastopen.timeout', 0);
+      if (temp == 0) {
+        fastOpenTimeout = transportClient!.timeout;
+      } else {
+        fastOpenTimeout = Duration(seconds: temp);
+      }
+      fastOpenQueue = Queue<ConnectionRes>();
     }
   }
 
   void updateFastOpenQueue() async {
-    RRSSocket temp;
-    while (waittingQueueLen < queueLen!) {
+    if (!isFastOpen || isMakingFood) {
+      return;
+    }
+    isMakingFood = true;
+
+    var i = 0;
+    while (fastOpenQueue!.length < queueLen! && i < queueLen!) {
+      i += 1;
+      RRSSocket rrsSocket;
       try {
-        temp = await transportClient!.connect(realOutAddress, realOutPort);
+        rrsSocket = await transportClient!.connect(realOutAddress, realOutPort);
       } catch (e) {
-        logger.info('failed to connect: $e');
+        logger.info(e);
         continue;
       }
-      fastOpenStream!
-          .add(ConnectionRes(timeout: fastOpenTimeout!, rrsSocket: temp));
-      waittingQueueLen += 1;
+      fastOpenQueue!
+          .add(ConnectionRes(rrsSocket: rrsSocket, timeout: fastOpenTimeout!));
     }
+
+    isMakingFood = false;
   }
 
   Future<RRSSocket> connect(dynamic host, int port) async {
@@ -136,16 +194,13 @@ abstract class OutboundStruct {
     }
 
     updateFastOpenQueue();
-    ConnectionRes connectionRes;
-    while (true) {
-      connectionRes =
-          await fastOpenQueue!.next.timeout(transportClient!.timeout!);
-      waittingQueueLen -= 1;
-      if (connectionRes.isOK()) {
-        return await connectionRes.take();
+    while (fastOpenQueue!.isNotEmpty) {
+      var res = fastOpenQueue!.removeFirst();
+      if (res.isOK()) {
+        return res.take();
       }
-      updateFastOpenQueue();
     }
+    return await transportClient!.connect(host, port);
   }
 
   Future<RRSSocket> newConnect(Link l) async {

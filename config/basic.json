@@ -9,8 +9,8 @@
       },
       "fastopen": {
         "enable": true,
-        "size": 10,
-        "timeout": 10
+        "size": 20,
+        "timeout": 100
       },
       "outStream": "ws_with_tls"
     }
