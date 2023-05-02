@@ -1,3 +1,4 @@
+import 'package:proxy/inbounds/base.dart';
 import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 
@@ -7,11 +8,11 @@ void main() {
   test('address', () {
     var res = Address('https://trojan-gfw.github.io/trojan/protocol');
     expect(res.address, 'https://trojan-gfw.github.io/trojan/protocol');
-    expect(res.type, 'domain');
+    expect(res.type, AddressType.domain);
 
     res = Address('255.255.255.255');
     expect(res.address, '255.255.255.255');
-    expect(res.type, 'ipv4');
+    expect(res.type, AddressType.ipv4);
     expect(listsEqual(res.rawAddress, [255, 255, 255, 255]), true);
   });
 

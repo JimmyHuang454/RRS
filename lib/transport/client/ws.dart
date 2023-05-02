@@ -29,7 +29,6 @@ class WSRRSSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
-    await clearListen();
     await webSocket.close();
   }
 

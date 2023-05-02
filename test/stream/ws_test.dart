@@ -54,7 +54,7 @@ void main() {
     expect(isClientReceived, true);
     expect(clientListenClosed, true);
     expect(clientDone, true);
-    expect(serverListenDone, true);
+    expect(serverListenDone, true); // dart SDK bug.
     expect(serverClosed, false);
 
     await client.close();
@@ -68,9 +68,35 @@ void main() {
     expect(serverClosed, true);
   } //}}}
 
-  test('RRS ws and RRS ws server. With path.', () async {
+  test('RRS ws and RRS ws server. With "/" empty path.', () async {
+    //{{{
+    var path = '/';
+    var server = WSServer(config: {
+      'setting': {'path': path}
+    });
+
+    var client = WSClient(config: {
+      'setting': {'path': path}
+    });
+    await eventTest(server, client);
+  }); //}}}
+
+  test('RRS ws and RRS ws server. With empty path.', () async {
     //{{{
     var path = '';
+    var server = WSServer(config: {
+      'setting': {'path': path}
+    });
+
+    var client = WSClient(config: {
+      'setting': {'path': path}
+    });
+    await eventTest(server, client);
+  }); //}}}
+
+  test('RRS ws and RRS ws server. With path.', () async {
+    //{{{
+    var path = 'abcd';
     var server = WSServer(config: {
       'setting': {'path': path}
     });

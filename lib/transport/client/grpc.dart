@@ -37,7 +37,6 @@ class GRPCSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
-    await clearListen();
     await to.close();
   }
 

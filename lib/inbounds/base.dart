@@ -145,7 +145,6 @@ class Link {
       time = 'ERRO';
     }
 
-    return;
     logger.info(
         'Closed: ${buildLinkInfo()} ($time) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(

@@ -21,7 +21,6 @@ class TCPRRSSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
-    await clearListen();
     await socket.close();
   }
 

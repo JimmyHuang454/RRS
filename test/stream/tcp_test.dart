@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:proxy/transport/client/ws.dart';
+import 'package:proxy/transport/server/ws.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/transport/client/tcp.dart';

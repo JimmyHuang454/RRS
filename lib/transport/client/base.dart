@@ -125,7 +125,6 @@ class RRSSocketBase extends RRSSocket {
       return;
     }
     isClosed = true;
-    await clearListen();
     await rrsSocket.close();
   }
 
