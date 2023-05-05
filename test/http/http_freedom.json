@@ -10,17 +10,31 @@
     }
   },
   "inbounds": {
-    "HTTPIn": {
+    "HTTPIn1": {
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 5455
+        "port": 0
       },
-      "route": "freedom",
-      "inStream": "tcp"
+      "route": "freedom"
+    },
+    "HTTPIn2": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 0
+      },
+      "route": "httpIn_to_httpOut"
     }
   },
   "outbounds": {
+    "HTTPOut": {
+      "protocol": "http",
+      "setting": { // same as HTTPIn1
+        "address": "127.0.0.1",
+        "port": 0
+      }
+    },
     "block": {
       "protocol": "block"
     }
@@ -29,6 +43,11 @@
     "freedom": {
       "rules": [{
         "outbound": "freedom"
+      }]
+    },
+    "httpIn_to_httpOut": {
+      "rules": [{
+        "outbound": "HTTPOut"
       }]
     },
     "block": {

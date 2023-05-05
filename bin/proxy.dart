@@ -10,13 +10,6 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/utils/utils.dart';
 
-Future<Map<String, dynamic>> loadConfig(path) async {
-  var configFile = File(path);
-  var temp = await configFile.readAsString();
-  var config = (JSON5.parse(temp) as Map<String, dynamic>);
-  return config;
-}
-
 void setLoggerLevel(String debugLevelStr) {
   if (debugLevelStr == 'debug') {
     Logger.root.level = Level.FINEST;
@@ -61,5 +54,6 @@ String loadArgv(List<String> argument) {
 
 void main(List<String> argument) async {
   // load config, parse it and run main process.
-  entry(await loadConfig(loadArgv(argument)));
+  var configFilePath = loadArgv(argument);
+  entry(await readConfigWithJson5(configFilePath));
 }

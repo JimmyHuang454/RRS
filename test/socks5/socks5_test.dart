@@ -8,15 +8,13 @@ import 'package:proxy/utils/utils.dart';
 
 void main() {
   test('http', () async {
-    var config = await readConfigWithJson5('./test/http/http_freedom.json');
+    var f = File('./test/socks5/socks5.json');
+    var config = jsonDecode(await f.readAsString());
     var host = '127.0.0.1';
     var port1 = await getUnusedPort(InternetAddress(host));
-    var port2 = await getUnusedPort(InternetAddress(host));
     var serverPort = await getUnusedPort(InternetAddress(host));
     var domain = '$host:$serverPort';
-    config['inbounds']['HTTPIn1']['setting']['port'] = port1;
-    config['outbounds']['HTTPOut']['setting']['port'] = port1;
-    config['inbounds']['HTTPIn2']['setting']['port'] = port2;
+    config['inbounds']['testInbound']['setting']['port'] = port1;
     entry(config);
 
     var httpServer = await ServerSocket.bind(host, serverPort);
@@ -29,7 +27,7 @@ void main() {
     );
 
     var client = TCPClient(config: {});
-    var temp = await client.connect(host, port1); // HTTPIn1
+    var temp = await client.connect(host, port1);
     var times = 0;
     var clientClosed = false;
     temp.listen((data) {
@@ -43,18 +41,6 @@ void main() {
     expect(clientClosed, true);
     expect(times, 1);
 
-    temp = await client.connect(host, port2); // test HTTPIn2.
-    times = 0;
-    clientClosed = false;
-    temp.listen((data) {
-      expect(utf8.decode(data).contains('Hello world'), true);
-      times += 1;
-    }, onDone: () {
-      clientClosed = true;
-    });
-    temp.add(buildHTTPProxyRequest(domain));
-    await delay(2);
-    expect(clientClosed, true);
-    expect(times, 1);
+    // expect(temp.isClosed, true);
   });
 }

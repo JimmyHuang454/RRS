@@ -13,13 +13,6 @@ class Socks5Request extends Link {
   List<int> content = [];
 
   Socks5Request({required super.client, required super.inboundStruct}) {
-    // Future.delayed(Duration(seconds: 3), () async {
-    //   if (!isAuth) {
-    //     // timeout
-    //     await closeAll();
-    //   }
-    // });
-
     client.listen((data) async {
       if (!isAuth) {
         auth(data);
@@ -186,7 +179,7 @@ class Socks5Request extends Link {
 
 class Socks5In extends InboundStruct {
   Socks5In({required super.config})
-      : super(protocolName: 'socks5', protocolVersion: '1.1') {
+      : super(protocolName: 'socks5', protocolVersion: '5') {
     if (inAddress == '' || inPort == 0) {
       throw 'http required "address" and "port" in config.';
     }

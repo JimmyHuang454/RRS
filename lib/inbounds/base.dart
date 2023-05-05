@@ -125,6 +125,12 @@ class Link {
       serverDone();
     });
 
+    client.done!.then((value) {
+      client.clearListen();
+    }, onError: (e, s) {
+      client.clearListen();
+    });
+
     outboundStruct!.linkCount += 1;
     user!.linkCount += 1;
     logger.info(
@@ -137,6 +143,7 @@ class Link {
   void serverDone() {
     user!.linkCount -= 1;
     outboundStruct!.linkCount -= 1;
+    server!.clearListen();
 
     var time = '';
     if (firstReceivedTime != null) {
@@ -149,6 +156,7 @@ class Link {
         'Closed: ${buildLinkInfo()} ($time) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
         '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkCount}');
+    createdTime.stop();
   }
 
   String buildLinkInfo() {

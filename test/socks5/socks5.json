@@ -1,0 +1,30 @@
+{
+  "inbounds": {
+    "testInbound": {
+      "protocol": "socks5",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "route": "freedom"
+    },
+    "httpInbound": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 5455
+      },
+      "route": "freedom"
+    }
+  },
+  "outbounds": {
+    "HTTPOut": {}
+  },
+  "routes": {
+    "freedom": {
+      "rules": [{
+        "outbound": "freedom"
+      }]
+    }
+  }
+}

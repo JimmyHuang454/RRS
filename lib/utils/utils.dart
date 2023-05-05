@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:json5/json5.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
 import 'package:proxy/inbounds/base.dart';
@@ -31,6 +32,12 @@ String getRunningDir() {
 
 Future<void> delay(int seconds) async {
   await Future.delayed(Duration(seconds: seconds));
+}
+
+Future<Map<String, dynamic>> readConfigWithJson5(String filePath) async {
+  var f = File(filePath);
+  var config = JSON5.parse(await f.readAsString()) as Map<String, dynamic>;
+  return config;
 }
 
 int indexOfElements(List<int> content, List<int> pattern, [int start = 0]) {
