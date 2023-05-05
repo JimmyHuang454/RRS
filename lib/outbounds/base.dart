@@ -122,6 +122,7 @@ abstract class OutboundStruct {
   bool isMakingFood = false;
 
   bool isFastOpen = false;
+  String outStrategy = 'default'; // OS default.
   int? queueLen;
   Duration? fastOpenTimeout;
   Queue<ConnectionRes>? fastOpenQueue;
@@ -136,6 +137,7 @@ abstract class OutboundStruct {
     outStreamTag = getValue(config, 'outStream', 'tcp');
     outAddress = getValue(config, 'setting.address', '');
     outPort = getValue(config, 'setting.port', 0);
+    outStrategy = getValue(config, 'setting.strategy', 'default');
 
     realOutAddress = outAddress;
     realOutPort = outPort;

@@ -1,4 +1,3 @@
-import 'package:dns_client/dns_client.dart';
 import 'package:crypto/crypto.dart';
 import 'package:proxy/dns/dns.dart';
 import 'package:proxy/route/matcher.dart';
@@ -7,8 +6,6 @@ import 'package:quiver/collection.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
-
-var doh = DnsOverHttps('https://doh.pub/dns-query');
 
 class RouteRule {
   List<String> outbound = [];
@@ -48,6 +45,7 @@ class RouteRule {
     if (ipPattern.isNotEmpty) {
       var dnsTag = getValue(config, 'dns', '');
       if (dnsTag == '') {
+        // use default DNS.
         if (dnsList.isEmpty) {
           throw Exception('required DNS config if you are using ip pattern.');
         }

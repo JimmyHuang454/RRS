@@ -128,6 +128,8 @@ class PortPattern extends Pattern {
       end = int.parse(temp[1]);
     } else if (temp.length == 1) {
       start = end = int.parse(temp[0]);
+    } else {
+      throw "unreconize port format.";
     }
 
     if (start <= 0 || end <= 0) {

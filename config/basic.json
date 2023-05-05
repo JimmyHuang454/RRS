@@ -10,7 +10,7 @@
       "fastopen": {
         "enable": true,
         "size": 20,
-        "timeout": 100
+        "timeout": 20
       },
       "outStream": "ws_with_tls"
     }
@@ -19,7 +19,7 @@
     "http_inbound": {
       "protocol": "http",
       "setting": {
-        "address": "0.0.0.0",
+        "address": "127.0.0.1",
         "port": 8080
       },
       "inStream": "tcp",

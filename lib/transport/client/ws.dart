@@ -5,6 +5,19 @@ import 'dart:typed_data';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 
+class ConnectionTask2<S> implements ConnectionTask<S> {
+  @override
+  Future<S> get socket => socket2;
+
+  Future<S> socket2;
+  // final void Function() _onCancel;
+
+  ConnectionTask2({required this.socket2});
+
+  @override
+  void cancel() {}
+}
+
 class WSRRSSocket extends RRSSocket {
   WebSocket webSocket;
   StreamSubscription<dynamic>? streamSubscription;
@@ -53,20 +66,31 @@ class WSClient extends TransportClient {
   }
 
   @override
-  Future<RRSSocket> connect(host, int port) async {
+  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
     var address = '';
-    if (port == 443 || port == 80) {
-      address = '$host/$path';
-    } else {
-      address = '$host:$port/$path';
-    }
-
+    var scheme = 'ws';
     if (useTLS!) {
-      address = 'wss://$address';
-    } else {
-      address = 'ws://$address';
+      scheme = 'wss';
     }
-    var ws = await WebSocket.connect(address);
+    address = '$scheme://$host:$port/$path';
+
+    HttpClient client = HttpClient()
+      ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) async {
+        if (uri.isScheme('HTTPS')) {
+          var so = await Socket.connect(uri.host, uri.port,
+              sourceAddress: sourceAddress);
+          var test = ConnectionTask2<Socket>(
+              socket2: SecureSocket.secure(so, host: uri.host));
+
+          return Future(
+            () => test,
+          );
+        }
+        return Socket.startConnect(uri.host, uri.port,
+            sourceAddress: sourceAddress);
+      };
+
+    var ws = await WebSocket.connect(address, customClient: client);
 
     outAddress = address;
     outPort = port;
