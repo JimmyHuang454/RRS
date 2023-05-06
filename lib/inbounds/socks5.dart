@@ -33,6 +33,8 @@ class Socks5Request extends Link {
 
   Future<void> handleCMD() async {
     //{{{
+    streamType = StreamType.tcp;
+
     if (cmd == 1) {
       // CONNECTING
       var isConnectedServer = await bindServer();
@@ -136,7 +138,8 @@ class Socks5Request extends Link {
     //{{{
     content += data;
 
-    if (content[0] != socks5Version) {
+    var clientVersion = content[0];
+    if (clientVersion != socks5Version) {
       await closeAll();
       return;
     }
@@ -148,13 +151,21 @@ class Socks5Request extends Link {
       return;
     }
 
-    // 5 1 0
+    // +----+----------+----------+
+    // |VER | NMETHODS | METHODS  |
+    // +----+----------+----------+
+    // | 1  |    1     | 1 to 255 |
+    // +----+----------+----------+
     methods = content.sublist(2, authLength);
 
-    clientAdd([socks5Version, authMethod]);
-    if (authMethod == 2) {
-      // TODO password
+    // only supports 'NO AUTHENTICATION REQUIRED' method.
+    if (!methods.contains(0)) {
+      clientAdd([socks5Version, 0xFF]); // tell client to close.
+      await closeAll();
+      return;
     }
+    clientAdd([socks5Version, 0]); // ok.
+
     isAuth = true;
     content = content.sublist(authLength);
   } //}}}

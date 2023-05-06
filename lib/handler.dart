@@ -105,8 +105,10 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
     return BlockOut(config: config);
   } else if (protocol == 'trojan') {
     return TrojanOut(config: config);
+  } else if (protocol == 'freedom') {
+    return FreedomOut(config: config);
   } else {
-    throw "there are no outbound named '$protocol'";
+    throw "there are no outbound protocol named '$protocol'";
   }
 } //}}}
 

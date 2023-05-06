@@ -148,43 +148,43 @@ List<int> buildHTTPProxyRequest(String domain) {
 class Address {
   late InternetAddress internetAddress;
 
-  late String rawString;
-  String _type = '';
+  String rawString = '';
+  AddressType? _type;
 
   Address(this.rawString) {
     try {
       internetAddress = InternetAddress(rawString);
+      if (internetAddress.type == InternetAddressType.IPv4) {
+        _type = AddressType.ipv4;
+      } else {
+        _type = AddressType.ipv6;
+      }
     } catch (_) {
-      _type = 'domain';
+      _type = AddressType.domain;
     }
   }
 
-  Address.fromRawAddress(List<int> data, String rawType) {
-    if (rawType == 'domain') {
-      _type = 'domain';
-      rawString = utf8.decode(data);
-    } else {
-      internetAddress =
-          InternetAddress.fromRawAddress(Uint8List.fromList(data));
+  bool isDomain() {
+    if (_type == null) {
+      return false;
     }
+    return _type == AddressType.domain;
   }
 
   String get address {
-    return _type == 'domain' ? rawString : internetAddress.address;
+    return isDomain() ? rawString : internetAddress.address;
   }
 
-  String get host => _type == 'domain' ? rawString : internetAddress.host;
+  String get host => isDomain() ? rawString : internetAddress.host;
 
-  bool get isLinkLocal =>
-      _type == 'domain' ? false : internetAddress.isLoopback;
+  bool get isLinkLocal => isDomain() ? false : internetAddress.isLoopback;
 
-  bool get isLoopback => _type == 'domain' ? false : internetAddress.isLoopback;
+  bool get isLoopback => isDomain() ? false : internetAddress.isLoopback;
 
-  bool get isMulticast =>
-      _type == 'domain' ? false : internetAddress.isMulticast;
+  bool get isMulticast => isDomain() ? false : internetAddress.isMulticast;
 
   AddressType get type {
-    if (_type == 'domain') {
+    if (isDomain()) {
       return AddressType.domain;
     }
     if (internetAddress.type == InternetAddressType.IPv4) {
@@ -194,8 +194,7 @@ class Address {
   }
 
   Uint8List get rawAddress {
-    var res =
-        (_type == 'domain' ? rawString.codeUnits : internetAddress.rawAddress);
+    var res = (isDomain() ? rawString.codeUnits : internetAddress.rawAddress);
     return Uint8List.fromList(res);
   }
 }

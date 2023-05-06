@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:proxy/inbounds/base.dart';
 import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
@@ -5,6 +7,32 @@ import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
+  test('uri use case.', () async {//{{{
+    var temp = Uri.parse('http://127.0.0.1');
+    expect(temp.host, '127.0.0.1');
+
+    temp = Uri.parse('127.0.0.1');
+    expect(temp.host, '');
+
+    temp = Uri.parse('www.abc.com');
+    expect(temp.host, '');
+
+    temp = Uri.parse('abc.com');
+    expect(temp.host, '');
+
+    temp = Uri.parse('abc');
+    expect(temp.host, '');
+    expect(temp.scheme, '');
+
+    temp = Uri.parse('fuck://abc');
+    expect(temp.host, 'abc');
+    expect(temp.scheme, 'fuck');
+
+    temp = Uri.parse('fuck://abc.cn');
+    expect(temp.host, 'abc.cn');
+    expect(temp.scheme, 'fuck');
+  });//}}}
+
   test('address', () {
     var res = Address('https://trojan-gfw.github.io/trojan/protocol');
     expect(res.address, 'https://trojan-gfw.github.io/trojan/protocol');
@@ -14,23 +42,19 @@ void main() {
     expect(res.address, '255.255.255.255');
     expect(res.type, AddressType.ipv4);
     expect(listsEqual(res.rawAddress, [255, 255, 255, 255]), true);
+
+    var domain = 'www.abc.com';
+    res = Address(domain);
+    expect(res.address, domain);
+    expect(res.type, AddressType.domain);
+    expect(listsEqual(res.rawAddress, utf8.encode(domain)), true);
+
+    domain = 'http://www.abc.com';
+    res = Address(domain);
+    devPrint(res.rawString);
+
+    expect(res.address, domain);
+    expect(res.type, AddressType.domain);
+    expect(listsEqual(res.rawAddress, utf8.encode(domain)), true);
   });
-
-  // test('geoip', () async {
-  //   final database = await MaxMindDatabase.file(File(
-  //       'C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/lib/Country.mmdb'));
-
-  //   var res = await database.search('104.28.249.48');
-  //   expect(res == null, true);
-
-  //   var doh = DnsOverHttps('https://doh.pub/dns-query',
-  //       timeout: Duration(seconds: 3));
-  //   var record = await doh.lookup('www.baidu.com');
-
-  //   for (var i = 0, len = record.length; i < len; ++i) {
-  //     res = await database.search(record[i].address);
-  //     expect(res == null, false);
-  //     expect(res['country']['geoname_id'], 1814991);
-  //   }
-  // });
 }

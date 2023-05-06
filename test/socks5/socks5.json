@@ -12,29 +12,13 @@
         "port": 1
       },
       "route": "freedom"
-    },
-    "httpInbound": {
-      "protocol": "http",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 5455
-      },
-      "route": "httpIn2Socks5"
     }
   },
-  "outbounds": {
-    "socks5Out": {
-      "protocol": "socks5",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 1
-      }
-    }
-  },
+  "outbounds": {},
   "routes": {
-    "httpIn2Socks5": {
+    "freedom": {
       "rules": [{
-        "outbound": "socks5Out"
+        "outbound": "freedom"
       }]
     }
   }

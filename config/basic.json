@@ -1,4 +1,9 @@
 {
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
   "outbounds": {
     "trojan_outbound": {
       "protocol": "trojan",

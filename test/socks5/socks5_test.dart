@@ -7,16 +7,13 @@ import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  test('http', () async {
+  test('socks5', () async {
     var config = await readConfigWithJson5('./test/socks5/socks5.json');
     var host = '127.0.0.1';
     var port1 = await getUnusedPort(InternetAddress(host));
-    var port2 = await getUnusedPort(InternetAddress(host));
     var serverPort = await getUnusedPort(InternetAddress(host));
     var domain = '$host:$serverPort';
-    config['inbounds']['httpInbound']['setting']['port'] = port1;
-    config['inbounds']['socks5Inbound']['setting']['port'] = port2;
-    config['outbounds']['socks5Out']['setting']['port'] = port2;
+    config['inbounds']['socks5Inbound']['setting']['port'] = port1;
     entry(config);
 
     var httpServer = await ServerSocket.bind(host, serverPort);
@@ -28,7 +25,7 @@ void main() {
       },
     );
 
-    // httpInbound -> socks5Out -> socks5Inbound -> freedom
+    // socks5in -> HTTPOut -> freedom
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port1);
     var times = 0;

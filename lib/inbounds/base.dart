@@ -200,6 +200,10 @@ abstract class InboundStruct {
       throw 'inStream and route can NOT be null.';
     }
 
+    if (!routeList.containsKey(route)) {
+      throw 'wrong route tag named "$route"';
+    }
+
     if (!inStreamList.containsKey(inStream)) {
       throw 'wrong inStream tag named "$inStream"';
     }

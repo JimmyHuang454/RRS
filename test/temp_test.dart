@@ -7,16 +7,25 @@ import 'package:test/test.dart';
 
 void main() {
   test('temp test.', () async {
+    var temp = Uri.parse('http://127.0.0.1');
+    expect(temp.host, '127.0.0.1');
 
-    var temp = Future.delayed(Duration(seconds: 2));
-    temp.then((val){
-      print('1');
-    });
+    temp = Uri.parse('127.0.0.1');
+    expect(temp.host, '');
 
-    temp.then((val){
-      print('2');
-    });
+    temp = Uri.parse('www.abc.com');
+    expect(temp.host, '');
 
-    await temp;
+    temp = Uri.parse('abc.com');
+    expect(temp.host, '');
+
+    temp = Uri.parse('abc');
+    expect(temp.host, '');
+
+    temp = Uri.parse('fuck://abc');
+    expect(temp.host, 'abc');
+
+    temp = Uri.parse('fuck://abc.cn');
+    expect(temp.host, 'abc.cn');
   });
 }
