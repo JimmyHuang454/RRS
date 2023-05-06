@@ -1,3 +1,4 @@
+import 'package:proxy/config.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/grpc.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -104,8 +105,9 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
     return BlockOut(config: config);
   } else if (protocol == 'trojan') {
     return TrojanOut(config: config);
+  } else {
+    throw "there are no outbound named '$protocol'";
   }
-  return FreedomOut(config: config);
 } //}}}
 
 OutboundStruct buildOutbounds(String tag, Map<String, dynamic> config) {
@@ -151,8 +153,16 @@ void buildDNS(String tag, Map<String, dynamic> config) {
   dnsList[tag] = dns;
 } //}}}
 
+void buildConifg(String tag, Map<String, dynamic> config) {
+  //{{{
+  if (tag == 'log') {
+    applyLogConfig(config);
+  }
+} //}}}
+
 void _entry(Map<String, dynamic> config) {
   var list = [
+    ['config', buildConifg],
     ['data', buildData],
     ['dns', buildDNS],
     ['outStream', buildOutStream],

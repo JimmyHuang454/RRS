@@ -7,12 +7,10 @@ import 'package:test/test.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/utils/utils.dart';
-import 'package:json5/json5.dart';
 
 void main() {
   test('trojan', () async {
-    var f = File('./test/trojan/trojan.json');
-    var config = JSON5.parse(await f.readAsString());
+    var config = await readConfigWithJson5('./test/trojan/trojan.json');
     var host = '127.0.0.1';
     var port1 = await getUnusedPort(InternetAddress(host));
     var port2 = await getUnusedPort(InternetAddress(host));

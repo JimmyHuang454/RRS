@@ -28,8 +28,9 @@ void main() {
       },
     );
 
+    // HTTPIn1 -> freedom
     var client = TCPClient(config: {});
-    var temp = await client.connect(host, port1); // HTTPIn1
+    var temp = await client.connect(host, port1);
     var times = 0;
     var clientClosed = false;
     temp.listen((data) {
@@ -43,7 +44,8 @@ void main() {
     expect(clientClosed, true);
     expect(times, 1);
 
-    temp = await client.connect(host, port2); // test HTTPIn2.
+    // HTTPIn2 -> HTTPOut -> HTTPIn1 -> freedom
+    temp = await client.connect(host, port2);
     times = 0;
     clientClosed = false;
     temp.listen((data) {

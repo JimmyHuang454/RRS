@@ -1,10 +1,15 @@
 {
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
   "inbounds": {
-    "testInbound": {
+    "socks5Inbound": {
       "protocol": "socks5",
       "setting": {
         "address": "127.0.0.1",
-        "port": 5455
+        "port": 1
       },
       "route": "freedom"
     },
@@ -14,16 +19,22 @@
         "address": "127.0.0.1",
         "port": 5455
       },
-      "route": "freedom"
+      "route": "httpIn2Socks5"
     }
   },
   "outbounds": {
-    "HTTPOut": {}
+    "socks5Out": {
+      "protocol": "socks5",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      }
+    }
   },
   "routes": {
-    "freedom": {
+    "httpIn2Socks5": {
       "rules": [{
-        "outbound": "freedom"
+        "outbound": "socks5Out"
       }]
     }
   }
