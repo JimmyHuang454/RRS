@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/utils/utils.dart';
+import 'package:proxy/utils/const.dart';
 
 class Socks5Request extends Link {
   bool isAuth = false;
@@ -39,10 +40,22 @@ class Socks5Request extends Link {
       // CONNECTING
       var isConnectedServer = await bindServer();
       int rep = isConnectedServer ? 0 : 1;
-      var res = [5, rep, 0, 1, 0, 0, 0, 0, 0, 0];
-      // res.add(1); // ipv4
-      // res += Uint8List(2)
-      //   ..buffer.asByteData().setInt16(0, server.remotePort, Endian.big);
+      var res = [
+        socks5Version,
+        rep,
+        0,
+      ];
+      var addressAndPort = [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]; //BIND.ADDR and port alwayes return 0;
+      res += addressAndPort;
+
       clientAdd(res);
       isValidRequest = true;
       if (!isConnectedServer) {
@@ -88,10 +101,15 @@ class Socks5Request extends Link {
     }
 
     if (isDomain) {
-      targetAddress =
-          Address.fromRawAddress(data.sublist(5, addressEnd), 'domain');
+      targetAddress = Address.fromRawAddress(
+          content.sublist(5, addressEnd), AddressType.domain);
     } else {
-      targetAddress = Address.fromRawAddress(data.sublist(4, addressEnd), 'ip');
+      var address = content.sublist(4, addressEnd);
+      if (atyp == 4) {
+        targetAddress = Address.fromRawAddress(address, AddressType.ipv6);
+      } else {
+        targetAddress = Address.fromRawAddress(address, AddressType.ipv4);
+      }
     }
 
     Uint8List byteList =
@@ -141,7 +159,7 @@ class Socks5Request extends Link {
     var clientVersion = content[0];
     if (clientVersion != socks5Version) {
       await closeAll();
-      return;
+      throw 'mismatch clientVersion.';
     }
 
     int nmethods = content[1];

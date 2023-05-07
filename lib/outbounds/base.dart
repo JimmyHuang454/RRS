@@ -111,14 +111,14 @@ abstract class OutboundStruct {
 
   String tag = '';
   String outStreamTag = '';
-  String outAddress = '';
-  int outPort = 0;
+
+  Address? outAddress;
+  int? outPort;
+
   Traffic traffic = Traffic();
 
   int linkCount = 0;
 
-  String realOutAddress = '';
-  int realOutPort = 0;
   bool isMakingFood = false;
 
   bool isFastOpen = false;
@@ -135,12 +135,7 @@ abstract class OutboundStruct {
       required this.config}) {
     tag = getValue(config, 'tag', '');
     outStreamTag = getValue(config, 'outStream', 'tcp');
-    outAddress = getValue(config, 'setting.address', '');
-    outPort = getValue(config, 'setting.port', 0);
     outStrategy = getValue(config, 'setting.strategy', 'default');
-
-    realOutAddress = outAddress;
-    realOutPort = outPort;
 
     if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
       throw 'wrong outStream named "$outStreamTag"';
@@ -178,7 +173,8 @@ abstract class OutboundStruct {
       i += 1;
       RRSSocket rrsSocket;
       try {
-        rrsSocket = await transportClient!.connect(realOutAddress, realOutPort);
+        rrsSocket =
+            await transportClient!.connect(outAddress!.address, outPort!);
       } catch (e) {
         logger.info(e);
         continue;
@@ -206,10 +202,14 @@ abstract class OutboundStruct {
   }
 
   Future<RRSSocket> newConnect(Link l) async {
-    realOutAddress = l.targetAddress!.address;
-    realOutPort = l.targetport;
+    l.outAddress = l.targetAddress;
+    l.outPort = l.targetport;
+
+    // freeom outbound change outAddress with what inbound pass in.
+    outAddress = l.targetAddress;
+    outPort = l.targetport;
     return Connect(
-        rrsSocket: await connect(realOutAddress, realOutPort),
+        rrsSocket: await connect(outAddress!.address, outPort!),
         link: l,
         outboundStruct: this);
   }

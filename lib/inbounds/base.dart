@@ -6,45 +6,41 @@ import 'package:proxy/obj_list.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
-
-enum StreamType { tcp, udp }
-
-enum MethodType { get, posT, put, delete, connect }
-
-enum AddressType { domain, ipv4, ipv6 }
+import 'package:proxy/utils/const.dart';
 
 class Link {
   RRSSocket client; // in
   RRSSocket? server; // out
+  InboundStruct inboundStruct;
+  OutboundStruct? outboundStruct; // assign after routing.
 
   Uri? targetUri; // if it's a HTTP request.
+  bool isHTTPRequest = false;
+  bool isBitcont = false;
   String method = 'GET';
   int cmd = 0;
 
-  Address? targetAddress;
-  String targetIP = '';
-  int targetport = 0;
-  StreamType streamType = StreamType.tcp;
-  bool ipUseCache = false;
+  Address? outAddress; // real proxy address of targetAddress.
+  int outPort = 0;
 
-  String protocolVersion = '';
+  Address? targetAddress;
+  int targetport = 0;
+  String targetIP =
+      ''; // if targetAddress is domain, targetIP is the result of lookup.
+
+  StreamType streamType = StreamType.tcp;
+
   List<int> userID = [];
-  bool isHTTPRequest = false;
-  bool isBitcont = false;
-  int timeout = 100;
-  bool isValidRequest = false;
-  bool isClosedAll = false;
   User? user;
 
-  InboundStruct inboundStruct;
-  OutboundStruct? outboundStruct; // assign after routing.
+  int timeout = 100;
+  bool isValidRequest = false;
 
   Stopwatch createdTime = Stopwatch()..start();
   Stopwatch routingTime = Stopwatch()..start();
   Stopwatch? firstReceivedTime;
-  int receivedState = 0;
   Stopwatch? connectTime;
-  String linkInfo = '';
+  int receivedState = 0;
 
   Link({required this.client, required this.inboundStruct});
 
@@ -69,7 +65,9 @@ class Link {
       receivedState = 2;
       firstReceivedTime!.stop();
     }
-    user!.addDownlink(data.length);
+    if (user != null) {
+      user!.addDownlink(data.length);
+    }
   }
 
   void serverAdd(List<int> data) {
@@ -80,7 +78,9 @@ class Link {
       firstReceivedTime = Stopwatch()..start();
       receivedState = 1;
     }
-    user!.addUplink(data.length);
+    if (user != null) {
+      user!.addUplink(data.length);
+    }
   }
 
   void bindUser() {
@@ -160,11 +160,9 @@ class Link {
   }
 
   String buildLinkInfo() {
-    if (linkInfo == '') {
-      linkInfo =
-          " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.realOutAddress}:${outboundStruct!.realOutPort}}";
-    }
-    return '$linkInfo (${createdTime.elapsed})';
+    var temp =
+        " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.outAddress!.address}:${outboundStruct!.outPort}}";
+    return '$temp (${createdTime.elapsed})';
   }
 }
 

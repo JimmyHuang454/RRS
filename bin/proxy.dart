@@ -16,8 +16,8 @@ String loadArgv(List<String> argument) {
   var args = argsParser.parse(argument);
   var configPath = args['config_path'];
 
-  logger.config('Running at: $root');
-  logger.config('Using config at: $configPath');
+  print('Running at: $root');
+  print('Using config at: $configPath');
   return configPath;
 }
 

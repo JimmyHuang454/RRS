@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
+import 'package:proxy/utils/const.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:crypto/crypto.dart';
@@ -100,52 +99,24 @@ class TrojanOut extends OutboundStruct {
     password = getValue(config, 'setting.password', '');
     isBalancer = getValue(config, 'setting.balance.enable', false);
 
-    if (outAddress == '' || outPort == 0 || password == '') {
+    var settingAddress = getValue(config, 'setting.address', '');
+    outPort = getValue(config, 'setting.port', 0);
+    if (settingAddress == '' || outPort == 0 || password == '') {
       throw '"address", "port" and "password" can not be empty in trojan setting.';
     }
+    outAddress = Address(settingAddress);
 
     passwordSha224 = sha224.convert(password.codeUnits).toString().codeUnits;
   }
 
-  Future<void> handleBalance() async {
-    //{{{
-    if (!isBalancer) {
-      realOutAddress = outAddress;
-      realOutPort = outPort;
-      return;
-    }
-
-    if (redirected) {
-      return;
-    }
-
-    var params = {
-      'password': passwordSha224,
-      'config': getValue(config, 'setting.balance', {})
-    };
-    var url = Uri(host: outAddress, queryParameters: params);
-    var response = await http.get(url);
-    var balanceInfo = jsonDecode(response.body);
-    realOutAddress = balanceInfo['realOutAddress'];
-    realOutPort = balanceInfo['realOutPort'];
-    if (balanceInfo.contains('testAddress')) {
-      try {
-        await http
-            .get(balanceInfo['testAddress'])
-            .timeout(Duration(seconds: 3));
-      } catch (_) {
-        throw "Balance server assign a node that can not be used. Please connect your service provider to fix this.";
-      }
-    }
-  } //}}}
-
   @override
   Future<RRSSocket> newConnect(Link l) async {
-    await handleBalance(); // init realOutAddress and realOutPort.
+    l.outAddress = outAddress!;
+    l.outPort = outPort!;
 
-    var temp = await connect(realOutAddress, realOutPort);
+    // unlike freeom, trojan has a fix address. so we can apply fastopen to it since it never change.
     var res = TrojanConnect(
-        rrsSocket: temp,
+        rrsSocket: await connect(outAddress!.address, outPort!),
         link: l,
         outboundStruct: this,
         passwordSha224: passwordSha224);

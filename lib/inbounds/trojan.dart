@@ -1,9 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:quiver/collection.dart';
+import 'package:crypto/crypto.dart';
+
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
-import 'package:crypto/crypto.dart';
+import 'package:proxy/utils/const.dart';
 
 class TrojanRequest extends Link {
   bool isAuth = false;
@@ -67,11 +69,15 @@ class TrojanRequest extends Link {
     }
 
     if (isDomain) {
-      targetAddress =
-          Address.fromRawAddress(content.sublist(3, addressEnd), 'domain');
+      targetAddress = Address.fromRawAddress(
+          content.sublist(3, addressEnd), AddressType.domain);
     } else {
-      targetAddress =
-          Address.fromRawAddress(content.sublist(2, addressEnd), 'ip');
+      var address = content.sublist(2, addressEnd);
+      if (atyp == 4) {
+        targetAddress = Address.fromRawAddress(address, AddressType.ipv6);
+      } else {
+        targetAddress = Address.fromRawAddress(address, AddressType.ipv4);
+      }
     }
 
     Uint8List byteList =

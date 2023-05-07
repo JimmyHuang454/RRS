@@ -7,7 +7,8 @@ import 'package:test/test.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  test('uri use case.', () async {//{{{
+  test('uri use case.', () async {
+    //{{{
     var temp = Uri.parse('http://127.0.0.1');
     expect(temp.host, '127.0.0.1');
 
@@ -31,30 +32,50 @@ void main() {
     temp = Uri.parse('fuck://abc.cn');
     expect(temp.host, 'abc.cn');
     expect(temp.scheme, 'fuck');
-  });//}}}
+  }); //}}}
 
   test('address', () {
-    var res = Address('https://trojan-gfw.github.io/trojan/protocol');
-    expect(res.address, 'https://trojan-gfw.github.io/trojan/protocol');
-    expect(res.type, AddressType.domain);
-
-    res = Address('255.255.255.255');
+    var res = Address('255.255.255.255');
     expect(res.address, '255.255.255.255');
+    expect(res.isDomain(), false);
     expect(res.type, AddressType.ipv4);
     expect(listsEqual(res.rawAddress, [255, 255, 255, 255]), true);
 
+    res = Address('127.0.0.1');
+    expect(res.type, AddressType.ipv4);
+    expect(res.isDomain(), false);
+    expect(res.isMulticast, false);
+    expect(res.isLinkLocal, true);
+    expect(res.isLoopback, true);
+    expect(listsEqual(res.rawAddress, [127, 0, 0, 1]), true);
+
+    res = Address('192.168.200.84');
+    expect(res.type, AddressType.ipv4);
+    expect(res.isDomain(), false);
+    expect(res.isMulticast, false);
+    expect(res.isLinkLocal, false);
+    expect(res.isLoopback, false);
+
+    try {
+      res = Address('https://trojan-gfw.github.io/trojan/protocol');
+    } catch (e) {
+      expect(e.toString().contains('uri'), true);
+    }
+
     var domain = 'www.abc.com';
     res = Address(domain);
+    expect(res.isDomain(), true);
     expect(res.address, domain);
     expect(res.type, AddressType.domain);
     expect(listsEqual(res.rawAddress, utf8.encode(domain)), true);
 
-    domain = 'http://www.abc.com';
-    res = Address(domain);
-    devPrint(res.rawString);
-
-    expect(res.address, domain);
+    res = Address.fromRawAddress(utf8.encode(domain), AddressType.domain);
+    expect(res.isDomain(), true);
     expect(res.type, AddressType.domain);
-    expect(listsEqual(res.rawAddress, utf8.encode(domain)), true);
+    expect(res.address, domain);
+    expect(res.isMulticast, false);
+    expect(res.isLinkLocal, false);
+    expect(res.isLoopback, false);
+    expect(res.rawAddress, utf8.encode(domain));
   });
 }

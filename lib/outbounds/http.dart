@@ -10,6 +10,7 @@ class HTTPConnect extends Connect {
   void Function(Uint8List event)? onD;
   Function(dynamic e, dynamic s)? onE;
   void Function()? onDo;
+  String protocolVersion = 'HTTP/1.1';
 
   bool isConnected = false;
 
@@ -52,7 +53,7 @@ class HTTPConnect extends Connect {
       }
     });
     rrsSocket.add(
-        '${link.method} ${link.targetUri!.toString()} ${link.protocolVersion}\r\n\r\n'
+        '${link.method} ${link.targetUri!.toString()} $protocolVersion\r\n\r\n'
             .codeUnits);
     var res = await isReceiveConnectionStatus.future;
     isConnected = true;
@@ -87,15 +88,18 @@ class HTTPOut extends OutboundStruct {
     userAccount = getValue(config, 'setting.account', '');
     userPassword = getValue(config, 'setting.password', '');
 
-    if (outAddress == '' || outPort == 0) {
+    var settingAddress = getValue(config, 'setting.address', '');
+    outPort = getValue(config, 'setting.port', 0);
+    if (settingAddress == '' || outPort == 0) {
       throw '"address" and "port" can not be empty in http setting.';
     }
+    outAddress = Address(settingAddress);
   }
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
     var res = HTTPConnect(
-        rrsSocket: await connect(outAddress, outPort),
+        rrsSocket: await connect(outAddress!.address, outPort!),
         link: l,
         outboundStruct: this);
     await res.isNeedConnection();

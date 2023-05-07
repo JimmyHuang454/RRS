@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:typed_data';
-import 'package:proxy/transport/client/base.dart';
 
-import 'package:proxy/utils/utils.dart';
+import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/utils/const.dart';
 import 'package:proxy/outbounds/base.dart';
 
 class Socks5Connect extends Connect {
   bool isAuth = false;
+  bool isReceiveAuth = false;
+  bool isReceiveHeaderRespon = false;
   bool isSendedHeader = false;
+
+  List<int> content = [];
 
   Socks5Connect(
       {required super.link,
@@ -16,6 +20,7 @@ class Socks5Connect extends Connect {
       required super.outboundStruct});
 
   List<int> buildHeader() {
+    //{{{
     // +----+-----+-------+------+----------+----------+
     // |VER | CMD |  RSV  | ATYP | DST.ADDR | DST.PORT |
     // +----+-----+-------+------+----------+----------+
@@ -34,16 +39,20 @@ class Socks5Connect extends Connect {
     var atyp = 1; // ipv4
     List<int> addr = [];
     if (link.targetAddress!.type == AddressType.domain) {
-      addr = [link.targetAddress!.internetAddress.rawAddress.length] +
-          link.targetAddress!.internetAddress.rawAddress.toList();
+      var temp = link.targetAddress!.rawAddress.toList();
+      addr = [temp.length] + temp;
     } else {
       if (link.targetAddress!.type == AddressType.ipv4) {
         atyp = 3;
       } else {
         atyp = 4;
       }
-      addr = link.targetAddress!.internetAddress.rawAddress.toList();
+      addr = link.targetAddress!.rawAddress.toList();
     }
+
+    // add port.
+    addr += Uint8List(2)
+      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
 
     return [
           5,
@@ -52,7 +61,7 @@ class Socks5Connect extends Connect {
           atyp,
         ] +
         addr;
-  }
+  } //}}}
 
   @override
   void add(List<int> data) {
@@ -62,6 +71,7 @@ class Socks5Connect extends Connect {
     }
 
     if (!isSendedHeader) {
+      super.add(buildHeader());
       isSendedHeader = true;
     }
 
@@ -70,6 +80,43 @@ class Socks5Connect extends Connect {
     } else {
       super.add(data);
     }
+  }
+
+  @override
+  void listen(void Function(Uint8List event)? onData,
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
+    super.listen((event) {
+      content += event;
+
+      if (!isReceiveAuth) {
+        if (content.length < 2) {
+          return;
+        }
+        if (content[1] != 0) {
+          // auth wrong.
+          return;
+        }
+        content = content.sublist(2);
+        isReceiveAuth = true;
+      }
+
+      if (!isReceiveHeaderRespon) {
+        if (content.length < 10) {
+          return;
+        }
+        if (content[1] != 0) {
+          // CONNECT wrong.
+          return;
+        }
+        content = content.sublist(10);
+        isReceiveHeaderRespon = true;
+      }
+
+      if (content.isNotEmpty) {
+        onData!(Uint8List.fromList(content));
+        content = [];
+      }
+    }, onDone: onDone, onError: onError);
   }
 }
 

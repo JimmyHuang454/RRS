@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:json5/json5.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart';
-import 'package:proxy/inbounds/base.dart';
+
+import 'package:proxy/utils/const.dart';
 
 final logger = Logger('RRS');
 
@@ -160,7 +162,25 @@ class Address {
         _type = AddressType.ipv6;
       }
     } catch (_) {
+      if (rawString.contains(':')) {
+        throw 'uri is not supported.';
+      }
       _type = AddressType.domain;
+    }
+  }
+
+  Address.fromRawAddress(List<int> data, AddressType addressType) {
+    if (addressType == AddressType.domain) {
+      _type = AddressType.domain;
+      rawString = utf8.decode(data);
+    } else {
+      internetAddress =
+          InternetAddress.fromRawAddress(Uint8List.fromList(data));
+      if (internetAddress.type == InternetAddressType.IPv4) {
+        _type = AddressType.ipv4;
+      } else {
+        _type = AddressType.ipv6;
+      }
     }
   }
 
@@ -174,8 +194,6 @@ class Address {
   String get address {
     return isDomain() ? rawString : internetAddress.address;
   }
-
-  String get host => isDomain() ? rawString : internetAddress.host;
 
   bool get isLinkLocal => isDomain() ? false : internetAddress.isLoopback;
 

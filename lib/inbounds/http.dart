@@ -7,6 +7,7 @@ import 'package:proxy/utils/utils.dart';
 
 class HTTPRequest extends Link {
   String fullURL = '';
+  String protocolVersion = '';
   bool isParsed = false;
   List<int> header = [];
   List<int> content = [];
