@@ -220,6 +220,6 @@ class Socks5In extends InboundStruct {
 
     server.listen((client) {
       Socks5Request(client: client, inboundStruct: this);
-    }, onError: (e) {}, onDone: () {});
+    }, onError: (e, s) {}, onDone: () {});
   }
 }

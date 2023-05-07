@@ -11,7 +11,7 @@ abstract class RRSServerSocket {
   Future<void> close();
 
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone});
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone});
 } //}}}
 
 class RRSServerSocketBase extends RRSServerSocket {
@@ -26,7 +26,7 @@ class RRSServerSocketBase extends RRSServerSocket {
 
   @override
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     runZonedGuarded(() {
       rrsServerSocket.listen((event) {
         onData!(event);

@@ -21,10 +21,10 @@ class Link {
   int cmd = 0;
 
   Address? outAddress; // real proxy address of targetAddress.
-  int outPort = 0;
+  int? outPort = 0;
 
   Address? targetAddress;
-  int targetport = 0;
+  int? targetport;
   String targetIP =
       ''; // if targetAddress is domain, targetIP is the result of lookup.
 
@@ -161,7 +161,7 @@ class Link {
 
   String buildLinkInfo() {
     var temp =
-        " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outboundStruct!.outAddress!.address}:${outboundStruct!.outPort}}";
+        " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outAddress!.address}:${outPort!}}";
     return '$temp (${createdTime.elapsed})';
   }
 }

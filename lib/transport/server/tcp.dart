@@ -17,7 +17,7 @@ class TCPRRSServerSocket extends RRSServerSocket {
 
   @override
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     serverSocket.listen((event) {
       onData!(RRSSocketBase(rrsSocket: TCPRRSSocket(socket: event)));
     }, onDone: onDone, onError: onError, cancelOnError: true);

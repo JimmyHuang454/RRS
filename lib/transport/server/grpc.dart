@@ -21,7 +21,7 @@ class GRPCServerScoket extends RRSServerSocket {
 
   @override
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     streamController.stream.listen((data) {
       onData!(data);
     }, onError: onError, onDone: onDone, cancelOnError: true);

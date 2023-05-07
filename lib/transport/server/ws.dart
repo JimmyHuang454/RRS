@@ -18,7 +18,7 @@ class WSRRSServerSocket extends RRSServerSocket {
 
   @override
   void listen(void Function(RRSSocket event)? onData,
-      {Function? onError, void Function()? onDone}) {
+      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     httpServer.listen((httpClient) async {
       if (path == '' || '/$path' == httpClient.uri.path || path == '/') {
         var wsSocket = await WebSocketTransformer.upgrade(httpClient);

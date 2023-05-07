@@ -82,7 +82,9 @@ Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   } else {
     res = Socks5In(config: config);
   }
+
   await res.bind();
+
   return res;
 } //}}}
 
