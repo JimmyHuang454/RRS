@@ -1,8 +1,5 @@
-import 'dart:typed_data';
 
 import 'package:cryptography/cryptography.dart';
-import 'package:proxy/inbounds/wg.dart';
-import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/utils/utils.dart';

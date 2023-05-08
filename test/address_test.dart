@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:proxy/inbounds/base.dart';
+import 'package:proxy/utils/const.dart';
 import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 

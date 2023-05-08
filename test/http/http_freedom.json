@@ -1,4 +1,9 @@
 {
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
   "outStream": {
     "tcp": {
       "protocol": "tcp"

@@ -5,6 +5,7 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/utils/const.dart';
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class Socks5Connect extends Connect {
   bool isAuth = false;
@@ -27,24 +28,16 @@ class Socks5Connect extends Connect {
     // | 1  |  1  | X'00' |  1   | Variable |    2     |
     // +----+-----+-------+------+----------+----------+
 
-    var cmd = 1; // CONNECT
-    if (link.streamType == StreamType.udp) {
-      // TODO
-      cmd = 3;
-    } else {
-      // TODO
-      cmd = 2; // BIND
-    }
+    var cmd = 1; // CONNECT // TODO: implement UDP and BIND.
 
     var atyp = 1; // ipv4
     List<int> addr = [];
     if (link.targetAddress!.type == AddressType.domain) {
       var temp = link.targetAddress!.rawAddress.toList();
       addr = [temp.length] + temp;
+      atyp = 3;
     } else {
-      if (link.targetAddress!.type == AddressType.ipv4) {
-        atyp = 3;
-      } else {
+      if (link.targetAddress!.type == AddressType.ipv6) {
         atyp = 4;
       }
       addr = link.targetAddress!.rawAddress.toList();
@@ -52,7 +45,7 @@ class Socks5Connect extends Connect {
 
     // add port.
     addr += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport, Endian.big);
+      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
 
     return [
           5,
@@ -66,7 +59,7 @@ class Socks5Connect extends Connect {
   @override
   void add(List<int> data) {
     if (!isAuth) {
-      rrsSocket.add([5, 1, 0]);
+      super.add([5, 1, 0]);
       isAuth = true;
     }
 
@@ -102,6 +95,7 @@ class Socks5Connect extends Connect {
 
       if (!isReceiveHeaderRespon) {
         if (content.length < 10) {
+          // only accept ipv4 address.
           return;
         }
         if (content[1] != 0) {
@@ -127,15 +121,21 @@ class Socks5Out extends OutboundStruct {
 
   Socks5Out({required super.config})
       : super(protocolName: 'socks', protocolVersion: '5') {
-    if (outAddress == '' || outPort == 0) {
-      throw '"address" and "port" can not be empty in http setting.';
+    var settingAddress = getValue(config, 'setting.address', '');
+    outPort = getValue(config, 'setting.port', 0);
+    if (settingAddress == '' || outPort == 0) {
+      throw '"address", "port" and "password" can not be empty in trojan setting.';
     }
+    outAddress = Address(settingAddress);
   }
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
+    l.outAddress = outAddress!;
+    l.outPort = outPort!;
+
     var res = Socks5Connect(
-        rrsSocket: await connect(outAddress, outPort),
+        rrsSocket: await connect(outAddress!.address, outPort!),
         link: l,
         outboundStruct: this);
     return res;

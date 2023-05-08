@@ -5,6 +5,14 @@
     }
   },
   "inbounds": {
+    "HTTPIn": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      },
+      "route": "proxy"
+    },
     "socks5Inbound": {
       "protocol": "socks5",
       "setting": {
@@ -14,8 +22,21 @@
       "route": "freedom"
     }
   },
-  "outbounds": {},
+  "outbounds": {
+    "socks5Out": {
+      "protocol": "socks5",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      }
+    }
+  },
   "routes": {
+    "proxy": {
+      "rules": [{
+        "outbound": "socks5Out"
+      }]
+    },
     "freedom": {
       "rules": [{
         "outbound": "freedom"

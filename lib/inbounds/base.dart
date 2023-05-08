@@ -125,11 +125,11 @@ class Link {
       serverDone();
     });
 
-    client.done!.then((value) {
-      client.clearListen();
-    }, onError: (e, s) {
-      client.clearListen();
-    });
+    // client.done!.then((value) {
+    //   client.clearListen();
+    // }, onError: (e, s) {
+    //   client.clearListen();
+    // });
 
     outboundStruct!.linkCount += 1;
     user!.linkCount += 1;
@@ -143,7 +143,6 @@ class Link {
   void serverDone() {
     user!.linkCount -= 1;
     outboundStruct!.linkCount -= 1;
-    server!.clearListen();
 
     var time = '';
     if (firstReceivedTime != null) {

@@ -1,4 +1,5 @@
 import 'package:proxy/config.dart';
+import 'package:proxy/outbounds/socks5.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/grpc.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -109,6 +110,8 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
     return TrojanOut(config: config);
   } else if (protocol == 'freedom') {
     return FreedomOut(config: config);
+  } else if (protocol == 'socks5') {
+    return Socks5Out(config: config);
   } else {
     throw "there are no outbound protocol named '$protocol'";
   }
