@@ -28,6 +28,19 @@
         "port": 5454,
         "password": "123"
       }
+    },
+    "trojanOut_fastOpen": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 443,
+        "password": "123"
+      },
+      "fastopen": {
+        "enable": true,
+        "size": 10,
+        "timeout": 2
+      }
     }
   },
   "routes": {

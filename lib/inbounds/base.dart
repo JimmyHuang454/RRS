@@ -18,7 +18,7 @@ class Link {
   bool isHTTPRequest = false;
   bool isBitcont = false;
   String method = 'GET';
-  int cmd = 0;
+  CmdType cmd = CmdType.connect;
 
   Address? outAddress; // real proxy address of targetAddress.
   int? outPort = 0;

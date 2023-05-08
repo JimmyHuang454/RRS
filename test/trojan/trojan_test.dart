@@ -19,6 +19,7 @@ void main() {
     config['inbounds']['HTTPIn']['setting']['port'] = port1;
     config['inbounds']['TrojanIn']['setting']['port'] = port2;
     config['outbounds']['TrojanOut']['setting']['port'] = port2;
+    config['outbounds']['trojanOut_fastOpen']['setting']['port'] = port2;
     entry(config);
 
     var httpServer = await ServerSocket.bind(host, port3);
@@ -57,5 +58,18 @@ void main() {
     user.clearTraffic();
     expect(user.traffic.downlink, 0);
     expect(user.traffic.uplink, 0);
+
+    // fast_open_test
+    var out = outboundsList['trojanOut_fastOpen']!;
+    expect(out.isFastOpen, true);
+    expect(out.fastOpenQueue!.length, 0);
+    await out.updateFastOpenQueue();
+    expect(out.fastOpenQueue!.length, 10);
+    await delay(3);
+    while (out.fastOpenQueue!.isNotEmpty) {
+      var res = out.fastOpenQueue!.removeFirst();
+      expect(res.isOK(), false);
+    }
+    expect(out.fastOpenQueue!.length, 0);
   });
 }

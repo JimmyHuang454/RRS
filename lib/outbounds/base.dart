@@ -8,53 +8,6 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
-class Dispacher {
-  Queue<ConnectionRes>? resQueue;
-
-  int queueLen;
-  bool isMakingFood = false;
-
-  Future<RRSSocket> Function() generator;
-
-  Dispacher({required this.queueLen, required this.generator}) {
-    resQueue = Queue<ConnectionRes>();
-  }
-
-  void makeFood() async {
-    if (isMakingFood) {
-      return;
-    }
-    isMakingFood = true;
-
-    var i = 0;
-    while (resQueue!.length < queueLen && i < queueLen) {
-      i += 1;
-      RRSSocket rrsSocket;
-      try {
-        rrsSocket = await generator();
-      } catch (e) {
-        logger.info(e);
-        continue;
-      }
-      resQueue!.add(
-          ConnectionRes(rrsSocket: rrsSocket, timeout: Duration(seconds: 2)));
-    }
-
-    isMakingFood = false;
-  }
-
-  Future<RRSSocket> eat() async {
-    if (resQueue!.isNotEmpty) {
-      var res = resQueue!.removeFirst();
-      if (res.isOK()) {
-        return res.take();
-      }
-    }
-    makeFood();
-    return await generator();
-  }
-}
-
 class ConnectionRes {
   int stats = 0; // 0 means not took, 1 means took, 2 means error.
 
@@ -166,7 +119,7 @@ abstract class OutboundStruct {
     return await transportClient!.connect(outAddress!.address, outPort!);
   }
 
-  void updateFastOpenQueue() async {
+  Future<void> updateFastOpenQueue() async {
     if (!isFastOpen || isMakingFood) {
       return;
     }

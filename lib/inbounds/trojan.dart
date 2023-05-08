@@ -44,7 +44,11 @@ class TrojanRequest extends Link {
       return;
     }
 
-    cmd = content[0];
+    if (content[1] == 3) {
+      cmd = CmdType.udp;
+    } else if (content[1] == 2) {
+      cmd = CmdType.bind;
+    }
 
     int addressEnd = 2;
     var atyp = content[1];

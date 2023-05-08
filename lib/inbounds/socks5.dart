@@ -36,7 +36,7 @@ class Socks5Request extends Link {
     //{{{
     streamType = StreamType.tcp;
 
-    if (cmd == 1) {
+    if (cmd == CmdType.connect) {
       // CONNECTING
       var isConnectedServer = await bindServer();
       int rep = isConnectedServer ? 0 : 1;
@@ -61,11 +61,10 @@ class Socks5Request extends Link {
       if (!isConnectedServer) {
         await closeAll();
       }
-    } else if (cmd == 3) {
-      // UDP TODO
+    } else if (cmd == CmdType.udp) {
       streamType = StreamType.udp;
       throw "TODO";
-    } else if (cmd == 2) {
+    } else if (cmd == CmdType.bind) {
       // BIND TODO
       throw "TODO";
     } else {
@@ -131,7 +130,12 @@ class Socks5Request extends Link {
       await closeAll();
       return;
     }
-    cmd = content[1];
+
+    if (content[1] == 3) {
+      cmd = CmdType.udp;
+    } else if (content[1] == 2) {
+      cmd = CmdType.bind;
+    }
 
     var addressAndPortLength = await parseAddress(content);
     if (addressAndPortLength == -1) {
