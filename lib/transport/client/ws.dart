@@ -76,18 +76,21 @@ class WSClient extends TransportClient {
 
     HttpClient client = HttpClient()
       ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) async {
-        if (uri.isScheme('HTTPS')) {
-          var so = await Socket.connect(uri.host, uri.port,
-              sourceAddress: sourceAddress);
-          var test = ConnectionTask2<Socket>(
-              socket2: SecureSocket.secure(so, host: uri.host));
 
-          return Future(
-            () => test,
-          );
+        var so = Socket.connect(uri.host, uri.port,
+            sourceAddress: sourceAddress, timeout: timeout);
+        ConnectionTask2<Socket> task;
+
+        if (uri.isScheme('HTTPS')) {
+          task = ConnectionTask2<Socket>(
+              socket2: SecureSocket.secure(await so, host: uri.host));
+        } else {
+          task = ConnectionTask2<Socket>(socket2: so);
         }
-        return Socket.startConnect(uri.host, uri.port,
-            sourceAddress: sourceAddress);
+
+        return Future(
+          () => task,
+        );
       };
 
     var ws = await WebSocket.connect(address, customClient: client);

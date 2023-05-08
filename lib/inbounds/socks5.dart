@@ -15,7 +15,6 @@ class Socks5Request extends Link {
 
   Socks5Request({required super.client, required super.inboundStruct}) {
     client.listen((data) async {
-      devPrint(data);
       if (!isAuth) {
         auth(data);
         await parseRequest([]);

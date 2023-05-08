@@ -162,6 +162,10 @@ abstract class OutboundStruct {
     }
   }
 
+  Future<RRSSocket> realConnect() async {
+    return await transportClient!.connect(outAddress!.address, outPort!);
+  }
+
   void updateFastOpenQueue() async {
     if (!isFastOpen || isMakingFood) {
       return;
@@ -170,17 +174,17 @@ abstract class OutboundStruct {
 
     var i = 0;
     while (fastOpenQueue!.length < queueLen! && i < queueLen!) {
-      i += 1;
       RRSSocket rrsSocket;
       try {
-        rrsSocket =
-            await transportClient!.connect(outAddress!.address, outPort!);
+        rrsSocket = await realConnect();
       } catch (e) {
         logger.info(e);
+        i += 1;
         continue;
       }
       fastOpenQueue!
           .add(ConnectionRes(rrsSocket: rrsSocket, timeout: fastOpenTimeout!));
+      devPrint(fastOpenQueue!.length);
     }
 
     isMakingFood = false;
@@ -188,14 +192,13 @@ abstract class OutboundStruct {
 
   Future<RRSSocket> connect(dynamic host, int port) async {
     if (!isFastOpen) {
-      return await transportClient!.connect(host, port);
+      return await realConnect();
     }
 
     updateFastOpenQueue();
     while (fastOpenQueue!.isNotEmpty) {
       var res = fastOpenQueue!.removeFirst();
       if (res.isOK()) {
-        devPrint(fastOpenQueue!.length);
         return res.take();
       }
     }
@@ -210,8 +213,6 @@ abstract class OutboundStruct {
     outAddress = l.targetAddress;
     outPort = l.targetport;
     return Connect(
-        rrsSocket: await connect(outAddress!.address, outPort!),
-        link: l,
-        outboundStruct: this);
+        rrsSocket: await realConnect(), link: l, outboundStruct: this);
   }
 }

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:quiver/collection.dart';
 import 'package:test/test.dart';
 
 import 'package:proxy/handler.dart';
