@@ -10,7 +10,6 @@ class BlockOut extends OutboundStruct {
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
-    print('1');
     throw Exception('block this.');
   }
 }
