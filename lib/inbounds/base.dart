@@ -119,17 +119,17 @@ class Link {
       await closeAll();
     });
 
-    server!.done!.then((value) {
-      serverDone();
-    }, onError: (e, s) {
-      serverDone();
+    server!.done!.then((value) async {
+      await serverDone();
+    }, onError: (e, s) async {
+      await serverDone();
     });
 
-    // client.done!.then((value) {
-    //   client.clearListen();
-    // }, onError: (e, s) {
-    //   client.clearListen();
-    // });
+    client.done!.then((value) async {
+      await client.clearListen();
+    }, onError: (e, s) async {
+      await client.clearListen();
+    });
 
     outboundStruct!.linkCount += 1;
     user!.linkCount += 1;
@@ -140,9 +140,10 @@ class Link {
     return true;
   }
 
-  void serverDone() {
+  Future<void> serverDone() async {
     user!.linkCount -= 1;
     outboundStruct!.linkCount -= 1;
+    await server!.clearListen();
 
     var time = '';
     if (firstReceivedTime != null) {

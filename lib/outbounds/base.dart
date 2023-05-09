@@ -137,7 +137,6 @@ abstract class OutboundStruct {
       }
       fastOpenQueue!
           .add(ConnectionRes(rrsSocket: rrsSocket, timeout: fastOpenTimeout!));
-      devPrint(fastOpenQueue!.length);
     }
 
     isMakingFood = false;
@@ -149,6 +148,8 @@ abstract class OutboundStruct {
     }
 
     updateFastOpenQueue();
+    devPrint(fastOpenQueue!.length);
+    devPrint(isMakingFood);
     while (fastOpenQueue!.isNotEmpty) {
       var res = fastOpenQueue!.removeFirst();
       if (res.isOK()) {

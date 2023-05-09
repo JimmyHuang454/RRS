@@ -3,7 +3,8 @@ import 'package:proxy/utils/utils.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 void applyLogConfig(Map<String, dynamic> config) {
-  var debugLevelStr = getValue(config, 'level', 'info');
+  var debugLevelStr = getValue(config, 'log.level', 'info');
+  devPrint(debugLevelStr);
 
   if (debugLevelStr == 'debug') {
     Logger.root.level = Level.FINEST;
@@ -13,9 +14,9 @@ void applyLogConfig(Map<String, dynamic> config) {
     print('log level set to "none" means print nothing.');
   } else if (debugLevelStr == 'info') {
     Logger.root.level = Level.INFO;
-    print('log level set to "info" means print everything at length.');
+    print('log level set to "info" means print info user need to know.');
   } else {
-    Logger.root.level = Level.CONFIG;
+    throw 'UNKNOW log level';
   }
 
   Logger.root.onRecord.listen((record) async {
