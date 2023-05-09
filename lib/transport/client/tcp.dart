@@ -15,8 +15,9 @@ class TCPRRSSocket extends RRSSocket {
   Future<dynamic>? get done => socket.done;
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async {
     socket.add(data);
+    await socket.flush();
   }
 
   @override

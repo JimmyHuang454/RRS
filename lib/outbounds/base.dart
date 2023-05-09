@@ -120,7 +120,7 @@ abstract class OutboundStruct {
   }
 
   Future<void> updateFastOpenQueue() async {
-    if (!isFastOpen || isMakingFood) {
+    if (!isFastOpen) {
       return;
     }
     isMakingFood = true;
@@ -135,6 +135,7 @@ abstract class OutboundStruct {
         i += 1;
         continue;
       }
+      devPrint(fastOpenQueue!.length);
       fastOpenQueue!
           .add(ConnectionRes(rrsSocket: rrsSocket, timeout: fastOpenTimeout!));
     }
@@ -148,8 +149,6 @@ abstract class OutboundStruct {
     }
 
     updateFastOpenQueue();
-    devPrint(fastOpenQueue!.length);
-    devPrint(isMakingFood);
     while (fastOpenQueue!.isNotEmpty) {
       var res = fastOpenQueue!.removeFirst();
       if (res.isOK()) {

@@ -28,7 +28,7 @@ class TrojanRequest extends Link {
       } else if (!isParseDST) {
         await parseDST(data);
       } else {
-        serverAdd(data);
+        await serverAdd(data);
       }
     }, onError: (e, s) async {
       await closeAll();
@@ -94,7 +94,7 @@ class TrojanRequest extends Link {
     await bindServer();
 
     if (content.isNotEmpty) {
-      serverAdd(content);
+      await serverAdd(content);
     }
     content = [];
   } //}}}

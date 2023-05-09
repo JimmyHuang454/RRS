@@ -15,7 +15,7 @@ class GRPCSocket extends RRSSocket {
   GRPCSocket({required this.to, required this.from});
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async {
     to.add(Hunk(data: data));
   }
 

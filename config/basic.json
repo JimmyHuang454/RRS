@@ -13,7 +13,7 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": true,
+        "enable": false,
         "size": 20,
         "timeout": 30
       },

@@ -57,21 +57,21 @@ class Socks5Connect extends Connect {
   } //}}}
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async {
     if (!isAuth) {
-      super.add([5, 1, 0]);
+      await super.add([5, 1, 0]);
       isAuth = true;
     }
 
     if (!isSendedHeader) {
-      super.add(buildHeader());
+      await super.add(buildHeader());
       isSendedHeader = true;
     }
 
     if (link.streamType == StreamType.udp) {
       // TODO
     } else {
-      super.add(data);
+      await super.add(data);
     }
   }
 

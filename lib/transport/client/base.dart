@@ -16,7 +16,7 @@ abstract class RRSSocket {
 
   RRSSocket();
 
-  void add(List<int> data);
+  Future<void> add(List<int> data);
 
   Future<void> close();
   Future<void> clearListen() async {}
@@ -106,12 +106,12 @@ class RRSSocketBase extends RRSSocket {
   Traffic get traffic => rrsSocket.traffic;
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async {
     if (isClosed) {
       return;
     }
     traffic.uplink += data.length;
-    rrsSocket.add(data);
+    await rrsSocket.add(data);
   }
 
   @override
@@ -147,7 +147,7 @@ class RRSSocketBase extends RRSSocket {
         }
       });
     }, (e, s) {
-      logger.fine('listen error: $e $s');
+      logger.info('listen error: $e $s');
       if (onError != null) {
         onError(e, s);
       }

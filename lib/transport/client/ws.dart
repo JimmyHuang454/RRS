@@ -36,7 +36,7 @@ class WSRRSSocket extends RRSSocket {
   Future<dynamic>? get done => webSocket.done;
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async{
     webSocket.add(data);
   }
 
@@ -76,7 +76,6 @@ class WSClient extends TransportClient {
 
     HttpClient client = HttpClient()
       ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) async {
-
         var so = Socket.connect(uri.host, uri.port,
             sourceAddress: sourceAddress, timeout: timeout);
         ConnectionTask2<Socket> task;

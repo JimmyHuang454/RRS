@@ -73,7 +73,7 @@ class TrojanConnect extends Connect {
   } //}}}
 
   @override
-  void add(List<int> data) {
+  Future<void> add(List<int> data) async {
     if (link.streamType == StreamType.udp) {
       data = _buildUDPHead(data.length) + data;
     }
@@ -83,7 +83,7 @@ class TrojanConnect extends Connect {
       data = _buildRequest() + data;
     }
 
-    super.add(data);
+    await super.add(data);
   }
 }
 

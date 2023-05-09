@@ -15,7 +15,7 @@ class HTTPRequest extends Link {
   HTTPRequest({required super.client, required super.inboundStruct}) {
     client.listen((data) async {
       if (isParsed) {
-        serverAdd(data);
+        await serverAdd(data);
       } else {
         await parse(data);
       }
@@ -65,11 +65,11 @@ class HTTPRequest extends Link {
     isParsed = true;
 
     if (method == 'CONNECT') {
-      clientAdd(buildConnectionResponse());
+      await clientAdd(buildConnectionResponse());
     }
 
     if (content.isNotEmpty) {
-      serverAdd(content);
+      await serverAdd(content);
     }
     content = [];
     return;

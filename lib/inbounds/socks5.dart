@@ -21,7 +21,7 @@ class Socks5Request extends Link {
       } else if (!isParseDST) {
         await parseRequest(data);
       } else if (streamType == StreamType.tcp) {
-        serverAdd(data);
+        await serverAdd(data);
       } else {
         handleUDP(data);
       }
@@ -56,7 +56,7 @@ class Socks5Request extends Link {
       ]; //BIND.ADDR and port alwayes return 0;
       res += addressAndPort;
 
-      clientAdd(res);
+      await clientAdd(res);
       isValidRequest = true;
       if (!isConnectedServer) {
         await closeAll();
@@ -148,7 +148,7 @@ class Socks5Request extends Link {
 
     if (streamType == StreamType.tcp) {
       if (content.isNotEmpty) {
-        serverAdd(content);
+        await serverAdd(content);
       }
       content = [];
     } else {
@@ -182,11 +182,11 @@ class Socks5Request extends Link {
 
     // only supports 'NO AUTHENTICATION REQUIRED' method.
     if (!methods.contains(0)) {
-      clientAdd([socks5Version, 0xFF]); // tell client to close.
+      await clientAdd([socks5Version, 0xFF]); // tell client to close.
       await closeAll();
       return;
     }
-    clientAdd([socks5Version, 0]); // ok.
+    await clientAdd([socks5Version, 0]); // ok.
 
     isAuth = true;
     content = content.sublist(authLength);
@@ -206,7 +206,7 @@ class Socks5Request extends Link {
 
     content = content.sublist(addressAndPortLength);
 
-    serverAdd(content);
+    await serverAdd(content);
   } //}}}
 }
 
@@ -221,7 +221,6 @@ class Socks5In extends InboundStruct {
   @override
   Future<void> bind() async {
     var server = await transportServer!.bind(inAddress, inPort);
-
     server.listen((client) {
       Socks5Request(client: client, inboundStruct: this);
     }, onError: (e, s) {}, onDone: () {});

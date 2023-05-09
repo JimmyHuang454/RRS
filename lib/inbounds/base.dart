@@ -59,27 +59,27 @@ class Link {
     await closeClient();
   }
 
-  void clientAdd(List<int> data) {
-    client.add(data);
+  Future<void> clientAdd(List<int> data) async {
+    await client.add(data);
+    if (user != null) {
+      user!.addDownlink(data.length);
+    }
     if (receivedState == 1 && firstReceivedTime != null) {
       receivedState = 2;
       firstReceivedTime!.stop();
     }
-    if (user != null) {
-      user!.addDownlink(data.length);
-    }
   }
 
-  void serverAdd(List<int> data) {
+  Future<void> serverAdd(List<int> data) async {
     if (server != null) {
-      server!.add(data);
+      await server!.add(data);
+    }
+    if (user != null) {
+      user!.addUplink(data.length);
     }
     if (firstReceivedTime == null) {
       firstReceivedTime = Stopwatch()..start();
       receivedState = 1;
-    }
-    if (user != null) {
-      user!.addUplink(data.length);
     }
   }
 
@@ -111,8 +111,8 @@ class Link {
 
     bindUser();
 
-    server!.listen((event) {
-      clientAdd(event);
+    server!.listen((event) async {
+      await clientAdd(event);
     }, onDone: () async {
       await closeAll();
     }, onError: (e, s) async {
