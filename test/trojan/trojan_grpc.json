@@ -1,4 +1,9 @@
 {
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
   "inbounds": {
     "HTTPIn": {
       "protocol": "http",
