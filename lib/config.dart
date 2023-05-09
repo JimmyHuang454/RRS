@@ -4,7 +4,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 void applyLogConfig(Map<String, dynamic> config) {
   var debugLevelStr = getValue(config, 'log.level', 'info');
-  devPrint(debugLevelStr);
 
   if (debugLevelStr == 'debug') {
     Logger.root.level = Level.FINEST;

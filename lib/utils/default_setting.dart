@@ -28,6 +28,7 @@ Map<String, dynamic> defaultSetting = {
   "outbounds": {
     "default": {"protocol": "freedom", "outStream": "tcp"},
     "freedom": {"protocol": "freedom", "outStream": "tcp"},
+    "block": {"protocol": "block", "outStream": "tcp"},
   },
   "dns": {
     "txDOH": {"type": "doh", "address": "https://doh.pub/dns-query"},

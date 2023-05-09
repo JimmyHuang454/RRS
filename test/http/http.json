@@ -30,6 +30,14 @@
         "port": 0
       },
       "route": "httpIn_to_httpOut"
+    },
+    "HTTPIn3": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 0
+      },
+      "route": "block"
     }
   },
   "outbounds": {
@@ -39,9 +47,6 @@
         "address": "127.0.0.1",
         "port": 0
       }
-    },
-    "block": {
-      "protocol": "block"
     }
   },
   "routes": {
