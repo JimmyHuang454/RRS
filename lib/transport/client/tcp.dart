@@ -22,7 +22,7 @@ class TCPRRSSocket extends RRSSocket {
 
   @override
   Future<void> close() async {
-    // await socket.flush();
+    await socket.flush();
     socket.close();
   }
 
