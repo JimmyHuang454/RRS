@@ -19,10 +19,10 @@ class HTTPRequest extends Link {
       } else {
         await parse(data);
       }
-    }, onError: (e, s) {
-      closeServer();
-    }, onDone: () {
-      closeServer();
+    }, onError: (e, s) async {
+      await closeAll();
+    }, onDone: () async {
+      await closeAll();
     });
   }
 

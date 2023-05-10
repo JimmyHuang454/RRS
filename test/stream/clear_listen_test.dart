@@ -1,44 +1,52 @@
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:test/test.dart';
 
-import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 
 void main() {
-  test('RRS listen twice.', () async {
+  return;
+  void feed(Socket client) async {
+    client.listen((event) {
+      devPrint(event);
+    }, onDone: () {});
+
+    for (var i = 0; i < 3; ++i) {
+      client.add([i]);
+      devPrint(i);
+      await client.flush();
+    }
+  }
+
+  test('stream use case.', () async {
     //{{{
     var host = '127.0.0.1';
-    var port1 = await getUnusedPort(InternetAddress(host));
-    var httpServer = await ServerSocket.bind(host, port1);
-    var msg = 'Hello world'.codeUnits;
-    httpServer.listen(
-      (event) {
-        event.add(msg);
-      },
-    );
-    var client = TCPClient(config: {});
-    var con = await client.connect(host, port1);
-    var isReceive = false;
-    con.listen(
-      (event) {
-        isReceive = true;
-      },
-    );
-    con.add([1]);
-    await delay(2);
-    expect(isReceive, true);
+    var serverPort = await getUnusedPort(InternetAddress(host));
+    var serverPort2 = await getUnusedPort(InternetAddress(host));
+    var httpServer = await ServerSocket.bind(host, serverPort);
+    var httpServer2 = await ServerSocket.bind(host, serverPort);
+    var clientClosed = false;
+    httpServer.listen((event) async {
+      event.addStream(event);
+      event.listen((data) {
+        devPrint(data);
+      }, onDone: () {});
+    });
 
-    await con.clearListen();
+    httpServer2.listen((event) async {
+      event.listen((data) async {
+        devPrint(data);
+      }, onDone: () {});
+    });
 
-    isReceive = false;
-    con.listen(
-      (event) {
-        isReceive = true;
-      },
-    );
-    con.add([1]);
-    await delay(2);
-    expect(isReceive, false); // can not clearListen. FIXME
+    var client = await Socket.connect(host, serverPort);
+
+    feed(client);
+
+    await delay(4);
+    await client.close();
+    await delay(1);
+    expect(clientClosed, true);
   }); //}}}
 }

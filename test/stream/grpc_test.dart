@@ -39,12 +39,12 @@ void main() {
 
     s.listen(
       (inClient) {
-        inClient.listen((event) {
-          inClient.add(event);
-          inClient.close();
-        }, onDone: () {
+        inClient.listen((event) async {
+          await inClient.add(event);
+          await inClient.close();
+        }, onDone: () async {
           serverDoneTimes += 1;
-        }, onError: (e, r) {
+        }, onError: (e, r) async {
           serverErrorTimes += 1;
         });
       },
@@ -57,19 +57,18 @@ void main() {
     var errorTimes = 0;
     for (var i = 0; i < times; ++i) {
       var c = await client.connect(host, port);
-      c.listen((event) {
+      c.listen((event) async {
         expect(event, msg);
         time += 1;
-      }, onDone: () {
+      }, onDone: () async {
         doneTimes += 1;
-      }, onError: (e, r) {
+      }, onError: (e, r) async {
         errorTimes += 1;
       });
-      c.add(msg);
-      c.close();
+      await c.add(msg);
+      await c.close();
     }
 
-    await delay(3);
     expect(time, times);
     expect(doneTimes, times);
     expect(errorTimes, 0);

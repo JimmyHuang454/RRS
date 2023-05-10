@@ -23,9 +23,10 @@ void main() async {
   var httpServer = await ServerSocket.bind(host, serverPort);
   var msg = 'Hello world'.codeUnits;
   httpServer.listen(
-    (event) {
+    (event) async {
       event.add(msg);
-      event.close();
+      await event.flush();
+      await event.close();
     },
   );
 
@@ -34,10 +35,10 @@ void main() async {
     var temp = await client.connect(host, port1);
     var times = 0;
     var clientClosed = false;
-    temp.listen((data) {
+    temp.listen((data) async {
       expect(utf8.decode(data).contains('Hello world'), true);
       times += 1;
-    }, onDone: () {
+    }, onDone: () async {
       clientClosed = true;
     });
     temp.add(buildHTTPProxyRequest(domain));
@@ -51,15 +52,14 @@ void main() async {
     var temp = await client.connect(host, port2);
     var times = 0;
     var clientClosed = false;
-    temp.listen((data) {
+    temp.listen((data) async {
       expect(utf8.decode(data).contains('Hello world'), true);
       times += 1;
-    }, onDone: () {
+    }, onDone: () async {
       clientClosed = true;
     });
 
-    temp.add(buildHTTPProxyRequest(domain));
-    await delay(2);
+    await temp.add(buildHTTPProxyRequest(domain));
     expect(clientClosed, true);
     expect(times, 1);
   });
@@ -69,13 +69,12 @@ void main() async {
     var temp = await client.connect(host, port3);
     var clientClosed = false;
     var res = false;
-    temp.listen((data) {
+    temp.listen((data) async {
       res = true;
-    }, onDone: () {
+    }, onDone: () async {
       clientClosed = true;
     });
-    temp.add(buildHTTPProxyRequest(domain));
-    await delay(2);
+    await temp.add(buildHTTPProxyRequest(domain));
     expect(clientClosed, true);
     expect(res, false);
   });

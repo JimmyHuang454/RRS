@@ -19,10 +19,11 @@ abstract class RRSSocket {
   Future<void> add(List<int> data);
 
   Future<void> close();
-  Future<void> clearListen() async {}
+  Future<void> clearListen();
 
-  void listen(void Function(Uint8List event)? onData,
-      {Function(dynamic e, dynamic s)? onError, void Function()? onDone});
+  void listen(Future<void> Function(Uint8List event)? onData,
+      {Future<void> Function(dynamic e, dynamic s)? onError,
+      Future<void> Function()? onDone});
 } //}}}
 
 class TransportClient {
@@ -121,35 +122,36 @@ class RRSSocketBase extends RRSSocket {
 
   @override
   Future<void> close() async {
-    if (isClosed) {
-      return;
-    }
+    // if (isClosed) {
+    //   return;
+    // }
     isClosed = true;
     await rrsSocket.close();
   }
 
   @override
-  void listen(void Function(Uint8List event)? onData,
-      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
+  void listen(Future<void> Function(Uint8List event)? onData,
+      {Future<void> Function(dynamic e, dynamic s)? onError,
+      Future<void> Function()? onDone}) {
     runZonedGuarded(() {
-      rrsSocket.listen((data) {
+      rrsSocket.listen((data) async {
         traffic.downlink += data.length;
-        onData!(data);
-      }, onDone: () {
+        await onData!(data);
+      }, onDone: () async {
         isClosed = true;
         if (onDone != null) {
-          onDone();
+          await onDone();
         }
-      }, onError: (e, s) {
+      }, onError: (e, s) async {
         isClosed = true;
         if (onError != null) {
-          onError(e, s);
+          await onError(e, s);
         }
       });
-    }, (e, s) {
+    }, (e, s) async {
       logger.info('listen error: $e $s');
       if (onError != null) {
-        onError(e, s);
+        await onError(e, s);
       }
     });
   }

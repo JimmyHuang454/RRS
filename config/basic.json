@@ -28,7 +28,7 @@
         "port": 8080
       },
       "inStream": "tcp",
-      "route": "proxy"
+      "route": "all"
     },
     "socks5_inbound": {
       "protocol": "socks5",

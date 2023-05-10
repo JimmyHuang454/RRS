@@ -76,11 +76,11 @@ class TrojanConnect extends Connect {
   Future<void> add(List<int> data) async {
     if (link.streamType == StreamType.udp) {
       data = _buildUDPHead(data.length) + data;
-    }
-
-    if (!isSendHeader) {
-      isSendHeader = true;
-      data = _buildRequest() + data;
+    } else {
+      if (!isSendHeader) {
+        isSendHeader = true;
+        data = _buildRequest() + data;
+      }
     }
 
     await super.add(data);

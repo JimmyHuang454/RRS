@@ -35,7 +35,7 @@ void main() {
       inClient.listen((event) async {
         inClient.add(event);
         await delay(1);
-        inClient.close();
+        await inClient.close();
       }, onDone: () async {
         serverListenDone = true;
       });
@@ -48,13 +48,13 @@ void main() {
     var isClientReceived = false;
 
     var client = await clientConfig.connect(host, port);
-    client.listen((event) {
+    client.listen((event) async {
       isClientReceived = true;
-    }, onDone: () {
+    }, onDone: () async {
       clientListenClosed = true;
     });
 
-    client.done.then((v) {
+    client.done.then((v) async {
       clientDone = true;
     });
 

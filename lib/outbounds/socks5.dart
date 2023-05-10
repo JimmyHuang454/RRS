@@ -76,9 +76,10 @@ class Socks5Connect extends Connect {
   }
 
   @override
-  void listen(void Function(Uint8List event)? onData,
-      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
-    super.listen((event) {
+  void listen(Future<void> Function(Uint8List event)? onData,
+      {Future<void> Function(dynamic e, dynamic s)? onError,
+      Future<void> Function()? onDone}) {
+    super.listen((event) async {
       content += event;
 
       if (!isReceiveAuth) {
@@ -107,7 +108,7 @@ class Socks5Connect extends Connect {
       }
 
       if (content.isNotEmpty) {
-        onData!(Uint8List.fromList(content));
+        await onData!(Uint8List.fromList(content));
         content = [];
       }
     }, onDone: onDone, onError: onError);

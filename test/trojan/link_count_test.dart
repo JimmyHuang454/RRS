@@ -39,15 +39,14 @@ void main() {
     var times2 = 0;
     for (var i = 0, len = times; i < len; ++i) {
       var temp = await client.connect(host, port1);
-      temp.add(buildHTTPProxyRequest(domain));
-      temp.listen((data) {
+      temp.listen((data) async {
         expect(utf8.decode(data).contains('Hello world'), true);
         times2 += 1;
-      }, onDone: () {
-        temp.close();
+      }, onDone: () async {
+        await temp.close();
       });
+      await temp.add(buildHTTPProxyRequest(domain));
     }
-    await delay(2);
     var userName =
         sha224.convert('123'.codeUnits).toString().codeUnits.toString();
     var user = userList[userName]!;

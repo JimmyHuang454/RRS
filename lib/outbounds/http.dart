@@ -7,9 +7,9 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 
 class HTTPConnect extends Connect {
-  void Function(Uint8List event)? onD;
-  Function(dynamic e, dynamic s)? onE;
-  void Function()? onDo;
+  Future<void> Function(Uint8List event)? onD;
+  Future<void> Function(dynamic e, dynamic s)? onE;
+  Future<void> Function()? onDo;
   String protocolVersion = 'HTTP/1.1';
 
   bool isConnected = false;
@@ -27,9 +27,9 @@ class HTTPConnect extends Connect {
     }
 
     var isReceiveConnectionStatus = Completer<int>();
-    rrsSocket.listen((data) {
+    rrsSocket.listen((data) async {
       if (isConnected) {
-        onD!(data);
+        await onD!(data);
       } else {
         var pos = indexOfElements(data, '\r\n\r\n'.codeUnits);
         if (pos == -1) {
@@ -40,33 +40,34 @@ class HTTPConnect extends Connect {
           isReceiveConnectionStatus.complete(1);
         }
       }
-    }, onError: (e, s) {
+    }, onError: (e, s) async {
       if (isConnected) {
-        onE!(e, s);
+        await onE!(e, s);
       } else {
         // failed.
         isReceiveConnectionStatus.complete(0);
       }
-    }, onDone: () {
+    }, onDone: () async {
       if (isConnected) {
-        onDo!();
+        await onDo!();
       }
     });
-    rrsSocket.add(
+    await super.add(
         '${link.method} ${link.targetUri!.toString()} $protocolVersion\r\n\r\n'
             .codeUnits);
     var res = await isReceiveConnectionStatus.future;
     isConnected = true;
 
     if (res != 1) {
-      rrsSocket.close();
+      await super.close();
       throw 'failed to build http tunnel.';
     }
   } //}}}
 
   @override
-  void listen(void Function(Uint8List event)? onData,
-      {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
+  void listen(Future<void> Function(Uint8List event)? onData,
+      {Future<void> Function(dynamic e, dynamic s)? onError,
+      Future<void> Function()? onDone}) {
     if (isConnected) {
       // Limitation: can't cancel listen. So we redirect event.
       onD = onData;
