@@ -69,6 +69,7 @@ void main() {
       await c.close();
     }
 
+    await delay(1);
     expect(time, times);
     expect(doneTimes, times);
     expect(errorTimes, 0);

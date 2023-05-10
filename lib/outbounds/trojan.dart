@@ -111,9 +111,6 @@ class TrojanOut extends OutboundStruct {
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
-    l.outAddress = outAddress!;
-    l.outPort = outPort!;
-
     // unlike freeom, trojan has a fix address. so we can apply fastopen to it since it never change.
     var res = TrojanConnect(
         rrsSocket: await connect(outAddress!.address, outPort!),

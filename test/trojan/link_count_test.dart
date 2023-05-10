@@ -47,6 +47,8 @@ void main() {
       });
       await temp.add(buildHTTPProxyRequest(domain));
     }
+    await delay(1);
+
     var userName =
         sha224.convert('123'.codeUnits).toString().codeUnits.toString();
     var user = userList[userName]!;

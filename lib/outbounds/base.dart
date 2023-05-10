@@ -159,13 +159,13 @@ abstract class OutboundStruct {
   }
 
   Future<RRSSocket> newConnect(Link l) async {
-    l.outAddress = l.targetAddress;
-    l.outPort = l.targetport;
-
-    // freeom outbound change outAddress with what inbound pass in.
+    // freedom outbound change outAddress with what inbound pass in.
     outAddress = l.targetAddress;
     outPort = l.targetport;
+
     return Connect(
-        rrsSocket: await realConnect(), link: l, outboundStruct: this);
+        rrsSocket: await connect(outAddress!.address, outPort!),
+        link: l,
+        outboundStruct: this);
   }
 }

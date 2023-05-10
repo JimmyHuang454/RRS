@@ -33,9 +33,9 @@ void main() {
     var isClientReceived = false;
 
     var client = await clientConfig.connect(host, port);
-    client.listen((event) {
+    client.listen((event) async {
       isClientReceived = true;
-    }, onDone: () {
+    }, onDone: () async {
       clientListenClosed = true;
     });
 

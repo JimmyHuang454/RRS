@@ -37,9 +37,9 @@ void main() {
     for (var i = 0, len = times; i < len; ++i) {
       var temp = await client.connect(host, port1);
       temp.add(buildHTTPProxyRequest(domain));
-      temp.listen((data) {
+      temp.listen((data) async {
         expect(utf8.decode(data).contains('Hello world'), true);
-      }, onDone: () {
+      }, onDone: () async {
         times2 += 1;
         temp.close();
       });

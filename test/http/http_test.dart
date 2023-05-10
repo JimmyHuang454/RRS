@@ -60,6 +60,7 @@ void main() async {
     });
 
     await temp.add(buildHTTPProxyRequest(domain));
+    await delay(1);
     expect(clientClosed, true);
     expect(times, 1);
   });
@@ -75,6 +76,7 @@ void main() async {
       clientClosed = true;
     });
     await temp.add(buildHTTPProxyRequest(domain));
+    await delay(1);
     expect(clientClosed, true);
     expect(res, false);
   });

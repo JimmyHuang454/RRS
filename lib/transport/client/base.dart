@@ -84,7 +84,10 @@ class Connect extends RRSSocketBase {
   Connect(
       {required super.rrsSocket,
       required this.link,
-      required this.outboundStruct});
+      required this.outboundStruct}) {
+    link.outAddress = outboundStruct.outAddress!;
+    link.outPort = outboundStruct.outPort!;
+  }
 
   @override
   Future<void> close() async {
@@ -122,9 +125,9 @@ class RRSSocketBase extends RRSSocket {
 
   @override
   Future<void> close() async {
-    // if (isClosed) {
-    //   return;
-    // }
+    if (isClosed) {
+      return;
+    }
     isClosed = true;
     await rrsSocket.close();
   }

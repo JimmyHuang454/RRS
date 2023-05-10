@@ -99,9 +99,6 @@ class HTTPOut extends OutboundStruct {
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
-    l.outAddress = outAddress!;
-    l.outPort = outPort!;
-
     var res = HTTPConnect(
         rrsSocket: await connect(outAddress!.address, outPort!),
         link: l,

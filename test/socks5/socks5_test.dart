@@ -13,7 +13,6 @@ void main() async {
   var port2 = await getUnusedPort(InternetAddress(host));
   var serverPort = await getUnusedPort(InternetAddress(host));
   var domain = '$host:$serverPort';
-  var socks5Res = [];
   config['inbounds']['HTTPIn']['setting']['port'] = port1;
   config['inbounds']['socks5Inbound']['setting']['port'] = port2;
   config['outbounds']['socks5Out']['setting']['port'] = port2;
@@ -31,8 +30,8 @@ void main() async {
   );
 
   test('socks5 -> freedom', () async {
-    // socks5 -> freedom
     var client = TCPClient(config: {});
+    var socks5Res = [];
     var temp = await client.connect(host, port2);
     var times = 0;
     var clientClosed = false;
@@ -47,16 +46,17 @@ void main() async {
     var port = Uint8List(2)
       ..buffer.asByteData().setInt16(0, serverPort, Endian.big);
     await temp.add([5, 1, 0, 1] + Address(host).rawAddress.toList() + port);
+    await delay(1);
     expect(clientClosed, true);
     expect(socks5Res, [5, 0, 5, 0, 0, 1, 0, 0, 0, 0, 0, 0] + msg);
     expect(times >= 2, true);
   });
 
   test('HTTPIn -> socks5Out -> socks5in -> freedom', () async {
-    // HTTPIn -> socks5Out -> socks5in -> freedom
     var client = TCPClient(config: {});
-    var temp = await client.connect(host, port2);
+    var temp = await client.connect(host, port1);
     var times = 0;
+    var socks5Res = [];
     var clientClosed = false;
     temp.listen((data) async {
       socks5Res += data;
@@ -65,6 +65,7 @@ void main() async {
       clientClosed = true;
     });
     await temp.add(buildHTTPProxyRequest(domain));
+    await delay(1);
     expect(clientClosed, true);
     expect(socks5Res, msg);
     expect(times, 1);
