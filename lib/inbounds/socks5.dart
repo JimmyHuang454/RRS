@@ -68,7 +68,7 @@ class Socks5Request extends Link {
 
       await clientAdd(res);
       if (!isConnectedServer) {
-        await closeAll();
+        await closeClient();
         return;
       }
       isValidRequest = true;
@@ -101,7 +101,7 @@ class Socks5Request extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      await closeAll();
+      await closeClient();
       return -1;
     }
 
@@ -137,7 +137,7 @@ class Socks5Request extends Link {
     }
 
     if (content[0] != socks5Version) {
-      await closeAll();
+      await closeClient();
       return;
     }
 
@@ -165,7 +165,7 @@ class Socks5Request extends Link {
 
     var clientVersion = content[0];
     if (clientVersion != socks5Version) {
-      await closeAll();
+      await closeClient();
       throw 'mismatch clientVersion.';
     }
 
@@ -186,7 +186,7 @@ class Socks5Request extends Link {
     // only supports 'NO AUTHENTICATION REQUIRED' method.
     if (!methods.contains(0)) {
       await clientAdd([socks5Version, 0xFF]); // tell client to close.
-      await closeAll();
+      await closeClient();
       return;
     }
     await clientAdd([socks5Version, 0]); // ok.

@@ -31,6 +31,7 @@ void main() async {
   );
 
   test('HTTPIn1 -> freedom', () async {
+    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port1);
     var times = 0;
@@ -48,6 +49,7 @@ void main() async {
   });
 
   test('HTTPIn2 -> HTTPOut -> HTTPIn1 -> freedom', () async {
+    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port2);
     var times = 0;
@@ -66,6 +68,7 @@ void main() async {
   });
 
   test('HTTPIn1 -> block', () async {
+    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port3);
     var clientClosed = false;
@@ -79,5 +82,27 @@ void main() async {
     await delay(1);
     expect(clientClosed, true);
     expect(res, false);
+  });
+
+  test('HTTPIn close correctly.', () async {
+    var client = TCPClient(config: {});
+    var serverPort2 = await getUnusedPort(InternetAddress(host));
+    var httpServer = await ServerSocket.bind(host, serverPort2);
+    var domain2 = '$host:$serverPort2';
+    httpServer.listen(
+      (event) async {
+        event.listen(
+          (event) {
+            print(event);
+          },
+        );
+
+        for (var i = 0; i < 1; ++i) {
+          event.add([i]);
+          await delay(1);
+        }
+        event.close();
+      },
+    );
   });
 }

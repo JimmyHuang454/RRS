@@ -92,9 +92,7 @@ abstract class OutboundStruct {
       throw 'wrong outStream named "$outStreamTag"';
     }
 
-    if (protocolName != 'block') {
-      transportClient = outStreamList[outStreamTag]!;
-    }
+    transportClient = outStreamList[outStreamTag]!;
 
     if (protocolName != 'freedom' && protocolName != 'block') {
       isFastOpen = getValue(config, 'fastopen.enable', false);
@@ -153,7 +151,7 @@ abstract class OutboundStruct {
         return res.take();
       }
     }
-    return await transportClient!.connect(host, port);
+    return await realConnect();
   }
 
   Future<RRSSocket> newConnect(Link l) async {

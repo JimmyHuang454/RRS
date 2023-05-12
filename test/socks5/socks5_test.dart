@@ -18,6 +18,15 @@ void main() async {
   config['outbounds']['socks5Out']['setting']['port'] = port2;
   entry(config);
 
+  Uint8List buildSock5Request(Address host, int p) {
+    List<int> res = [];
+    res += [5, 1, 0];
+
+    var port = Uint8List(2)..buffer.asByteData().setInt16(0, p, Endian.big);
+    res += [5, 1, 0, 1] + host.rawAddress.toList() + port;
+    return Uint8List.fromList(res);
+  }
+
   // create server.
   var httpServer = await ServerSocket.bind(host, serverPort);
   var msg = [1];
@@ -29,7 +38,7 @@ void main() async {
     },
   );
 
-  test('socks5 -> freedom', () async {
+  test('socks5in -> freedom', () async {
     var client = TCPClient(config: {});
     var socks5Res = [];
     var temp = await client.connect(host, port2);
@@ -41,11 +50,7 @@ void main() async {
     }, onDone: () async {
       clientClosed = true;
     });
-    await temp.add([5, 1, 0]);
-
-    var port = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, serverPort, Endian.big);
-    await temp.add([5, 1, 0, 1] + Address(host).rawAddress.toList() + port);
+    await temp.add(buildSock5Request(Address(host), serverPort));
     await delay(1);
     expect(clientClosed, true);
     expect(socks5Res, [5, 0, 5, 0, 0, 1, 0, 0, 0, 0, 0, 0] + msg);
@@ -69,5 +74,22 @@ void main() async {
     expect(clientClosed, true);
     expect(socks5Res, msg);
     expect(times, 1);
+  });
+
+  test('socks5in -> error server.', () async {
+    var client = TCPClient(config: {});
+    var temp = await client.connect(host, port2);
+    var unknowPort = await getUnusedPort(InternetAddress(host));
+    var socks5Res = [];
+    var clientClosed = false;
+    temp.listen((data) async {
+      socks5Res += data;
+    }, onDone: () async {
+      clientClosed = true;
+    });
+    await temp.add(buildSock5Request(Address(host), unknowPort));
+    await delay(3);
+    expect(clientClosed, true);
+    expect(socks5Res, [5, 0, 5, 1, 0, 1, 0, 0, 0, 0, 0, 0]);
   });
 }

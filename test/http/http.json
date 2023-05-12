@@ -19,7 +19,7 @@
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 0
+        "port": 1
       },
       "route": "freedom"
     },
@@ -27,7 +27,7 @@
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 0
+        "port": 1
       },
       "route": "httpIn_to_httpOut"
     },
@@ -35,7 +35,7 @@
       "protocol": "http",
       "setting": {
         "address": "127.0.0.1",
-        "port": 0
+        "port": 1
       },
       "route": "block"
     }
@@ -45,7 +45,7 @@
       "protocol": "http",
       "setting": { // same as HTTPIn1
         "address": "127.0.0.1",
-        "port": 0
+        "port": 1
       }
     }
   },

@@ -90,12 +90,11 @@ String toMetric(int nr, [int round = 0]) {
   return '$k${map[i]}';
 }
 
-Future<int> getUnusedPort(InternetAddress address) {
-  return ServerSocket.bind(address, 0).then((socket) async {
-    var port = socket.port;
-    await socket.close();
-    return port;
-  });
+Future<int> getUnusedPort(InternetAddress address) async {
+  var temp = await ServerSocket.bind(address, 0);
+  var port = temp.port;
+  await temp.close();
+  return port;
 }
 
 void translateTo(List<int> input) {

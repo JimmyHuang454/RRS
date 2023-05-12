@@ -62,7 +62,7 @@ class TrojanRequest extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      await closeAll();
+      await closeClient();
       return;
     }
 

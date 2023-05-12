@@ -39,7 +39,7 @@ class HTTPRequest extends Link {
     var firstLine = utf8.decode(content.sublist(0, pos2));
     var temp2 = firstLine.split(' ');
     if (temp2.length != 3) {
-      await closeAll();
+      await closeClient();
       return;
     }
     method = temp2[0];
@@ -58,7 +58,7 @@ class HTTPRequest extends Link {
     targetport = targetUri!.port;
 
     if (!await bindServer()) {
-      await closeAll();
+      await closeClient();
       return;
     }
 
@@ -92,15 +92,12 @@ class HTTPIn extends InboundStruct {
     }
   }
 
-  void listen() {
-    rrsServerSocket!.listen((client) {
-      HTTPRequest(client: client, inboundStruct: this);
-    }, onError: (e, s) {}, onDone: () {});
-  }
-
   @override
   Future<void> bind() async {
     rrsServerSocket = await transportServer!.bind(inAddress, inPort);
-    listen();
+
+    rrsServerSocket!.listen((client) {
+      HTTPRequest(client: client, inboundStruct: this);
+    }, onError: (e, s) {}, onDone: () {});
   }
 }

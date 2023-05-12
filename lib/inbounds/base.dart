@@ -100,16 +100,16 @@ class Link {
 
   Future<bool> bindServer() async {
     outboundStruct = await inboundStruct.doRoute(this);
+    connectTime = Stopwatch()..start();
+
     try {
-      connectTime = Stopwatch()..start();
       server = await outboundStruct!.newConnect(this);
     } catch (e) {
-      logger.info(e);
-      await closeClient();
+      logger.info(
+          'Error: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
+      logger.info('(${e.toString()})');
       return false;
     }
-
-    bindUser();
 
     server!.listen((event) async {
       await clientAdd(event);
@@ -125,6 +125,7 @@ class Link {
       await serverDone();
     });
 
+    bindUser();
     outboundStruct!.traffic.activeLinkCount += 1;
     user!.traffic.activeLinkCount += 1;
     logger.info(
@@ -145,16 +146,38 @@ class Link {
       time = 'ERRO';
     }
 
+    logger.info('Closed: ${buildLinkInfo()} ($time) ${buildLinkTrafficInfo()}');
     logger.info(
-        'Closed: ${buildLinkInfo()} ($time) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
-    logger.info(
-        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.traffic.activeLinkCount}');
+        '${outboundStruct!.tag}:${outboundStruct!.protocolName} ${buildOutTrafficInfo()}');
     createdTime.stop();
+  }
+
+  String buildInboudInfo() {
+    return "[${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport}";
+  }
+
+  String buildLinkTrafficInfo() {
+    return "[${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]";
+  }
+
+  String buildOutTrafficInfo() {
+    return "[${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.traffic.activeLinkCount}";
+  }
+
+  String buildOutboudInfo() {
+    if (outboundStruct == null) {
+      return '';
+    }
+    var temp = "[${outboundStruct!.tag}:${outboundStruct!.protocolName}]";
+    if (outAddress != null && outPort != null) {
+      return "$temp {${outAddress!.address}:${outPort!}}";
+    }
+    return "$temp {${outboundStruct!.outAddress!.address}:${outboundStruct!.outPort!}}";
   }
 
   String buildLinkInfo() {
     var temp =
-        " [${inboundStruct.tag}:${inboundStruct.protocolName}] {${targetAddress!.address}:$targetport} -<${outboundStruct!.transportClient!.protocolName}>-> [${outboundStruct!.tag}:${outboundStruct!.protocolName}] {${outAddress!.address}:${outPort!}}";
+        "${buildInboudInfo()} -<${outboundStruct!.transportClient!.protocolName}>-> ${buildOutboudInfo()}";
     return '$temp (${createdTime.elapsed})';
   }
 }

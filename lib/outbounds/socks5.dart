@@ -88,6 +88,7 @@ class Socks5Connect extends Connect {
         }
         if (content[1] != 0) {
           // auth wrong.
+          await link.closeClient();
           return;
         }
         content = content.sublist(2);
@@ -95,12 +96,14 @@ class Socks5Connect extends Connect {
       }
 
       if (!isReceiveHeaderRespon) {
-        if (content.length < 10) {
-          // only accept ipv4 address.
+        if (content.length >= 3 && content[1] != 0) {
+          // CONNECT wrong.
+          await link.closeClient();
           return;
         }
-        if (content[1] != 0) {
-          // CONNECT wrong.
+
+        if (content.length < 10) {
+          // only accept ipv4 address.
           return;
         }
         content = content.sublist(10);

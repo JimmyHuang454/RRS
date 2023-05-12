@@ -37,7 +37,7 @@
         "port": 8081
       },
       "inStream": "tcp",
-      "route": "freedom"
+      "route": "proxy"
     }
   },
   "outStream": {

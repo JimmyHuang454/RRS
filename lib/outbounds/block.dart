@@ -10,6 +10,9 @@ class BlockOut extends OutboundStruct {
 
   @override
   Future<RRSSocket> newConnect(Link l) async {
+    outAddress = l.targetAddress;
+    outPort = l.targetport;
+    await l.closeClient();
     throw Exception('block this.');
   }
 }
