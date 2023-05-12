@@ -1,12 +1,12 @@
 class Traffic {
   int uplink = 0;
   int downlink = 0;
+  int activeLinkCount = 0; // active link count
 }
 
 class User {
   int lastUpdateTimeStamp = DateTime.now().millisecondsSinceEpoch;
   Traffic traffic = Traffic();
-  int linkCount = 0;
 
   void addUplink(int count) {
     traffic.uplink += count;

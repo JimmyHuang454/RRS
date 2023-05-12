@@ -105,7 +105,7 @@ class Link {
       server = await outboundStruct!.newConnect(this);
     } catch (e) {
       logger.info(e);
-      await closeAll();
+      await closeClient();
       return false;
     }
 
@@ -114,9 +114,9 @@ class Link {
     server!.listen((event) async {
       await clientAdd(event);
     }, onDone: () async {
-      await closeAll();
+      await closeClient();
     }, onError: (e, s) async {
-      await closeAll();
+      await closeClient();
     });
 
     server!.done!.then((value) async {
@@ -125,8 +125,8 @@ class Link {
       await serverDone();
     });
 
-    outboundStruct!.linkCount += 1;
-    user!.linkCount += 1;
+    outboundStruct!.traffic.activeLinkCount += 1;
+    user!.traffic.activeLinkCount += 1;
     logger.info(
         'Created: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
 
@@ -135,8 +135,8 @@ class Link {
   }
 
   Future<void> serverDone() async {
-    user!.linkCount -= 1;
-    outboundStruct!.linkCount -= 1;
+    user!.traffic.activeLinkCount -= 1;
+    outboundStruct!.traffic.activeLinkCount -= 1;
 
     var time = '';
     if (firstReceivedTime != null) {
@@ -148,7 +148,7 @@ class Link {
     logger.info(
         'Closed: ${buildLinkInfo()} ($time) [${toMetric(server!.traffic.uplink, 2)}B/${toMetric(server!.traffic.downlink, 2)}B]');
     logger.info(
-        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.linkCount}');
+        '${outboundStruct!.tag}:${outboundStruct!.protocolName} [${toMetric(outboundStruct!.traffic.uplink, 2)}B/${toMetric(outboundStruct!.traffic.downlink, 2)}B] ${outboundStruct!.traffic.activeLinkCount}');
     createdTime.stop();
   }
 

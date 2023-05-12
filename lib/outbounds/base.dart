@@ -70,8 +70,6 @@ abstract class OutboundStruct {
 
   Traffic traffic = Traffic();
 
-  int linkCount = 0;
-
   bool isMakingFood = false;
 
   bool isFastOpen = false;

@@ -49,7 +49,7 @@ void main() {
         sha224.convert('123'.codeUnits).toString().codeUnits.toString();
     var user = userList[userName]!;
     expect(times2, times);
-    expect(user.linkCount, 0);
+    expect(user.traffic.activeLinkCount, 0);
 
     expect(userList.length, 2);
     expect(user.traffic.uplink > 0, true);

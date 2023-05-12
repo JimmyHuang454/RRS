@@ -13,7 +13,7 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": false,
+        "enable": true,
         "size": 20,
         "timeout": 30
       },
@@ -37,7 +37,7 @@
         "port": 8081
       },
       "inStream": "tcp",
-      "route": "proxy"
+      "route": "freedom"
     }
   },
   "outStream": {
@@ -65,6 +65,11 @@
     "all": {
       "rules": [{
         "outbound": "trojan_outbound"
+      }]
+    },
+    "freedom": {
+      "rules": [{
+        "outbound": "freedom"
       }]
     },
     "proxy": {

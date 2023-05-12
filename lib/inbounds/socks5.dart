@@ -30,14 +30,15 @@ class Socks5Request extends Link {
 
       if (streamType == StreamType.tcp) {
         await serverAdd(content);
-        content = [];
       } else {
         handleUDP(content);
       }
+
+      content = [];
     }, onError: (e, s) async {
-      await closeAll();
+      await closeServer();
     }, onDone: () async {
-      await closeAll();
+      await closeServer();
     });
   }
 
@@ -66,10 +67,11 @@ class Socks5Request extends Link {
       res += addressAndPort;
 
       await clientAdd(res);
-      isValidRequest = true;
       if (!isConnectedServer) {
         await closeAll();
+        return;
       }
+      isValidRequest = true;
     } else if (cmd == CmdType.udp) {
       streamType = StreamType.udp;
       throw "TODO";

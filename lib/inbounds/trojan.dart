@@ -31,9 +31,9 @@ class TrojanRequest extends Link {
         await serverAdd(data);
       }
     }, onError: (e, s) async {
-      await closeAll();
+      await closeServer();
     }, onDone: () async {
-      await closeAll();
+      await closeServer();
     });
   }
 
@@ -62,7 +62,7 @@ class TrojanRequest extends Link {
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
-      closeAll();
+      await closeAll();
       return;
     }
 

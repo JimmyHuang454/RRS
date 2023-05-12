@@ -58,11 +58,13 @@ void main() {
       clientDone = true;
     });
 
+    await delay(1);
+
     expect(serverListenDone, false);
+    expect(serverClosed, false);
     expect(isClientReceived, false);
     expect(clientListenClosed, false);
     expect(clientDone, false);
-    expect(serverClosed, false);
 
     client.add([1]);
     await delay(2);

@@ -17,13 +17,13 @@ class TCPRRSSocket extends RRSSocket {
   @override
   Future<void> add(List<int> data) async {
     socket.add(data);
-    // await socket.flush();
+    await socket.flush();
   }
 
   @override
   Future<void> close() async {
     await socket.flush();
-    socket.close();
+    await socket.close();
   }
 
   @override
@@ -38,8 +38,22 @@ class TCPRRSSocket extends RRSSocket {
   void listen(Future<void> Function(Uint8List event)? onData,
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) {
-    streamSubscription = socket.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: true);
+    // streamSubscription = socket.listen(onData,
+    //     onError: onError, onDone: onDone, cancelOnError: true);
+
+    streamSubscription = socket.listen((event) async {
+      streamSubscription!.pause();
+      await onData!(event);
+      streamSubscription!.resume();
+    }, onError: (e, s) async {
+      streamSubscription!.pause();
+      await onError!(e, s);
+      streamSubscription!.resume();
+    }, onDone: () async {
+      streamSubscription!.pause();
+      await onDone!();
+      streamSubscription!.resume();
+    }, cancelOnError: true);
   }
 }
 
