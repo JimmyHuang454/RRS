@@ -1,32 +1,16 @@
-import 'dart:typed_data';
-
-class TrafficType {
-  bool isTLS = false;
-  String tlsVersion = '';
-  String tlsLayerType = '';
-
-  int layerLength = 0;
-}
+import 'package:proxy/utils/const.dart';
 
 TrafficType sniff(List<int> data) {
-  var res = TrafficType();
-  if (data.length < 5) {
-    return res;
+  if (data.length < 6) {
+    return TrafficType.unknow;
   }
 
-  if (data[1] == 0x0303) {
-    res.isTLS = true;
-
-    if (data[0] == 0x16) {
-      res.tlsLayerType = 'HandShake';
-    } else {
-      // TODO: more layer type
-    }
-
-    var byteList = Uint8List.fromList(data.sublist(3, 5));
-    var byteData = ByteData.sublistView(byteList);
-    res.layerLength = byteData.getUint16(0, Endian.big);
+  if (data[0] == 0x16 &&
+      data[1] == 0x03 &&
+      (data[2] == 0x01 || data[2] == 0x02) &&
+      data[5] == 0x01) {
+    return TrafficType.tls;
   }
 
-  return res;
+  return TrafficType.unknow;
 }

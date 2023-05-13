@@ -29,6 +29,12 @@ void main() {
     expect(listsEqual(fakeRandom1, fakeRandom2), false);
   });
 
+  test('JLSHandShakeSide FakeRandom with unixTimeStamp.', () async {
+    var client = JLSHandShakeSide(psk: 'abc');
+    await client.encrypt(isContainsTimeStamp: true);
+    client.fakeRandom!.build32Byte();
+  });
+
   test('JLSHandShakeSide encrypt and decrypt.', () async {
     var client = JLSHandShakeSide(psk: 'abc');
     await client.encrypt();
