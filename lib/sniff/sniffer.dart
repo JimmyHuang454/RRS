@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:proxy/utils/const.dart';
 
 TrafficType sniff(List<int> data) {
@@ -11,6 +13,11 @@ TrafficType sniff(List<int> data) {
       data[5] == 0x01) {
     return TrafficType.tls;
   }
+
+  try {
+    utf8.decode(data.sublist(0, 6));
+    return TrafficType.http;
+  } catch (_) {}
 
   return TrafficType.unknow;
 }
