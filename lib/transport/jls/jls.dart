@@ -7,19 +7,17 @@ import 'package:cryptography/helpers.dart';
 
 class FakeRandom {
   List<int> customRandom = []; // 4 bytes.
-  List<int> nonce = []; // 4 bytes.
   List<int> cipherText =
       []; // 8 bytes = unixTimeStamp(4 bytes) + randomBytes(4 bytes).
   List<int> mac = []; // 16 bytes.
-  bool isContainsTimeStamp = false;
 
   FakeRandom(
       {required this.customRandom,
-      required this.nonce,
       required this.cipherText,
-      this.isContainsTimeStamp = false,
       required this.mac}) {
     checkLen(customRandom, 4);
+    checkLen(cipherText, 12);
+    checkLen(mac, 16);
   }
 
   void checkLen(List<int> data, int len) {
@@ -30,14 +28,13 @@ class FakeRandom {
 
   FakeRandom.parse(List<int> random) {
     checkLen(random, 32);
-    cipherText = random.sublist(0, 8);
-    nonce = random.sublist(8, 12);
-    mac = random.sublist(12, 28);
-    customRandom = random.sublist(28, 32);
+    customRandom = random.sublist(0, 4);
+    cipherText = random.sublist(4, 16);
+    mac = random.sublist(16, 32);
   }
 
   List<int> build32Byte() {
-    var res = cipherText + nonce + mac + customRandom;
+    var res = customRandom + cipherText + mac;
     checkLen(res, 32);
     return res;
   }
@@ -56,44 +53,65 @@ class JLSHandShakeSide {
   List<int>? clearRandom;
 
   String psk; // from user.
-  List<int> realPSK = [];
+  String nonceStr; // from user.
+  List<int> nonce = [];
+  List<int> realPWD = [];
   List<int> otherMac;
+  List<int> _pwd = [];
+  final aes = AesGcm.with256bits(nonceLength: 64);
 
-  JLSHandShakeSide({required this.psk, this.otherMac = const []}) {
-    realPSK = sha256.convert(utf8.encode(psk) + otherMac).bytes;
+  JLSHandShakeSide(
+      {required this.psk, required this.nonceStr, this.otherMac = const []}) {
+    _pwd = utf8.encode(psk) + otherMac;
+    nonce = sha512.convert(utf8.encode(nonceStr)).bytes;
   }
 
-  Future<SecretBox> encryptWithAES256(List<int> clearText,
-      {int nonceLength = 4}) async {
-    final aes = AesGcm.with256bits(nonceLength: nonceLength);
-    var secretKey = await aes.newSecretKeyFromBytes(realPSK);
-    return await aes.encrypt(clearText, secretKey: secretKey);
+  List<int> buildPWD(List<int> customRandom) {
+    return realPWD = sha256.convert(_pwd + customRandom).bytes;
+  }
+
+  List<int> buildRandomBytes({int len = 12, bool isContainsTimeStamp = false}) {
+    if (isContainsTimeStamp) {
+      return sha224
+          .convert(unixTimeStamp() + randomBytes(64))
+          .bytes
+          .sublist(0, len);
+    }
+    return randomBytes(len);
+  }
+
+  Future<SecretBox> encryptWithAES256({
+    required List<int> clearText,
+    required List<int> pwd,
+  }) async {
+    var secretKey = await aes.newSecretKeyFromBytes(pwd);
+    return await aes.encrypt(clearText, secretKey: secretKey, nonce: nonce);
   }
 
   Future<List<int>> decryptWithAES256(
       {required List<int> cipherText,
-      required List<int> nonce,
       required List<int> mac,
-      int nonceLength = 4}) async {
+      required List<int> pwd}) async {
     var secretBox = SecretBox(cipherText, nonce: nonce, mac: Mac(mac));
 
-    final aes = AesGcm.with256bits(nonceLength: nonceLength);
-    var secretKey = await aes.newSecretKeyFromBytes(realPSK);
+    var secretKey = await aes.newSecretKeyFromBytes(pwd);
     var res = await aes.decrypt(secretBox, secretKey: secretKey);
     return res;
   }
 
   // genarate clearRandom and fakeRandom.
   Future<void> encrypt({isContainsTimeStamp = false}) async {
+    List<int> timestamp = randomBytes(4);
     if (isContainsTimeStamp) {
-      clearRandom = randomBytes(4) + unixTimeStamp();
-    } else {
-      clearRandom = randomBytes(8);
+      timestamp = unixTimeStamp();
     }
-    var secretBox = await encryptWithAES256(clearRandom!);
+
+    clearRandom = buildRandomBytes(len: 12, isContainsTimeStamp: true);
+    var secretBox = await encryptWithAES256(
+        clearText: clearRandom!, pwd: buildPWD(timestamp));
+
     fakeRandom = FakeRandom(
-        customRandom: randomBytes(4),
-        nonce: secretBox.nonce,
+        customRandom: timestamp,
         cipherText: secretBox.cipherText,
         mac: secretBox.mac.bytes);
   }
@@ -102,9 +120,8 @@ class JLSHandShakeSide {
   Future<void> decrypt(List<int> encryptedRandom) async {
     fakeRandom = FakeRandom.parse(encryptedRandom);
     clearRandom = await decryptWithAES256(
-      mac: fakeRandom!.mac,
-      nonce: fakeRandom!.nonce,
-      cipherText: fakeRandom!.cipherText,
-    );
+        mac: fakeRandom!.mac,
+        cipherText: fakeRandom!.cipherText,
+        pwd: buildPWD(fakeRandom!.customRandom));
   }
 }

@@ -1,6 +1,6 @@
-import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
+import 'package:proxy/utils/utils.dart';
 import 'package:proxy/utils/const.dart' as type;
 import 'package:proxy/sniff/sniffer.dart';
 

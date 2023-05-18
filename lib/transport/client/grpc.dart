@@ -31,7 +31,9 @@ class GRPCSocket extends RRSSocket {
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     streamSubscription = from.listen((event) {
+      streamSubscription!.pause();
       onData!(Uint8List.fromList(event.data));
+      streamSubscription!.resume();
     }, onDone: onDone, onError: onError, cancelOnError: true);
   }
 
@@ -58,11 +60,8 @@ class GRPCClient extends TransportClient {
     } else {
       channelCredentials = ChannelCredentials.insecure();
     }
-    // idleTimeout = getValue(config, 'idleTimeout', 3);
-    // connectTime = getValue(config, 'connectTime', 1);
-
-    idleTimeout = Duration(seconds: 50);
-    connectTime = Duration(seconds: 50);
+    idleTimeout = Duration(seconds: getValue(config, 'idleTimeout', 30));
+    connectTime = Duration(seconds: getValue(config, 'connectTime', 5));
 
     serverName = getValue(config, 'setting.serviceName', 'GunService');
   }
