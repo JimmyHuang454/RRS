@@ -18,6 +18,29 @@
         "timeout": 40
       },
       "outStream": "ws_with_tls"
+    },
+    "hk": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "node2.jimmyhuang454.com",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "outStream": "ws_with_tls"
+    },
+    "trojan_outbound_grpc": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "node2.jimmyhuang454.com",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": true,
+        "size": 10,
+        "timeout": 50
+      },
+      "outStream": "ws_with_tls"
     }
   },
   "inbounds": {
@@ -44,9 +67,8 @@
     "grpc_with_tls": {
       "protocol": "grpc",
       "setting": {
-        "serviceName": "qdlftrojangrpc"
+        "serviceName": "trojan_grpc"
       },
-      "connectionTimeout": 100,
       "tls": {
         "enabled": true
       }
@@ -59,12 +81,21 @@
       "setting": {
         "path": "trojan_ws"
       }
+    },
+    "ws_hk": {
+      "protocol": "ws",
+      "tls": {
+        "enabled": true
+      },
+      "setting": {
+        "path": "e78c10f5-5200-4af4-94c6-65cc4e471c5e"
+      }
     }
   },
   "routes": {
     "all": {
       "rules": [{
-        "outbound": "trojan_outbound"
+        "outbound": "hk"
       }]
     },
     "freedom": {
@@ -74,7 +105,7 @@
     },
     "proxy": {
       "rules": [{
-        "outbound": "freedom",
+        "outbound": "hk",
         "domain": [
           "regex:.*.cn",
           "php",
@@ -84,13 +115,13 @@
           "172.168"
         ]
       }, {
-        "outbound": ["trojan_outbound", "trojan_outbound"],
+        "outbound": ["hk"],
         "domain": [
           "google", "twitter", "wiki",
           "instagram", "facebook", "youtube", "github"
         ]
       }, {
-        "outbound": "freedom",
+        "outbound": "hk",
         "ip": [{
           "ipdb": "geoip",
           "type": "CN"
@@ -100,7 +131,8 @@
           "size": 2000
         }
       }, {
-        "outbound": ["trojan_outbound"]
+        "dns": "cf",
+        "outbound": ["hk"]
       }]
     }
   },
@@ -115,6 +147,12 @@
   "dns": {
     "txDOH": {
       "address": "https://doh.pub/dns-query",
+      "cache": {
+        "enable": true
+      }
+    },
+    "cf": {
+      "address": "https://cloudflare-dns.com/dns-query",
       "cache": {
         "enable": true
       }

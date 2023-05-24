@@ -17,6 +17,7 @@ class ConnectionRes {
 
   ConnectionRes({required this.timeout, required this.rrsSocket}) {
     rrsSocket.done!.then((value) async {
+      devPrint('done');
       await expire('server closed.', '');
     }, onError: (e, s) async {
       await expire(e, s);
@@ -34,6 +35,7 @@ class ConnectionRes {
     if (stats != 0) {
       return;
     }
+    devPrint('done');
     stats = 2;
     error = e;
     stack = s;

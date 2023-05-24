@@ -61,7 +61,13 @@ class GRPCClient extends TransportClient {
       channelCredentials = ChannelCredentials.insecure();
     }
     idleTimeout = Duration(seconds: getValue(config, 'idleTimeout', 30));
-    connectTime = Duration(seconds: getValue(config, 'connectTime', 5));
+    connectTime = Duration(seconds: getValue(config, 'connectionTimeout', 5));
+    channelOptions = ChannelOptions(
+        credentials: channelCredentials!,
+        idleTimeout: idleTimeout!,
+        codecRegistry:
+            CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
+        connectionTimeout: connectTime!);
 
     serverName = getValue(config, 'setting.serviceName', 'GunService');
   }
@@ -69,13 +75,6 @@ class GRPCClient extends TransportClient {
   @override
   Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
     final contr = StreamController<Hunk>();
-
-    channelOptions = ChannelOptions(
-        credentials: channelCredentials!,
-        idleTimeout: idleTimeout!,
-        codecRegistry:
-            CodecRegistry(codecs: const [GzipCodec(), IdentityCodec()]),
-        connectionTimeout: connectTime!);
 
     var clientChannel =
         ClientChannel(host, port: port, options: channelOptions!);
