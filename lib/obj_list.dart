@@ -1,3 +1,4 @@
+import 'package:proxy/balance/balancer.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/mmdb.dart';
@@ -19,3 +20,4 @@ Map<String, Route> routeList = {};
 Map<String, MMDB> ipdbList = {};
 Map<String, DNS> dnsList = {};
 Map<String, User> userList = {};
+Map<String, Balancer> balancerList = {};
