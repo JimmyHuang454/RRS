@@ -1,3 +1,4 @@
+import 'package:proxy/balance/balancer.dart';
 import 'package:proxy/config.dart';
 import 'package:proxy/outbounds/socks5.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -160,6 +161,12 @@ void buildDNS(String tag, Map<String, dynamic> config) {
   dnsList[tag] = dns;
 } //}}}
 
+void buildBalance(String tag, Map<String, dynamic> config) {
+  //{{{
+  config['tag'] = tag;
+  balancerList[tag] = Balancer(config: config);
+} //}}}
+
 void buildConifg(String tag, Map<String, dynamic> config) {
   //{{{
   if (tag == 'log') {
@@ -175,6 +182,7 @@ void _entry(Map<String, dynamic> config) {
     ['outStream', buildOutStream],
     ['inStream', buildInStream],
     ['outbounds', buildOutbounds],
+    ['balance', buildBalance],
     ['routes', buildRoute],
     ['inbounds', buildInbounds],
   ];

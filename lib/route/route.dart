@@ -1,4 +1,6 @@
 import 'package:crypto/crypto.dart';
+import 'package:proxy/balance/balancer.dart';
+import 'package:proxy/outbounds/base.dart';
 import 'package:quiver/collection.dart';
 
 import 'package:proxy/dns/dns.dart';
@@ -9,28 +11,29 @@ import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/obj_list.dart';
 
 class RouteRule {
-  List<String> outbound = [];
   List<List<int>> allowedUser = [];
   List<Pattern> ipPattern = [];
   List<Pattern> domainPattern = [];
   List<Pattern> portPattern = [];
 
+  Balancer? balancer;
   DNS? dns;
 
   Map<String, dynamic> config;
 
   RouteRule({required this.config}) {
-    var temp = config['outbound'];
-    if (temp.runtimeType == String) {
-      outbound.add(temp);
-    } else if (temp.runtimeType == List) {
-      outbound = List<String>.from(temp);
+    var out = getValue(config, 'outbound', '');
+    var bal = getValue(config, 'balancer', '');
+    if (out != '' && bal != '') {
+      throw "There are both 'outbound' and 'balance' in rules, don't know which to use.";
     }
 
-    for (var i = 0, len = outbound.length; i < len; ++i) {
-      if (!outboundsList.containsKey(outbound[i])) {
-        throw 'There are no route tag named "${outbound[i]}".';
-      }
+    if (bal != '') {
+      balancer = balancerList[bal];
+    } else if (out != '') {
+      balancer = Balancer.load(out: config['outbound']);
+    } else {
+      throw "'outbound' and 'balance' can not neither be empty.";
     }
 
     buildUser();
@@ -227,6 +230,10 @@ class RouteRule {
     }
     return false;
   }
+
+  OutboundStruct getOut() {
+    return balancer!.dispatch();
+  }
 }
 
 class Route {
@@ -250,17 +257,12 @@ class Route {
     }
   }
 
-  String selectOut(RouteRule routeRule) {
-    var temp = DateTime.now().millisecond % routeRule.outbound.length;
-    return routeRule.outbound[temp];
-  }
-
-  Future<String> match(Link link) async {
+  Future<OutboundStruct> match(Link link) async {
     for (var i = 0, len = rules.length; i < len; ++i) {
       if (await rules[i].match(link)) {
-        return selectOut(rules[i]);
+        return rules[i].getOut();
       }
     }
-    return selectOut(rules[rules.length - 1]);
+    return rules[rules.length - 1].getOut();
   }
 }

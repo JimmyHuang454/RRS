@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:proxy/outbounds/base.dart';
+import 'package:proxy/route/route.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/obj_list.dart';
 import 'package:proxy/transport/server/base.dart';
@@ -191,47 +192,34 @@ abstract class InboundStruct {
 
   late String inAddress;
   late int inPort;
-  late String tag;
-  late String inStream;
-  late String route;
+  String tag = '';
+  Route? route;
 
   Map<String, dynamic> config;
 
   int totalClient = 0;
-  TransportServer? transportServer;
+  TransportServer? transportServer; // inStream
 
   InboundStruct(
       {required this.protocolName,
       required this.protocolVersion,
       required this.config}) {
     tag = config['tag'];
-    inStream = getValue(config, 'inStream', 'tcp');
-    route = getValue(config, 'route', '');
+
+    var temp = getValue(config, 'inStream', 'tcp');
+    transportServer = inStreamList[temp]!;
+
+    temp = getValue(config, 'route', '');
+    route = routeList[temp]!;
+
     inAddress = getValue(config, 'setting.address', '');
     inPort = getValue(config, 'setting.port', 0);
-
-    if (inStream == '' || route == '') {
-      throw 'inStream and route can NOT be null.';
-    }
-
-    if (!routeList.containsKey(route)) {
-      throw 'wrong route tag named "$route"';
-    }
-
-    if (!inStreamList.containsKey(inStream)) {
-      throw 'wrong inStream tag named "$inStream"';
-    }
-    transportServer = inStreamList[inStream]!;
   }
 
   Future<void> bind();
 
   Future<OutboundStruct> doRoute(Link link) async {
-    if (!routeList.containsKey(route)) {
-      throw 'There are no route named "$route"';
-    }
-    var outbound = await routeList[route]!.match(link);
-    link.outboundStruct = outboundsList[outbound]!;
+    link.outboundStruct = await route!.match(link);
     link.routingTime.stop();
     return link.outboundStruct!;
   }
