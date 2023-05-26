@@ -44,7 +44,7 @@ class RouteRule {
     } else if (outList.isNotEmpty) {
       balancer = Balancer.load(out: config['outbound']);
     } else {
-      throw "'outbound' and 'balance' can not neither be empty.";
+      throw Exception("'outbound' and 'balance' can not neither be empty.");
     }
 
     buildUser();
