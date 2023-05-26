@@ -22,15 +22,26 @@ class RouteRule {
   Map<String, dynamic> config;
 
   RouteRule({required this.config}) {
-    var out = getValue(config, 'outbound', '');
-    var bal = getValue(config, 'balancer', '');
-    if (out != '' && bal != '') {
-      throw "There are both 'outbound' and 'balance' in rules, don't know which to use.";
+    List<dynamic> outList = [];
+
+    var temp = getValue(config, 'outbound', '');
+    if (temp != '') {
+      if (temp.runtimeType == String) {
+        outList.add(temp as String);
+      } else if (temp.runtimeType == List) {
+        outList = temp;
+      }
+    }
+
+    var bal = getValue(config, 'balance', '');
+    if (outList.isNotEmpty && bal != '') {
+      throw Exception(
+          "There are both 'outbound' and 'balance' in rules, don't know which to use.");
     }
 
     if (bal != '') {
       balancer = balancerList[bal];
-    } else if (out != '') {
+    } else if (outList.isNotEmpty) {
       balancer = Balancer.load(out: config['outbound']);
     } else {
       throw "'outbound' and 'balance' can not neither be empty.";

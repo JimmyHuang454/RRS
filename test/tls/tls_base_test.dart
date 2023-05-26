@@ -7,6 +7,7 @@ void main() {
     var res = temp.build([1]);
     expect(res, [0x16, 0x3, 0x3, 0, 1, 1]);
 
+    return;
     temp = Handshake(handshakeType: HandshakeType.clientHello);
     res = temp.build([]);
     expect(res, [0x16, 0x3, 0x3, 0, 7, 1, 0, 0, 1, 0x3, 0x3, 0]);

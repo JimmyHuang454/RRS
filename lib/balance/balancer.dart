@@ -17,6 +17,7 @@ class Balancer {
 
   void load(dynamic out) {
     List<String> outList = [];
+
     if (out.runtimeType == String) {
       outList.add(out as String);
     } else if (out.runtimeType == List) {
@@ -24,18 +25,18 @@ class Balancer {
         outList.add(out[i] as String);
       }
     } else {
-      throw 'Unknow outbound.';
+      throw Exception('Unknow outbound.');
     }
 
     for (var i = 0, len = outList.length; i < len; ++i) {
       if (!outboundsList.containsKey(outList[i])) {
-        throw 'There are no route tag named "$out".';
+        throw Exception('There are no route tag named "$out".');
       }
       outbound.add(outboundsList[outList[i]]!);
     }
 
     if (outbound.isEmpty) {
-      throw 'outbound can not be empty.';
+      throw Exception('outbound can not be empty.');
     }
   }
 
@@ -44,7 +45,7 @@ class Balancer {
 
     var out = getValue(config, 'outbound', '');
     if (out == '') {
-      throw 'outbound can not be null.';
+      throw Exception('outbound can not be null.');
     }
     load(out);
 
