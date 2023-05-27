@@ -197,6 +197,35 @@ void main() {
     }
   });
 
+  test('use dns', () async {
+    expect(
+        () => entry({
+              'routes': {
+                'abc': {
+                  'rules': [
+                    {'balance': 'abc', 'dns': ''}
+                  ] as dynamic
+                }
+              }
+            }),
+        returnsNormally);
+
+    expect(
+        () => entry({
+              'routes': {
+                'abc': {
+                  'rules': [
+                    {'balance': 'abc', 'dns': 'abc', 'ip': '192.168.200.84'}
+                  ] as dynamic
+                }
+              }
+            }),
+        throwsException);
+
+    var rule = routeList['abc']!.rules[0];
+    expect(rule.dns!.tag, 'txDOH');
+  });
+
   test('port matcher', () async {
     buildRoute('test', {
       'rules': [
@@ -215,7 +244,6 @@ void main() {
     expect(await p1.match('122'), false);
     expect(await p1.match('124'), false);
     expect(await p1.match('123'), true);
-
 
     var p2 = rule.portPattern[1];
     expect(await p1.match('-1'), false);

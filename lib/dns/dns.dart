@@ -10,6 +10,7 @@ abstract class DNS {
   String? dnsServerAddress;
   int? dnsServerPort;
   String type; // udp, tcp, doh
+  String tag = '';
 
   int? ttl;
   bool? enabledCache;
@@ -17,6 +18,7 @@ abstract class DNS {
   Cache? cache;
 
   DNS({required this.config, required this.type}) {
+    tag = config['tag'];
     enabledCache = getValue(config, 'cache.enable', false);
     dnsServerAddress = getValue(config, 'address', '');
     dnsServerPort = getValue(config, 'port', 443);

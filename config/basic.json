@@ -19,6 +19,20 @@
       },
       "outStream": "ws_with_tls"
     },
+    "hk2": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "node.jimmyhuang454.com",
+        "port": 443,
+        "password": "e78c10f5-5200-4af4-94c6-65cc4e471c5e"
+      },
+      "fastopen": {
+        "enable": true,
+        "size": 1,
+        "timeout": 4
+      },
+      "outStream": "ws_hk"
+    },
     "hk": {
       "protocol": "trojan",
       "setting": {
@@ -28,17 +42,12 @@
       },
       "outStream": "ws_with_tls"
     },
-    "trojan_outbound_grpc": {
+    "hk_grpc": {
       "protocol": "trojan",
       "setting": {
         "address": "node2.jimmyhuang454.com",
         "port": 443,
         "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": true,
-        "size": 10,
-        "timeout": 50
       },
       "outStream": "ws_with_tls"
     }
@@ -105,7 +114,7 @@
     },
     "proxy": {
       "rules": [{
-        "outbound": "hk",
+        "balance": "hk",
         "domain": [
           "regex:.*.cn",
           "php",
@@ -115,13 +124,13 @@
           "172.168"
         ]
       }, {
-        "outbound": ["hk"],
+        "balance": "hk",
         "domain": [
           "google", "twitter", "wiki",
           "instagram", "facebook", "youtube", "github"
         ]
       }, {
-        "outbound": "hk",
+        "outbound": "freedom",
         "ip": [{
           "ipdb": "geoip",
           "type": "CN"
@@ -132,8 +141,13 @@
         }
       }, {
         "dns": "cf",
-        "outbound": ["hk"]
+        "balance": "hk"
       }]
+    }
+  },
+  "balance": {
+    "hk": {
+      "outbound": ["hk2", "hk", "hk_grpc"]
     }
   },
   "data": {

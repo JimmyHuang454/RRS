@@ -57,18 +57,15 @@ class RouteRule {
   }
 
   void buildDNS() {
-    if (ipPattern.isNotEmpty) {
-      var dnsTag = getValue(config, 'dns', '');
-      if (dnsTag == '') {
-        // use default DNS.
-        if (dnsList.isEmpty) {
-          throw Exception('required DNS config if you are using ip pattern.');
-        }
-        dns = dnsList['txDOH'];
-      } else {
-        dns = dnsList[dnsTag];
-      }
+    var dnsTag = getValue(config, 'dns', '');
+    if (dnsTag == '') {
+      // use default DNS.
+      dnsTag = 'txDOH';
     }
+    if (!dnsList.containsKey(dnsTag)) {
+      throw Exception('unknow dns tag.');
+    }
+    dns = dnsList[dnsTag]!;
   }
 
   void buildCache() {
@@ -113,15 +110,20 @@ class RouteRule {
   }
 
   void buildIPPattern() {
-    List<dynamic> ipList = getValue(config, 'ip', ['']);
-
-    if (listsEqual(ipList, [''])) {
-      ipList = [];
+    dynamic temp = getValue(config, 'ip', ['']);
+    List<dynamic> ipList = [];
+    if (temp.runtimeType == String) {
+      ipList.add(temp);
+    } else {
+      ipList = temp;
     }
 
     Pattern pattern;
     for (var i = 0, len = ipList.length; i < len; ++i) {
       if (ipList[i].runtimeType == String) {
+        if (ipList[i] == '') {
+          continue;
+        }
         var temp = ipList[i] as String;
         if (temp.contains("/")) {
           pattern = IPCIDRPattern(pattern: temp);
