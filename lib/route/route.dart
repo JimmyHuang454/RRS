@@ -24,12 +24,12 @@ class RouteRule {
   RouteRule({required this.config}) {
     List<dynamic> outList = [];
 
-    var temp = getValue(config, 'outbound', '');
-    if (temp != '') {
-      if (temp.runtimeType == String) {
-        outList.add(temp as String);
-      } else if (temp.runtimeType == List) {
-        outList = temp;
+    var out = getValue(config, 'outbound', '');
+    if (out != '') {
+      if (out.runtimeType == String) {
+        outList.add(out as String);
+      } else if (out.runtimeType == List) {
+        outList = out;
       }
     }
 
@@ -42,7 +42,7 @@ class RouteRule {
     if (bal != '') {
       balancer = balancerList[bal];
     } else if (outList.isNotEmpty) {
-      balancer = Balancer.load(out: config['outbound']);
+      balancer = Balancer.load(out: out);
     } else {
       throw Exception("'outbound' and 'balance' can not neither be empty.");
     }

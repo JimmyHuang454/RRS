@@ -8,13 +8,13 @@ String loadArgv(List<String> argument) {
   var argsParser = ArgParser();
   var root = getRunningDir();
 
-  argsParser.addOption('config_path',
+  argsParser.addOption('config',
       abbr: 'c',
       defaultsTo: '$root/config.json',
       help: 'Path to your config. Default to use "config.json" in root dir.');
 
   var args = argsParser.parse(argument);
-  var configPath = args['config_path'];
+  var configPath = args['config'];
 
   print('Running at: $root');
   print('Using config at: $configPath');

@@ -60,8 +60,8 @@ class GRPCClient extends TransportClient {
     } else {
       channelCredentials = ChannelCredentials.insecure();
     }
-    idleTimeout = Duration(seconds: getValue(config, 'idleTimeout', 30));
-    connectTime = Duration(seconds: getValue(config, 'connectionTimeout', 5));
+    idleTimeout = Duration(seconds: getValue(config, 'idleTimeout', 10));
+    connectTime = Duration(seconds: getValue(config, 'connectionTimeout', 1));
     channelOptions = ChannelOptions(
         credentials: channelCredentials!,
         idleTimeout: idleTimeout!,
@@ -73,7 +73,8 @@ class GRPCClient extends TransportClient {
   }
 
   @override
-  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
+  Future<RRSSocket> connect(host, int port,
+      {dynamic sourceAddress, String sni = ""}) async {
     final contr = StreamController<Hunk>();
 
     var clientChannel =

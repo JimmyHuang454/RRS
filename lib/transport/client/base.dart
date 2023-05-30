@@ -48,8 +48,8 @@ class TransportClient {
     useTLS = getValue(config, 'tls.enabled', false);
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
-    var temp = getValue(config, 'tls.supportedProtocols', ['']);
-    if (temp != ['']) {
+    var temp = getValue(config, 'tls.supportedProtocols', '');
+    if (temp != '') {
       supportedProtocols = temp;
     }
 
@@ -57,13 +57,18 @@ class TransportClient {
     timeout = Duration(seconds: connectionTimeout);
   }
 
-  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
+  Future<RRSSocket> connect(host, int port,
+      {dynamic sourceAddress, String sni = ""}) async {
     var socket = await Socket.connect(host, port,
         timeout: timeout, sourceAddress: sourceAddress);
 
+    if (sni == "") {
+      sni = host;
+    }
+
     if (useTLS!) {
       socket = await SecureSocket.secure(socket,
-          host: host,
+          host: sni,
           context: securityContext,
           supportedProtocols: supportedProtocols,
           onBadCertificate: onBadCertificate);

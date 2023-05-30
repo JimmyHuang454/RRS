@@ -68,6 +68,7 @@ abstract class OutboundStruct {
   String outStreamTag = '';
 
   Address? outAddress;
+  String outSNI = "";
   int? outPort;
 
   Traffic traffic = Traffic();
@@ -89,6 +90,7 @@ abstract class OutboundStruct {
     tag = getValue(config, 'tag', '');
     outStreamTag = getValue(config, 'outStream', 'tcp');
     outStrategy = getValue(config, 'setting.strategy', 'default');
+    outSNI = getValue(config, 'setting.sni', '');
 
     if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
       throw 'wrong outStream named "$outStreamTag"';
@@ -114,7 +116,8 @@ abstract class OutboundStruct {
   }
 
   Future<RRSSocket> realConnect() async {
-    return await transportClient!.connect(outAddress!.address, outPort!);
+    return await transportClient!
+        .connect(outAddress!.address, outPort!, sni: outSNI);
   }
 
   Future<void> updateFastOpenQueue() async {

@@ -26,12 +26,17 @@
         "port": 443,
         "password": "e78c10f5-5200-4af4-94c6-65cc4e471c5e"
       },
-      "fastopen": {
-        "enable": true,
-        "size": 1,
-        "timeout": 4
-      },
       "outStream": "ws_hk"
+    },
+    "hyh": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "111.38.40.129",
+        "sni": "65-108-102-32.nhost.00cdn.com",
+        "port": 12209,
+        "password": "05975061-3b04-4229-9e54-f58fd81f78ce"
+      },
+      "outStream": "tcp_with_tls"
     },
     "hk": {
       "protocol": "trojan",
@@ -39,6 +44,11 @@
         "address": "node2.jimmyhuang454.com",
         "port": 443,
         "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": false,
+        "size": 10,
+        "timeout": 30
       },
       "outStream": "ws_with_tls"
     },
@@ -49,7 +59,7 @@
         "port": 443,
         "password": "17146021026"
       },
-      "outStream": "ws_with_tls"
+      "outStream": "grpc_with_tls"
     }
   },
   "inbounds": {
@@ -91,6 +101,12 @@
         "path": "trojan_ws"
       }
     },
+    "tcp_with_tls": {
+      "protocol": "tcp",
+      "tls": {
+        "enabled": true
+      }
+    },
     "ws_hk": {
       "protocol": "ws",
       "tls": {
@@ -103,51 +119,69 @@
   },
   "routes": {
     "all": {
-      "rules": [{
-        "outbound": "hk"
-      }]
+      "rules": [
+        {
+          "outbound": "hk"
+        }
+      ]
     },
     "freedom": {
-      "rules": [{
-        "outbound": "freedom"
-      }]
+      "rules": [
+        {
+          "outbound": "freedom"
+        }
+      ]
     },
     "proxy": {
-      "rules": [{
-        "balance": "hk",
-        "domain": [
-          "regex:.*.cn",
-          "php",
-          "hohovod.com",
-          "192.168",
-          "melogin.cn",
-          "172.168"
-        ]
-      }, {
-        "balance": "hk",
-        "domain": [
-          "google", "twitter", "wiki",
-          "instagram", "facebook", "youtube", "github"
-        ]
-      }, {
-        "outbound": "freedom",
-        "ip": [{
-          "ipdb": "geoip",
-          "type": "CN"
-        }],
-        "cache": {
-          "enabled": true,
-          "size": 2000
+      "rules": [
+        {
+          "balance": "hk",
+          "domain": [
+            "regex:.*.cn",
+            "php",
+            "hohovod.com",
+            "192.168",
+            "melogin.cn",
+            "172.168"
+          ]
+        },
+        {
+          "balance": "hk",
+          "domain": [
+            "google",
+            "twitter",
+            "wiki",
+            "instagram",
+            "facebook",
+            "youtube",
+            "github"
+          ]
+        },
+        {
+          "outbound": "freedom",
+          //"dns": "cf",
+          "ip": [
+            {
+              "ipdb": "geoip",
+              "type": "CN"
+            }
+          ],
+          "cache": {
+            "enabled": true,
+            "size": 2000
+          }
+        },
+        {
+          "balance": "hk"
         }
-      }, {
-        "dns": "cf",
-        "balance": "hk"
-      }]
+      ]
     }
   },
   "balance": {
     "hk": {
-      "outbound": ["hk2", "hk", "hk_grpc"]
+      "outbound": [
+        "trojan_outbound"
+      ]
     }
   },
   "data": {

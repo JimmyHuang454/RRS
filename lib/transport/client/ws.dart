@@ -36,7 +36,7 @@ class WSRRSSocket extends RRSSocket {
   Future<dynamic>? get done => webSocket.done;
 
   @override
-  Future<void> add(List<int> data) async{
+  Future<void> add(List<int> data) async {
     webSocket.add(data);
   }
 
@@ -66,7 +66,8 @@ class WSClient extends TransportClient {
   }
 
   @override
-  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
+  Future<RRSSocket> connect(host, int port,
+      {dynamic sourceAddress, String sni = ""}) async {
     var address = '';
     var scheme = 'ws';
     if (useTLS!) {
@@ -76,13 +77,16 @@ class WSClient extends TransportClient {
 
     HttpClient client = HttpClient()
       ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) async {
+        if (sni == "") {
+          sni = uri.host;
+        }
         var so = Socket.connect(uri.host, uri.port,
             sourceAddress: sourceAddress, timeout: timeout);
         ConnectionTask2<Socket> task;
 
         if (uri.isScheme('HTTPS')) {
           task = ConnectionTask2<Socket>(
-              socket2: SecureSocket.secure(await so, host: uri.host));
+              socket2: SecureSocket.secure(await so, host: sni));
         } else {
           task = ConnectionTask2<Socket>(socket2: so);
         }
