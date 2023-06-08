@@ -73,8 +73,7 @@ class GRPCClient extends TransportClient {
   }
 
   @override
-  Future<RRSSocket> connect(host, int port,
-      {dynamic sourceAddress, String sni = ""}) async {
+  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
     final contr = StreamController<Hunk>();
 
     var clientChannel =

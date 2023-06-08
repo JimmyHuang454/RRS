@@ -30,7 +30,7 @@ class Balancer {
 
     for (var i = 0, len = outList.length; i < len; ++i) {
       if (!outboundsList.containsKey(outList[i])) {
-        throw Exception('There are no route tag named "$out".');
+        throw Exception('There are no route tag named "${outList[i]}".');
       }
       outbound.add(outboundsList[outList[i]]!);
     }

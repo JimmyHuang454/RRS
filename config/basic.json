@@ -5,10 +5,24 @@
     }
   },
   "outbounds": {
-    "trojan_outbound": {
+    "cf1": {
       "protocol": "trojan",
       "setting": {
         "address": "uif03.top",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": false,
+        "size": 10,
+        "timeout": 40
+      },
+      "outStream": "ws_with_tls"
+    },
+    "cf2": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "cf5.forfun.life",
         "port": 443,
         "password": "17146021026"
       },
@@ -18,6 +32,16 @@
         "timeout": 40
       },
       "outStream": "ws_with_tls"
+    },
+    "bit": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "trahk1.bnnodeservice.com",
+        "sni": "cert.bitbyte.one",
+        "port": 32443,
+        "password": "447029f7-fd0d-4120-b2ef-6e8d10f8df70"
+      },
+      "outStream": "tcp_with_tls"
     },
     "hk2": {
       "protocol": "trojan",
@@ -32,11 +56,16 @@
       "protocol": "trojan",
       "setting": {
         "address": "111.38.40.129",
-        "sni": "65-108-102-32.nhost.00cdn.com",
         "port": 12209,
         "password": "05975061-3b04-4229-9e54-f58fd81f78ce"
       },
-      "outStream": "tcp_with_tls"
+      "outStream": {
+        "protocol": "tcp",
+        "tls": {
+          "sni": "65-108-102-32.nhost.00cdn.com",
+          "enabled": true
+        }
+      }
     },
     "hk": {
       "protocol": "trojan",
@@ -104,6 +133,7 @@
     "tcp_with_tls": {
       "protocol": "tcp",
       "tls": {
+        "sni": "65-108-102-32.nhost.00cdn.com",
         "enabled": true
       }
     },
@@ -135,7 +165,7 @@
     "proxy": {
       "rules": [
         {
-          "balance": "hk",
+          "outbound": "freedom",
           "domain": [
             "regex:.*.cn",
             "php",
@@ -143,6 +173,9 @@
             "192.168",
             "melogin.cn",
             "172.168"
+          ],
+          "ip": [
+            "192.168.0.0/16"
           ]
         },
         {
@@ -180,7 +213,7 @@
   "balance": {
     "hk": {
       "outbound": [
-        "trojan_outbound"
+        "hyh"
       ]
     }
   },

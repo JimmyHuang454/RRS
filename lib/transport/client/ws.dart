@@ -66,19 +66,19 @@ class WSClient extends TransportClient {
   }
 
   @override
-  Future<RRSSocket> connect(host, int port,
-      {dynamic sourceAddress, String sni = ""}) async {
+  Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
     var address = '';
     var scheme = 'ws';
     if (useTLS!) {
       scheme = 'wss';
     }
+
     address = '$scheme://$host:$port/$path';
 
     HttpClient client = HttpClient()
       ..connectionFactory = (Uri uri, String? proxyHost, int? proxyPort) async {
-        if (sni == "") {
-          sni = uri.host;
+        if (outSNI == "") {
+          outSNI = uri.host;
         }
         var so = Socket.connect(uri.host, uri.port,
             sourceAddress: sourceAddress, timeout: timeout);
@@ -86,7 +86,7 @@ class WSClient extends TransportClient {
 
         if (uri.isScheme('HTTPS')) {
           task = ConnectionTask2<Socket>(
-              socket2: SecureSocket.secure(await so, host: sni));
+              socket2: SecureSocket.secure(await so, host: outSNI));
         } else {
           task = ConnectionTask2<Socket>(socket2: so);
         }

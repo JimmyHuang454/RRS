@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
-import 'package:async/async.dart';
 
+import 'package:cryptography/helpers.dart';
+import 'package:proxy/handler.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -65,10 +66,8 @@ abstract class OutboundStruct {
   Map<String, dynamic> config;
 
   String tag = '';
-  String outStreamTag = '';
 
   Address? outAddress;
-  String outSNI = "";
   int? outPort;
 
   Traffic traffic = Traffic();
@@ -76,7 +75,6 @@ abstract class OutboundStruct {
   bool isMakingFood = false;
 
   bool isFastOpen = false;
-  String outStrategy = 'default'; // OS default.
   int? queueLen;
   Duration? fastOpenTimeout;
   Queue<ConnectionRes>? fastOpenQueue;
@@ -88,15 +86,17 @@ abstract class OutboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = getValue(config, 'tag', '');
-    outStreamTag = getValue(config, 'outStream', 'tcp');
-    outStrategy = getValue(config, 'setting.strategy', 'default');
-    outSNI = getValue(config, 'setting.sni', '');
+    var outStreamTag = getValue(config, 'outStream', 'tcp');
 
-    if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
-      throw 'wrong outStream named "$outStreamTag"';
+    if (outStreamTag.runtimeType == String) {
+      if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
+        throw 'wrong outStream named "$outStreamTag"';
+      }
+      transportClient = outStreamList[outStreamTag]!;
+    } else {
+      transportClient =
+          buildOutStream(randomBytesAsHexString(10), outStreamTag);
     }
-
-    transportClient = outStreamList[outStreamTag]!;
 
     if (protocolName != 'freedom' && protocolName != 'block') {
       isFastOpen = getValue(config, 'fastopen.enable', false);
@@ -116,8 +116,7 @@ abstract class OutboundStruct {
   }
 
   Future<RRSSocket> realConnect() async {
-    return await transportClient!
-        .connect(outAddress!.address, outPort!, sni: outSNI);
+    return await transportClient!.connect(outAddress!.address, outPort!);
   }
 
   Future<void> updateFastOpenQueue() async {

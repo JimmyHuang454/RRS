@@ -139,10 +139,10 @@ class PortPattern extends Pattern {
 
   @override
   Future<bool> match(String inputPattern) async {
-    var temp = int.parse(inputPattern);
-    if (temp < 0) {
+    var port = int.parse(inputPattern);
+    if (port < 0) {
       return false;
     }
-    return start <= temp && temp <= end;
+    return start <= port && port <= end;
   }
 }
