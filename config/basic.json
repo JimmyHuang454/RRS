@@ -24,6 +24,7 @@
           "enabled": true
         },
         "setting": {
+          "host": "uif03.top",
           "path": "trojan_ws"
         }
       }

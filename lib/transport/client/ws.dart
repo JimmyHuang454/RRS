@@ -63,6 +63,10 @@ class WSClient extends TransportClient {
 
   WSClient({required super.config}) : super(protocolName: 'ws') {
     path = getValue(config, 'setting.path', '');
+    var host = getValue(config, 'setting.host', '');
+    if (host != '') {
+      header = {'host': host};
+    }
   }
 
   @override
@@ -96,11 +100,11 @@ class WSClient extends TransportClient {
         );
       };
 
-    var ws = await WebSocket.connect(address,
-        customClient: client, headers: {"host": outSNI});
-
     outAddress = address;
     outPort = port;
-    return RRSSocketBase(rrsSocket: WSRRSSocket(webSocket: ws));
+    return RRSSocketBase(
+        rrsSocket: WSRRSSocket(
+            webSocket: await WebSocket.connect(address,
+                customClient: client, headers: header)));
   }
 }
