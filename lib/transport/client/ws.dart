@@ -96,7 +96,8 @@ class WSClient extends TransportClient {
         );
       };
 
-    var ws = await WebSocket.connect(address, customClient: client);
+    var ws = await WebSocket.connect(address,
+        customClient: client, headers: {"host": outSNI});
 
     outAddress = address;
     outPort = port;

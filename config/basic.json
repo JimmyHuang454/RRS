@@ -8,14 +8,41 @@
     "cf1": {
       "protocol": "trojan",
       "setting": {
-        "address": "uif03.top",
+        "address": "104.18.124.104",
         "port": 443,
         "password": "17146021026"
       },
       "fastopen": {
         "enable": false,
         "size": 10,
-        "timeout": 40
+        "timeout": 30
+      },
+      "outStream": {
+        "protocol": "ws",
+        "tls": {
+          "sni": "uif03.top",
+          "enabled": true
+        },
+        "setting": {
+          "path": "trojan_ws"
+        }
+      }
+    },
+    "cf_uif03": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "cf.uif03.top",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "outStream": "ws_with_tls"
+    },
+    "cf1_jimmy": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "cf.jimmyhuang454.com",
+        "port": 443,
+        "password": "17146021026"
       },
       "outStream": "ws_with_tls"
     },
@@ -27,7 +54,21 @@
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": true,
+        "enable": false,
+        "size": 10,
+        "timeout": 40
+      },
+      "outStream": "ws_with_tls"
+    },
+    "cf3": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "cf3.forfun.life",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": false,
         "size": 10,
         "timeout": 40
       },
@@ -213,7 +254,7 @@
   "balance": {
     "hk": {
       "outbound": [
-        "hyh"
+        "cf1",
       ]
     }
   },

@@ -36,7 +36,6 @@ class ConnectionRes {
     if (stats != 0) {
       return;
     }
-    devPrint('done');
     stats = 2;
     error = e;
     stack = s;
