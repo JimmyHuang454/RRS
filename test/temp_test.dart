@@ -76,6 +76,31 @@ void main() {
   test('x25519.', () async {
     final algorithm = cryptography.X25519();
 
+    final aliceKeyPair = await algorithm.newKeyPair();
+    final alicePublicKey = await aliceKeyPair.extractPublicKey();
+
+    final bobKeyPair = await algorithm.newKeyPair();
+    final bobPublicKey = await bobKeyPair.extractPublicKey();
+    var bobPublicKey2 = cryptography.SimplePublicKey(randomBytes(32),
+        type: cryptography.KeyPairType.x25519);
+
+    final sharedSecretKey1 = await algorithm.sharedSecretKey(
+      keyPair: aliceKeyPair,
+      remotePublicKey: bobPublicKey,
+    );
+
+    final sharedSecretKey2 = await algorithm.sharedSecretKey(
+      keyPair: bobKeyPair,
+      remotePublicKey: alicePublicKey,
+    );
+
+    expect(await sharedSecretKey1.extractBytes(),
+        await sharedSecretKey2.extractBytes());
+  });
+
+  test('x25519 same res.', () async {
+    final algorithm = cryptography.X25519();
+
     // We need the private key pair of Alice.
     final aliceKeyPair = await algorithm.newKeyPair();
 

@@ -8,12 +8,12 @@
     "cf1": {
       "protocol": "trojan",
       "setting": {
-        "address": "104.18.124.104",
+        "address": "162.159.135.211",
         "port": 443,
         "password": "17146021026"
       },
       "fastopen": {
-        "enable": false,
+        "enable": true,
         "size": 10,
         "timeout": 30
       },
@@ -237,7 +237,7 @@
           //"dns": "cf",
           "ip": [
             {
-              "ipdb": "geoip",
+              "ipdb": "geoip2",
               "type": "CN"
             }
           ],
@@ -264,6 +264,10 @@
       "geoip": {
         "type": "mmdb",
         "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
+      },
+      "geoip2": {
+        "type": "mmdb",
+        "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country (1).mmdb"
       }
     }
   },

@@ -5,41 +5,6 @@ import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
 
-class FakeRandom {
-  List<int> customRandom = []; // 4 bytes.
-  List<int> cipherText =
-      []; // 8 bytes = unixTimeStamp(4 bytes) + randomBytes(4 bytes).
-  List<int> mac = []; // 16 bytes.
-
-  FakeRandom(
-      {required this.customRandom,
-      required this.cipherText,
-      required this.mac}) {
-    checkLen(customRandom, 4);
-    checkLen(cipherText, 12);
-    checkLen(mac, 16);
-  }
-
-  void checkLen(List<int> data, int len) {
-    if (data.length != len) {
-      throw 'length error';
-    }
-  }
-
-  FakeRandom.parse(List<int> random) {
-    checkLen(random, 32);
-    customRandom = random.sublist(0, 4);
-    cipherText = random.sublist(4, 16);
-    mac = random.sublist(16, 32);
-  }
-
-  List<int> build32Byte() {
-    var res = customRandom + cipherText + mac;
-    checkLen(res, 32);
-    return res;
-  }
-}
-
 // 4 bytes.
 List<int> unixTimeStamp() {
   var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -48,30 +13,45 @@ List<int> unixTimeStamp() {
   return timeList;
 }
 
-class JLSHandShakeSide {
-  FakeRandom? fakeRandom; // cipherRandom.
-  List<int>? clearRandom;
-
-  String psk; // from user.
-  String nonceStr; // from user.
-  List<int> nonce = [];
-  List<int> realPWD = [];
-  List<int> otherMac;
-  List<int> _pwd = [];
+class FakeRandom {
+  List<int> n = [];
+  List<int> fakeRandom = [];
+  List<int> pwd = [];
+  List<int> iv = [];
+  SecretBox? secretBox;
   final aes = AesGcm.with256bits(nonceLength: 64);
 
-  JLSHandShakeSide(
-      {required this.psk, required this.nonceStr, this.otherMac = const []}) {
-    _pwd = utf8.encode(psk) + otherMac;
-    nonce = sha512.convert(utf8.encode(nonceStr)).bytes;
+  FakeRandom({required this.pwd, required this.iv}) {
+    iv = sha512.convert(iv).bytes;
+    pwd = sha256.convert(pwd).bytes;
   }
 
-  List<int> buildPWD(List<int> customRandom) {
-    return realPWD = sha256.convert(_pwd + customRandom).bytes;
+  Future<void> build({bool userTimeStamp = false}) async {
+    n = buildRandomBytes(userTimeStamp: userTimeStamp);
+    var secretKey = await aes.newSecretKeyFromBytes(pwd);
+    secretBox = await aes.encrypt(n, secretKey: secretKey, nonce: iv);
+    fakeRandom = secretBox!.mac.bytes + secretBox!.cipherText;
+    checkLen(fakeRandom, 32);
   }
 
-  List<int> buildRandomBytes({int len = 12, bool isContainsTimeStamp = false}) {
-    if (isContainsTimeStamp) {
+  Future<bool> parse({required List<int> rawFakeRandom}) async {
+    checkLen(rawFakeRandom, 32);
+    fakeRandom = [];
+    n = [];
+    secretBox = SecretBox(rawFakeRandom.sublist(16),
+        nonce: iv, mac: Mac(rawFakeRandom.sublist(0, 16)));
+    var secretKey = await aes.newSecretKeyFromBytes(pwd);
+    try {
+      n = await aes.decrypt(secretBox!, secretKey: secretKey);
+    } catch (e) {
+      return false;
+    }
+    fakeRandom = rawFakeRandom;
+    return true;
+  }
+
+  List<int> buildRandomBytes({int len = 16, bool userTimeStamp = false}) {
+    if (userTimeStamp) {
       return sha224
           .convert(unixTimeStamp() + randomBytes(64))
           .bytes
@@ -80,48 +60,22 @@ class JLSHandShakeSide {
     return randomBytes(len);
   }
 
-  Future<SecretBox> encryptWithAES256({
-    required List<int> clearText,
-    required List<int> pwd,
-  }) async {
-    var secretKey = await aes.newSecretKeyFromBytes(pwd);
-    return await aes.encrypt(clearText, secretKey: secretKey, nonce: nonce);
-  }
-
-  Future<List<int>> decryptWithAES256(
-      {required List<int> cipherText,
-      required List<int> mac,
-      required List<int> pwd}) async {
-    var secretBox = SecretBox(cipherText, nonce: nonce, mac: Mac(mac));
-
-    var secretKey = await aes.newSecretKeyFromBytes(pwd);
-    var res = await aes.decrypt(secretBox, secretKey: secretKey);
-    return res;
-  }
-
-  // genarate clearRandom and fakeRandom.
-  Future<void> encrypt({isContainsTimeStamp = false}) async {
-    List<int> timestamp = randomBytes(4);
-    if (isContainsTimeStamp) {
-      timestamp = unixTimeStamp();
+  void checkLen(List<int> input, int len) {
+    if (input.length != len) {
+      throw Exception('wrong len');
     }
-
-    clearRandom = buildRandomBytes(len: 12, isContainsTimeStamp: true);
-    var secretBox = await encryptWithAES256(
-        clearText: clearRandom!, pwd: buildPWD(timestamp));
-
-    fakeRandom = FakeRandom(
-        customRandom: timestamp,
-        cipherText: secretBox.cipherText,
-        mac: secretBox.mac.bytes);
   }
+}
 
-  // parse fakeRandom to clearRandom.
-  Future<void> decrypt(List<int> encryptedRandom) async {
-    fakeRandom = FakeRandom.parse(encryptedRandom);
-    clearRandom = await decryptWithAES256(
-        mac: fakeRandom!.mac,
-        cipherText: fakeRandom!.cipherText,
-        pwd: buildPWD(fakeRandom!.customRandom));
-  }
+class JLSHandShakeSide {
+  FakeRandom? fakeRandom;
+
+  String pwdStr; // from user.
+  String ivStr; // from user.
+
+  JLSHandShakeSide({required this.pwdStr, required this.ivStr});
+}
+
+class JLSHandShakeClient extends JLSHandShakeSide {
+  JLSHandShakeClient({required super.pwdStr, required super.ivStr});
 }

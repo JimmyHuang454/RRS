@@ -18,7 +18,6 @@ class ConnectionRes {
 
   ConnectionRes({required this.timeout, required this.rrsSocket}) {
     rrsSocket.done!.then((value) async {
-      devPrint('done');
       await expire('server closed.', '');
     }, onError: (e, s) async {
       await expire(e, s);
@@ -134,7 +133,6 @@ abstract class OutboundStruct {
         i += 1;
         continue;
       }
-      devPrint(fastOpenQueue!.length);
       fastOpenQueue!
           .add(ConnectionRes(rrsSocket: rrsSocket, timeout: fastOpenTimeout!));
     }
