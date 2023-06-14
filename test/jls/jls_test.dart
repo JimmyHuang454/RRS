@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:cryptography/helpers.dart';
+import 'package:proxy/transport/jls/base.dart';
 import 'package:proxy/transport/jls/jls.dart';
+import 'package:proxy/utils/utils.dart';
 
 import 'package:test/test.dart';
 
@@ -27,5 +32,24 @@ void main() {
     expect(await f3.parse(rawFakeRandom: f.fakeRandom), false);
     expect(f3.n, []);
     expect(f3.fakeRandom, []);
+
+    var f4 = FakeRandom(iv: iv, pwd: [3]);
+    expect(await f4.parse(rawFakeRandom: f.fakeRandom), false);
+  });
+
+  test('clientHello', () async {
+    var host = '192.168.0.11';
+    var serverPort = await getUnusedPort(InternetAddress(host));
+    devPrint(serverPort);
+    var httpServer = await ServerSocket.bind(host, serverPort);
+    httpServer.listen(
+      (event) async {
+        event.listen((data) {
+        });
+      },
+    );
+
+    var client = await Socket.connect(host, serverPort);
+    await delay(1);
   });
 }

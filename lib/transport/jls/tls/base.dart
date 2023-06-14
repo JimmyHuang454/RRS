@@ -12,20 +12,12 @@ enum ContentType {
 }
 
 enum TLSVersion {
+  tls1_0([0x03, 0x01]),
+  tls1_1([0x03, 0x02]),
   tls1_2([0x03, 0x03]),
   tls1_3([0x03, 0x04]);
 
   const TLSVersion(this.value);
-  final List<int> value;
-}
-
-enum CipherSuites {
-// ignore: constant_identifier_names
-  TLS_AES_128_GCM_SHA256([0x13, 0x01]),
-// ignore: constant_identifier_names
-  TLS_AES_256_GCM_SHA384([0x13, 0x02]);
-
-  const CipherSuites(this.value);
   final List<int> value;
 }
 
@@ -48,107 +40,87 @@ enum HandshakeType {
 class TLSBase {
   TLSVersion tlsVersion;
   ContentType contentType;
+  List<int> data = [];
 
-  TLSBase({this.tlsVersion = TLSVersion.tls1_2, required this.contentType});
+  TLSBase({required this.tlsVersion, required this.contentType});
 
-  List<int> build(List<int> playload) {
+  List<int> build() {
     var len = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, playload.length, Endian.big);
-    return [contentType.value] + tlsVersion.value + len + playload;
+      ..buffer.asByteData().setInt16(0, data.length, Endian.big);
+    return [contentType.value] + tlsVersion.value + len + data;
   }
 }
 
 class Handshake extends TLSBase {
   HandshakeType handshakeType;
-  List<int>? random;
+  List<int> random;
   List<int>? sessionID;
 
-  Handshake({required this.handshakeType, this.random, this.sessionID})
-      : super(
-            tlsVersion: TLSVersion.tls1_2, contentType: ContentType.handshake) {
-    random ??= randomBytes(32);
+  Handshake(
+      {required this.handshakeType,
+      required this.random,
+      this.sessionID,
+      required super.tlsVersion})
+      : super(contentType: ContentType.handshake) {
     sessionID ??= randomBytes(32);
   }
 
   @override
-  List<int> build(List<int> playload) {
-    playload = random! + [sessionID!.length] + sessionID! + playload;
+  List<int> build() {
+    data = tlsVersion.value + random + [sessionID!.length] + sessionID! + data;
 
     var len = Uint8List(4)
-      ..buffer.asByteData().setInt32(0, playload.length, Endian.big);
+      ..buffer.asByteData().setInt32(0, data.length, Endian.big);
 
-    var res =
-        [handshakeType.value] + len.sublist(1) + tlsVersion.value + playload;
-    return super.build(res);
+    data = [handshakeType.value] + len.sublist(1) + data;
+    return super.build();
   }
 }
 
 class Extension {
-  ExtensionType extensionType;
+  List<int> data = [];
+  List<int> type = [];
+  List<int> len = [];
 
-  Extension({required this.extensionType});
+  Extension({required List<int> rawData}) {
+    type = rawData.sublist(0, 2);
+    len = rawData.sublist(2, 4);
+    data = rawData.sublist(4);
+  }
 
-  List<int> build(List<int> playload) {
-    var len = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, playload.length, Endian.big);
-    return extensionType.value + len + playload;
+  List<int> build() {
+    return type + len + data;
   }
 }
 
-class SuppertedVersions extends Extension {
-  int len;
-  List<TLSVersion> tlsVersionList;
-
-  SuppertedVersions({required this.len, required this.tlsVersionList})
-      : super(extensionType: ExtensionType.supportedVersion);
-
-  @override
-  List<int> build(List<int> playload) {
-    var temp = [tlsVersionList.length * 2];
-    for (var i = 0, len = tlsVersionList.length; i < len; ++i) {
-      temp += tlsVersionList[i].value;
-    }
-    return build(temp);
-  }
-}
-
-class ClientHandShake extends Handshake {
+class ClientHello extends Handshake {
   List<Extension> extensionList;
-  List<CipherSuites> cipherSuites;
 
-  ClientHandShake(
-      {super.random,
+  ClientHello(
+      {required super.random,
       super.sessionID,
       this.extensionList = const [],
-      this.cipherSuites = const []})
+      required super.tlsVersion})
       : super(handshakeType: HandshakeType.clientHello);
 
-  @override
-  List<int> build(List<int> playload) {
-    var cipherSuitesLength = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, cipherSuites.length, Endian.big);
-
-    playload = cipherSuitesLength;
-
-    for (var i = 0, len = cipherSuites.length; i < len; ++i) {
-      playload += cipherSuites[i].value;
-    }
-
+  void buildExtension() {
     List<int> extensions = [];
     for (var i = 0, len = extensionList.length; i < len; ++i) {
-      extensions += extensionList[i].build([]);
+      extensions += extensionList[i].build();
     }
 
     var extensionLength = Uint8List(2)
       ..buffer.asByteData().setInt16(0, extensions.length, Endian.big);
 
-    playload += extensionLength + extensions;
+    data += extensionLength + extensions;
+  }
 
+  @override
+  List<int> build() {
     var playloadLen = Uint8List(3)
-      ..buffer.asByteData().setInt32(0, playload.length, Endian.big);
+      ..buffer.asByteData().setInt32(0, data.length, Endian.big);
 
-    var res = [handshakeType.value] + playloadLen + tlsVersion.value + playload;
-
-    return super.build(res);
+    data = [handshakeType.value] + playloadLen + tlsVersion.value;
+    return super.build();
   }
 }

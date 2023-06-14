@@ -76,6 +76,7 @@ class JLSHandShakeSide {
   JLSHandShakeSide({required this.pwdStr, required this.ivStr});
 }
 
+
 class JLSHandShakeClient extends JLSHandShakeSide {
   JLSHandShakeClient({required super.pwdStr, required super.ivStr});
 }

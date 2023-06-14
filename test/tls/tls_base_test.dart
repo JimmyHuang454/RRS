@@ -1,20 +1,32 @@
 import 'package:proxy/transport/jls/tls/base.dart';
+import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('tls base', () {
-    var temp = TLSBase(contentType: ContentType.handshake);
-    var res = temp.build([1]);
-    expect(res, [0x16, 0x3, 0x3, 0, 1, 1]);
+  test('TLSBase', () {
+    var base = TLSBase(
+        contentType: ContentType.handshake, tlsVersion: TLSVersion.tls1_0);
+    var res = base.build();
+    expect(
+        res, [ContentType.handshake.value] + TLSVersion.tls1_0.value + [0, 0]);
+  });
 
-    return;
-    temp = Handshake(handshakeType: HandshakeType.clientHello);
-    res = temp.build([]);
-    expect(res, [0x16, 0x3, 0x3, 0, 7, 1, 0, 0, 1, 0x3, 0x3, 0]);
+  test('Handshake', () {
+    var handshake = Handshake(
+        handshakeType: HandshakeType.clientHello,
+        random: [1],
+        sessionID: [2],
+        tlsVersion: TLSVersion.tls1_3);
 
-    temp = ClientHandShake(cipherSuites: [CipherSuites.TLS_AES_128_GCM_SHA256]);
-    res = temp.build([]);
-    print(res);
-    expect(res, [0x16, 0x3, 0x3, 0, 6, 1, 0, 1, 0x3, 0x3, 0]);
+    var handshakeData = handshake.build();
+
+    var base = [ContentType.handshake.value] + TLSVersion.tls1_3.value + [0, 9];
+    expect(
+        handshakeData,
+        base +
+            [HandshakeType.clientHello.value] +
+            [0, 0, 5] +
+            TLSVersion.tls1_3.value +
+            [1, 1, 2]);
   });
 }
