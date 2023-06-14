@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:cryptography/helpers.dart';
+import 'package:proxy/utils/utils.dart';
 
 enum ContentType {
   handshake(0x16),
@@ -37,6 +38,12 @@ enum HandshakeType {
   final int value;
 }
 
+void checkLen(List<dynamic> input, int len) {
+  if (input.length != len) {
+    throw Exception('wrong len');
+  }
+}
+
 class TLSBase {
   TLSVersion tlsVersion;
   ContentType contentType;
@@ -63,6 +70,7 @@ class Handshake extends TLSBase {
       required super.tlsVersion})
       : super(contentType: ContentType.handshake) {
     sessionID ??= randomBytes(32);
+    checkLen(random, 32);
   }
 
   @override
@@ -78,49 +86,80 @@ class Handshake extends TLSBase {
 }
 
 class Extension {
-  List<int> data = [];
   List<int> type = [];
-  List<int> len = [];
+  List<int> data = [];
 
-  Extension({required List<int> rawData}) {
-    type = rawData.sublist(0, 2);
-    len = rawData.sublist(2, 4);
-    data = rawData.sublist(4);
+  Extension({required this.type, required this.data}) {
+    checkLen(type, 2);
   }
 
   List<int> build() {
+    var len = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, data.length, Endian.big);
     return type + len + data;
   }
 }
 
+class ExtensionList {
+  List<Extension> list = [];
+
+  ExtensionList({required this.list});
+
+  List<int> build() {
+    List<int> extensions = [];
+    for (var i = 0; i < list.length; i++) {
+      extensions += list[i].build();
+    }
+    var len = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, extensions.length, Endian.big);
+    return len + extensions;
+  }
+}
+
+class ClientCipherSuites {
+  List<int> data = [];
+
+  ClientCipherSuites({required this.data}) {
+    checkLen(data, 2);
+  }
+
+  List<int> build() {
+    var len = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, data.length, Endian.big);
+    return len + data;
+  }
+}
+
+class ClientCompressionMethod {
+  List<int> data = [];
+
+  ClientCompressionMethod({required this.data});
+
+  List<int> build() {
+    var len = Uint8List(1)..buffer.asByteData().setInt8(0, data.length);
+    return len + data;
+  }
+}
+
 class ClientHello extends Handshake {
-  List<Extension> extensionList;
+  ExtensionList extensionList;
+  ClientCipherSuites clientCipherSuites;
+  ClientCompressionMethod clientCompressionMethod;
 
   ClientHello(
       {required super.random,
       super.sessionID,
-      this.extensionList = const [],
+      required this.clientCipherSuites,
+      required this.clientCompressionMethod,
+      required this.extensionList,
       required super.tlsVersion})
       : super(handshakeType: HandshakeType.clientHello);
 
-  void buildExtension() {
-    List<int> extensions = [];
-    for (var i = 0, len = extensionList.length; i < len; ++i) {
-      extensions += extensionList[i].build();
-    }
-
-    var extensionLength = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, extensions.length, Endian.big);
-
-    data += extensionLength + extensions;
-  }
-
   @override
   List<int> build() {
-    var playloadLen = Uint8List(3)
-      ..buffer.asByteData().setInt32(0, data.length, Endian.big);
-
-    data = [handshakeType.value] + playloadLen + tlsVersion.value;
+    data = clientCipherSuites.build() +
+        clientCompressionMethod.build() +
+        extensionList.build();
     return super.build();
   }
 }

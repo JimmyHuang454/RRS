@@ -8,7 +8,7 @@
     "cf1": {
       "protocol": "trojan",
       "setting": {
-        "address": "172.64.161.193",
+        "address": "162.159.138.70",
         "port": 443,
         "password": "17146021026"
       },
