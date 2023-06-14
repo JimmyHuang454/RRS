@@ -11,23 +11,38 @@ void main() {
         res, [ContentType.handshake.value] + TLSVersion.tls1_0.value + [0, 0]);
   });
 
+  test('ChangeSpec', () {
+    var changeSpec = ChangeSpec(tlsVersion: TLSVersion.tls1_1);
+    var res = changeSpec.build();
+    expect(
+        res,
+        [ContentType.changeCipherSpec.value] +
+            TLSVersion.tls1_1.value +
+            [0, 1, 1]);
+  });
+
   test('Handshake', () {
+    List<int> random = [];
+    for (var i = 0; i < 32; i++) {
+      random.add(i);
+    }
     var handshake = Handshake(
         handshakeType: HandshakeType.clientHello,
-        random: [1],
-        sessionID: [2],
+        random: random,
+        sessionID: random,
         tlsVersion: TLSVersion.tls1_3);
 
     var handshakeData = handshake.build();
 
-    var base = [ContentType.handshake.value] + TLSVersion.tls1_3.value + [0, 9];
     expect(
         handshakeData,
-        base +
-            [HandshakeType.clientHello.value] +
-            [0, 0, 5] +
+        [ContentType.handshake.value] +
             TLSVersion.tls1_3.value +
-            [1, 1, 2]);
+            [0, 71, 1, 0, 0, 67] +
+            TLSVersion.tls1_3.value +
+            random +
+            [32] +
+            random);
   });
 
   test('extension', () {

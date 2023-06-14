@@ -58,6 +58,16 @@ class TLSBase {
   }
 }
 
+class ChangeSpec extends TLSBase {
+  ChangeSpec({required super.tlsVersion})
+      : super(contentType: ContentType.changeCipherSpec);
+  @override
+  List<int> build() {
+    data = [1];
+    return super.build();
+  }
+}
+
 class Handshake extends TLSBase {
   HandshakeType handshakeType;
   List<int> random;
@@ -160,6 +170,28 @@ class ClientHello extends Handshake {
     data = clientCipherSuites.build() +
         clientCompressionMethod.build() +
         extensionList.build();
+    return super.build();
+  }
+}
+
+class ServerHello extends Handshake {
+  ExtensionList extensionList;
+  int serverCompressionMethod;
+  int serverCipherSuite;
+
+  ServerHello(
+      {required super.random,
+      super.sessionID,
+      required this.serverCompressionMethod,
+      required this.serverCipherSuite,
+      required this.extensionList,
+      required super.tlsVersion})
+      : super(handshakeType: HandshakeType.serverHello);
+
+  @override
+  List<int> build() {
+    data =
+        [serverCipherSuite] + [serverCompressionMethod] + extensionList.build();
     return super.build();
   }
 }
