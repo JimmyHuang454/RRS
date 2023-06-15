@@ -115,6 +115,27 @@ class ExtensionList {
 
   ExtensionList({required this.list});
 
+  ExtensionList.parse({required List<int> rawData}) {
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));
+    var len = byteData.getUint16(0, Endian.big);
+    rawData = rawData.sublist(2);
+
+    var len2 = 0;
+    while (len2 < len) {
+      var type = rawData.sublist(0, 2);
+      rawData = rawData.sublist(2);
+
+      byteData =
+          ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));
+      var extensionsLen = byteData.getUint16(0, Endian.big);
+      rawData = rawData.sublist(2);
+      list.add(Extension(type: type, data: rawData.sublist(0, extensionsLen)));
+      rawData = rawData.sublist(extensionsLen);
+      len2 += extensionsLen + 4;
+    }
+  }
+
   List<int> build() {
     List<int> extensions = [];
     for (var i = 0; i < list.length; i++) {

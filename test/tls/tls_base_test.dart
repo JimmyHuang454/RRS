@@ -58,10 +58,49 @@ void main() {
 
     expect(extensionList, [0, 5] + [0, 0, 0, 1, 2]);
   });
+
+  test('extensionList parse', () {
+    var temp = "\x00\x2e"
+        "\x00\x33\x00\x24\x00\x1d\x00\x20\xa1\x31\xbc\xa8\x54\xe5\xc9\xdb"
+        "\x28\x00\x39\xdc\x5a\x2d\x6d\x10\xf9\x75\xce\x86\x2c\xcd\xe9\x67"
+        "\xb6\xdd\x66\xe5\x5f\x74\xee\x0a"
+        "\x00\x2b\x00\x02\x03\x04";
+    var rawData = List<int>.from(temp.codeUnits);
+    var extensionList = ExtensionList.parse(rawData: rawData);
+    expect(extensionList.build(), rawData);
+  });
+
   test('clientCompressionMethod', () {
     var clientCompressionMethod = ClientCompressionMethod(data: [1]).build();
 
     expect(clientCompressionMethod, [1] + [1]);
+  });
+
+  test('ServerHello', () {
+    List<int> randomB = [];
+    for (var i = 0; i < 32; i++) {
+      randomB.add(i);
+    }
+    var serverHello = ServerHello(
+        random: randomB,
+        sessionID: randomB,
+        serverCipherSuite: 0,
+        tlsVersion: TLSVersion.tls1_2,
+        serverCompressionMethod: 1,
+        extensionList: ExtensionList(list: [])).build();
+
+    expect(
+        serverHello,
+        [ContentType.handshake.value] +
+            TLSVersion.tls1_2.value +
+            [0, 75] +
+            [HandshakeType.serverHello.value] +
+            [0, 0, 71] +
+            TLSVersion.tls1_2.value +
+            randomB +
+            [32] +
+            randomB +
+            [0, 1, 0, 0]);
   });
 
   test('ClientHello', () {
