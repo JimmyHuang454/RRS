@@ -59,7 +59,7 @@ class TLSBase {
 }
 
 class ChangeSpec extends TLSBase {
-  ChangeSpec({required super.tlsVersion})
+  ChangeSpec({super.tlsVersion = TLSVersion.tls1_2})
       : super(contentType: ContentType.changeCipherSpec);
   @override
   List<int> build() {
@@ -68,20 +68,30 @@ class ChangeSpec extends TLSBase {
   }
 }
 
+class ApplicationData extends TLSBase {
+  List<int> rawData;
+
+  ApplicationData({required super.tlsVersion, required this.rawData})
+      : super(contentType: ContentType.applicationData);
+
+  @override
+  List<int> build() {
+    data = rawData;
+    return super.build();
+  }
+}
+
 class Handshake extends TLSBase {
   HandshakeType handshakeType;
-  List<int> random;
-  List<int>? sessionID;
+  List<int> random = [];
+  List<int> sessionID = [];
 
   Handshake(
-      {required this.handshakeType,
-      required this.random,
-      this.sessionID,
-      required super.tlsVersion})
-      : super(contentType: ContentType.handshake) {
-    sessionID ??= randomBytes(32);
-    checkLen(random, 32);
-  }
+      {this.handshakeType = HandshakeType.clientHello,
+      this.random = const [],
+      this.sessionID = const [],
+      super.tlsVersion = TLSVersion.tls1_2})
+      : super(contentType: ContentType.handshake);
 
   @override
   List<int> build() {
@@ -150,9 +160,7 @@ class ExtensionList {
 class ClientCipherSuites {
   List<int> data = [];
 
-  ClientCipherSuites({required this.data}) {
-    checkLen(data, 2);
-  }
+  ClientCipherSuites({required this.data});
 
   List<int> build() {
     var len = Uint8List(2)
@@ -173,9 +181,9 @@ class ClientCompressionMethod {
 }
 
 class ClientHello extends Handshake {
-  ExtensionList extensionList;
-  ClientCipherSuites clientCipherSuites;
-  ClientCompressionMethod clientCompressionMethod;
+  ExtensionList? extensionList;
+  ClientCipherSuites? clientCipherSuites;
+  ClientCompressionMethod? clientCompressionMethod;
 
   ClientHello(
       {required super.random,
@@ -183,14 +191,41 @@ class ClientHello extends Handshake {
       required this.clientCipherSuites,
       required this.clientCompressionMethod,
       required this.extensionList,
-      required super.tlsVersion})
+      super.tlsVersion = TLSVersion.tls1_2})
       : super(handshakeType: HandshakeType.clientHello);
+
+  ClientHello.parse({required List<int> rawData})
+      : super(
+            handshakeType: HandshakeType.clientHello,
+            random: [],
+            tlsVersion: TLSVersion.tls1_2) {
+    random = rawData.sublist(11, 32);
+    sessionID = rawData.sublist(11 + 33, 11 + 33 + 32);
+    rawData = rawData.sublist(11 + 33 + 32);
+
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));
+    var cipherSuitLen = byteData.getUint16(0, Endian.big);
+    rawData = rawData.sublist(2);
+    clientCipherSuites =
+        ClientCipherSuites(data: rawData.sublist(0, cipherSuitLen));
+    rawData = rawData.sublist(cipherSuitLen);
+
+    byteData = ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 1)));
+    rawData = rawData.sublist(1);
+    var compressionMethodLen = byteData.getUint8(0);
+    clientCompressionMethod =
+        ClientCompressionMethod(data: rawData.sublist(0, compressionMethodLen));
+    rawData = rawData.sublist(compressionMethodLen);
+
+    extensionList = ExtensionList.parse(rawData: rawData);
+  }
 
   @override
   List<int> build() {
-    data = clientCipherSuites.build() +
-        clientCompressionMethod.build() +
-        extensionList.build();
+    data = clientCipherSuites!.build() +
+        clientCompressionMethod!.build() +
+        extensionList!.build();
     return super.build();
   }
 }
