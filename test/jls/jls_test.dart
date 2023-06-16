@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:cryptography/helpers.dart';
-import 'package:proxy/transport/jls/base.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -38,9 +36,8 @@ void main() {
   });
 
   test('clientHello', () async {
-    var host = '192.168.0.11';
+    var host = '127.0.0.1';
     var serverPort = await getUnusedPort(InternetAddress(host));
-    devPrint(serverPort);
     var httpServer = await ServerSocket.bind(host, serverPort);
     httpServer.listen(
       (event) async {

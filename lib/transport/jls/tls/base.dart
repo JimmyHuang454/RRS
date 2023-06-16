@@ -1,8 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:cryptography/helpers.dart';
-import 'package:proxy/utils/utils.dart';
-
 enum ContentType {
   handshake(0x16),
   changeCipherSpec(0x14),
@@ -19,14 +16,6 @@ enum TLSVersion {
   tls1_3([0x03, 0x04]);
 
   const TLSVersion(this.value);
-  final List<int> value;
-}
-
-enum ExtensionType {
-  serverName([0, 0]),
-  supportedVersion([0, 0x2b]);
-
-  const ExtensionType(this.value);
   final List<int> value;
 }
 
@@ -85,17 +74,23 @@ class Handshake extends TLSBase {
   HandshakeType handshakeType;
   List<int> random = [];
   List<int> sessionID = [];
+  TLSVersion handshakeTLSVersion;
 
   Handshake(
       {this.handshakeType = HandshakeType.clientHello,
       this.random = const [],
+      this.handshakeTLSVersion = TLSVersion.tls1_2,
       this.sessionID = const [],
       super.tlsVersion = TLSVersion.tls1_2})
       : super(contentType: ContentType.handshake);
 
   @override
   List<int> build() {
-    data = tlsVersion.value + random + [sessionID!.length] + sessionID! + data;
+    data = handshakeTLSVersion.value +
+        random +
+        [sessionID.length] +
+        sessionID +
+        data;
 
     var len = Uint8List(4)
       ..buffer.asByteData().setInt32(0, data.length, Endian.big);
@@ -191,17 +186,38 @@ class ClientHello extends Handshake {
       required this.clientCipherSuites,
       required this.clientCompressionMethod,
       required this.extensionList,
-      super.tlsVersion = TLSVersion.tls1_2})
+      super.tlsVersion = TLSVersion.tls1_0})
       : super(handshakeType: HandshakeType.clientHello);
 
   ClientHello.parse({required List<int> rawData})
       : super(
             handshakeType: HandshakeType.clientHello,
             random: [],
-            tlsVersion: TLSVersion.tls1_2) {
-    random = rawData.sublist(11, 32);
+            tlsVersion: TLSVersion.tls1_0) {
+    random = rawData.sublist(11, 11 + 32);
     sessionID = rawData.sublist(11 + 33, 11 + 33 + 32);
     rawData = rawData.sublist(11 + 33 + 32);
+    var version = rawData.sublist(2, 4);
+    if (version == TLSVersion.tls1_0.value) {
+      tlsVersion == TLSVersion.tls1_0;
+    } else if (version == TLSVersion.tls1_1.value) {
+      tlsVersion == TLSVersion.tls1_1;
+    } else if (version == TLSVersion.tls1_2.value) {
+      tlsVersion == TLSVersion.tls1_2;
+    } else if (version == TLSVersion.tls1_3.value) {
+      tlsVersion == TLSVersion.tls1_3;
+    }
+
+    version = rawData.sublist(9, 11);
+    if (version == TLSVersion.tls1_0.value) {
+      handshakeTLSVersion == TLSVersion.tls1_0;
+    } else if (version == TLSVersion.tls1_1.value) {
+      handshakeTLSVersion == TLSVersion.tls1_1;
+    } else if (version == TLSVersion.tls1_2.value) {
+      handshakeTLSVersion == TLSVersion.tls1_2;
+    } else if (version == TLSVersion.tls1_3.value) {
+      handshakeTLSVersion == TLSVersion.tls1_3;
+    }
 
     ByteData byteData =
         ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));

@@ -267,7 +267,7 @@
       },
       "geoip2": {
         "type": "mmdb",
-        "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country (1).mmdb"
+        "path": "D:/my_project/RRS/bin/Country (1).mmdb"
       }
     }
   },
