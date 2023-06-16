@@ -115,32 +115,32 @@ void main() {
             [0, 1, 0, 0]);
   });
 
-  // test('ClientHello', () {
-  //   var clientHello = ClientHello(
-  //       random: randomB,
-  //       sessionID: randomB,
-  //       extensionList: ExtensionList(list: [
-  //         Extension(type: [0, 0], data: [1])
-  //       ]),
-  //       clientCipherSuites: ClientCipherSuites(data: [2, 2]),
-  //       clientCompressionMethod: ClientCompressionMethod(data: [3]),
-  //       tlsVersion: TLSVersion.tls1_2);
+  test('ClientHello', () {
+    var clientHello = ClientHello(
+        random: randomB,
+        sessionID: randomB,
+        extensionList: ExtensionList(list: [
+          Extension(type: [0, 0], data: [1])
+        ]),
+        clientCipherSuites: ClientCipherSuites(data: [2, 2]),
+        clientCompressionMethod: ClientCompressionMethod(data: [3]),
+        tlsVersion: TLSVersion.tls1_2);
 
-  //   var clientHelloB = clientHello.build();
+    var clientHelloB = clientHello.build();
 
-  //   expect(
-  //       clientHelloB,
-  //       [ContentType.handshake.value] +
-  //           TLSVersion.tls1_2.value +
-  //           [0, 84] +
-  //           [HandshakeType.clientHello.value] +
-  //           [0, 0, 80] +
-  //           TLSVersion.tls1_2.value +
-  //           randomB +
-  //           [32] +
-  //           randomB +
-  //           [0, 2, 2, 2, 1, 3, 0, 5, 0, 0, 0, 1, 1]);
-  // });
+    expect(
+        clientHelloB,
+        [ContentType.handshake.value] +
+            TLSVersion.tls1_2.value +
+            [0, 84] +
+            [HandshakeType.clientHello.value] +
+            [0, 0, 80] +
+            TLSVersion.tls1_2.value +
+            randomB +
+            [32] +
+            randomB +
+            [0, 2, 2, 2, 1, 3, 0, 5, 0, 0, 0, 1, 1]);
+  });
 
   test('cipherSuitLen parse.', () {
     var temp =
@@ -172,6 +172,10 @@ void main() {
 
     var rawData = List<int>.from(temp.codeUnits);
 
+
+    var res = ClientHello.parse(rawData: rawData);
+    expect(rawData, res.build());
+
     var radom2 =
         "\x98\x32\x6e\xb1\xde\xea\xe1\x9b\xd2\x96\x7c\xca\x32\xf9\x0e\x89"
         "\x99\x8e\xc9\x6f\x7c\x68\x76\x96\x5d\x49\x5f\xfc\xab\xc4\xd2\x4b";
@@ -184,7 +188,8 @@ void main() {
     start = indexOfElements(rawData, sessionID2.codeUnits);
     rawData.replaceRange(start, start + 32, randomB);
 
-    var res = ClientHello.parse(rawData: rawData);
+    res.random = randomB;
+    res.sessionID = randomB;
     expect(rawData, res.build());
   });
 }
