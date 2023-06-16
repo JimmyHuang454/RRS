@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import 'package:proxy/utils/utils.dart';
+import 'package:quiver/collection.dart';
+
 enum ContentType {
   handshake(0x16),
   changeCipherSpec(0x14),
@@ -34,16 +37,41 @@ void checkLen(List<dynamic> input, int len) {
 }
 
 class TLSBase {
-  TLSVersion tlsVersion;
-  ContentType contentType;
+  TLSVersion? tlsVersion;
+  ContentType? contentType;
   List<int> data = [];
 
   TLSBase({required this.tlsVersion, required this.contentType});
 
+  TLSBase.parse({required List<int> rawData}) {
+    var type = rawData[0];
+    var version = rawData.sublist(1, 3);
+
+    if (listsEqual(version, TLSVersion.tls1_0.value)) {
+      tlsVersion = TLSVersion.tls1_0;
+    } else if (listsEqual(version, TLSVersion.tls1_1.value)) {
+      tlsVersion = TLSVersion.tls1_1;
+    } else if (listsEqual(version, TLSVersion.tls1_2.value)) {
+      tlsVersion = TLSVersion.tls1_2;
+    } else if (listsEqual(version, TLSVersion.tls1_3.value)) {
+      tlsVersion = TLSVersion.tls1_3;
+    } else {
+      throw Exception('unknow tls version. $version');
+    }
+
+    if (type == ContentType.handshake.value) {
+      contentType = ContentType.handshake;
+    } else if (type == ContentType.changeCipherSpec.value) {
+      contentType = ContentType.changeCipherSpec;
+    } else if (type == ContentType.applicationData.value) {
+      contentType = ContentType.applicationData;
+    }
+  }
+
   List<int> build() {
     var len = Uint8List(2)
       ..buffer.asByteData().setInt16(0, data.length, Endian.big);
-    return [contentType.value] + tlsVersion.value + len + data;
+    return [contentType!.value] + tlsVersion!.value + len + data;
   }
 }
 
@@ -71,10 +99,11 @@ class ApplicationData extends TLSBase {
 }
 
 class Handshake extends TLSBase {
-  HandshakeType handshakeType;
-  List<int> random = [];
-  List<int> sessionID = [];
-  TLSVersion handshakeTLSVersion;
+  HandshakeType? handshakeType;
+  List<int>? random = [];
+  List<int>? sessionID = [];
+  List<int>? len = [];
+  TLSVersion? handshakeTLSVersion;
 
   Handshake(
       {this.handshakeType = HandshakeType.clientHello,
@@ -84,18 +113,46 @@ class Handshake extends TLSBase {
       super.tlsVersion = TLSVersion.tls1_2})
       : super(contentType: ContentType.handshake);
 
+  Handshake.parse({required List<int> rawData})
+      : super.parse(rawData: rawData) {
+    rawData = rawData.sublist(5);
+    var type = rawData[0];
+    if (type == HandshakeType.clientHello.value) {
+      handshakeType = HandshakeType.clientHello;
+    } else if (type == HandshakeType.serverHello.value) {
+      handshakeType = HandshakeType.serverHello;
+    }
+
+    var version = rawData.sublist(4, 6);
+    if (listsEqual(version, TLSVersion.tls1_0.value)) {
+      handshakeTLSVersion = TLSVersion.tls1_0;
+    } else if (listsEqual(version, TLSVersion.tls1_1.value)) {
+      handshakeTLSVersion = TLSVersion.tls1_1;
+    } else if (listsEqual(version, TLSVersion.tls1_2.value)) {
+      handshakeTLSVersion = TLSVersion.tls1_2;
+    } else if (listsEqual(version, TLSVersion.tls1_3.value)) {
+      handshakeTLSVersion = TLSVersion.tls1_3;
+    } else {
+      throw Exception('unknow tls version. $version');
+    }
+
+    random = rawData.sublist(6, 6 + 32);
+    sessionID =
+        rawData.sublist(39, 39 + 32); // sessionID could not be 32 Bytes.
+  }
+
   @override
   List<int> build() {
-    data = handshakeTLSVersion.value +
-        random +
-        [sessionID.length] +
-        sessionID +
+    data = handshakeTLSVersion!.value +
+        random! +
+        [sessionID!.length] +
+        sessionID! +
         data;
 
     var len = Uint8List(4)
       ..buffer.asByteData().setInt32(0, data.length, Endian.big);
 
-    data = [handshakeType.value] + len.sublist(1) + data;
+    data = [handshakeType!.value] + len.sublist(1) + data;
     return super.build();
   }
 }
@@ -154,24 +211,32 @@ class ExtensionList {
 
 class ClientCipherSuites {
   List<int> data = [];
+  int len = 0;
 
-  ClientCipherSuites({required this.data});
+  ClientCipherSuites.parse({required List<int> rawData}) {
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));
+    len = byteData.getUint16(0, Endian.big);
+    data = rawData.sublist(2, 2 + len);
+  }
 
   List<int> build() {
-    var len = Uint8List(2)
-      ..buffer.asByteData().setInt16(0, data.length, Endian.big);
-    return len + data;
+    var len2 = Uint8List(2)..buffer.asByteData().setInt16(0, len, Endian.big);
+    return len2 + data;
   }
 }
 
 class ClientCompressionMethod {
   List<int> data = [];
+  int len = 0;
 
-  ClientCompressionMethod({required this.data});
+  ClientCompressionMethod.parse({required List<int> rawData}) {
+    len = rawData[0];
+    data = rawData.sublist(1, 1 + len);
+  }
 
   List<int> build() {
-    var len = Uint8List(1)..buffer.asByteData().setInt8(0, data.length);
-    return len + data;
+    return [len] + data;
   }
 }
 
@@ -190,49 +255,15 @@ class ClientHello extends Handshake {
       : super(handshakeType: HandshakeType.clientHello);
 
   ClientHello.parse({required List<int> rawData})
-      : super(
-            handshakeType: HandshakeType.clientHello,
-            random: [],
-            tlsVersion: TLSVersion.tls1_0) {
-    random = rawData.sublist(11, 11 + 32);
-    sessionID = rawData.sublist(11 + 33, 11 + 33 + 32);
-    rawData = rawData.sublist(11 + 33 + 32);
-    var version = rawData.sublist(2, 4);
-    if (version == TLSVersion.tls1_0.value) {
-      tlsVersion == TLSVersion.tls1_0;
-    } else if (version == TLSVersion.tls1_1.value) {
-      tlsVersion == TLSVersion.tls1_1;
-    } else if (version == TLSVersion.tls1_2.value) {
-      tlsVersion == TLSVersion.tls1_2;
-    } else if (version == TLSVersion.tls1_3.value) {
-      tlsVersion == TLSVersion.tls1_3;
-    }
+      : super.parse(rawData: rawData) {
+    rawData = rawData.sublist(5); // TLSBase
+    rawData = rawData.sublist(6 + 32 + 1 + 32); // Handshake
 
-    version = rawData.sublist(9, 11);
-    if (version == TLSVersion.tls1_0.value) {
-      handshakeTLSVersion == TLSVersion.tls1_0;
-    } else if (version == TLSVersion.tls1_1.value) {
-      handshakeTLSVersion == TLSVersion.tls1_1;
-    } else if (version == TLSVersion.tls1_2.value) {
-      handshakeTLSVersion == TLSVersion.tls1_2;
-    } else if (version == TLSVersion.tls1_3.value) {
-      handshakeTLSVersion == TLSVersion.tls1_3;
-    }
+    clientCipherSuites = ClientCipherSuites.parse(rawData: rawData);
+    rawData = rawData.sublist(2 + clientCipherSuites!.len);
 
-    ByteData byteData =
-        ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 2)));
-    var cipherSuitLen = byteData.getUint16(0, Endian.big);
-    rawData = rawData.sublist(2);
-    clientCipherSuites =
-        ClientCipherSuites(data: rawData.sublist(0, cipherSuitLen));
-    rawData = rawData.sublist(cipherSuitLen);
-
-    byteData = ByteData.sublistView(Uint8List.fromList(rawData.sublist(0, 1)));
-    rawData = rawData.sublist(1);
-    var compressionMethodLen = byteData.getUint8(0);
-    clientCompressionMethod =
-        ClientCompressionMethod(data: rawData.sublist(0, compressionMethodLen));
-    rawData = rawData.sublist(compressionMethodLen);
+    clientCompressionMethod = ClientCompressionMethod.parse(rawData: rawData);
+    rawData = rawData.sublist(1 + clientCompressionMethod!.len);
 
     extensionList = ExtensionList.parse(rawData: rawData);
   }
@@ -247,9 +278,9 @@ class ClientHello extends Handshake {
 }
 
 class ServerHello extends Handshake {
-  ExtensionList extensionList;
-  int serverCompressionMethod;
-  int serverCipherSuite;
+  ExtensionList? extensionList;
+  List<int>? serverCompressionMethod;
+  List<int>? serverCipherSuite;
 
   ServerHello(
       {required super.random,
@@ -260,10 +291,22 @@ class ServerHello extends Handshake {
       required super.tlsVersion})
       : super(handshakeType: HandshakeType.serverHello);
 
+  ServerHello.parse({required List<int> rawData})
+      : super.parse(rawData: rawData) {
+    rawData = rawData.sublist(5); // TLSBase
+    rawData = rawData.sublist(6 + 32 + 1 + 32); // Handshake
+
+    serverCipherSuite = rawData.sublist(0, 2);
+    serverCompressionMethod = [rawData[3]];
+    rawData = rawData.sublist(3);
+
+    extensionList = ExtensionList.parse(rawData: rawData);
+  }
+
   @override
   List<int> build() {
     data =
-        [serverCipherSuite] + [serverCompressionMethod] + extensionList.build();
+        serverCipherSuite! + serverCompressionMethod! + extensionList!.build();
     return super.build();
   }
 }
