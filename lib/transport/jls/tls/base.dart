@@ -86,15 +86,9 @@ class ChangeSpec extends TLSBase {
 }
 
 class ApplicationData extends TLSBase {
-  List<int> rawData;
-
-  ApplicationData({required super.tlsVersion, required this.rawData})
-      : super(contentType: ContentType.applicationData);
-
-  @override
-  List<int> build() {
-    data = rawData;
-    return super.build();
+  ApplicationData.parse({required List<int> rawData})
+      : super.parse(rawData: rawData) {
+    data = rawData.sublist(5);
   }
 }
 

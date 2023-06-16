@@ -8,7 +8,55 @@
     "cf1": {
       "protocol": "trojan",
       "setting": {
-        "address": "162.159.138.70",
+        "address": "162.159.240.131",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": true,
+        "size": 10,
+        "timeout": 30
+      },
+      "outStream": {
+        "protocol": "ws",
+        "tls": {
+          "sni": "uif03.top",
+          "enabled": true
+        },
+        "setting": {
+          "host": "uif03.top",
+          "path": "trojan_ws"
+        }
+      }
+    },
+    "cf23": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "172.67.157.27",
+        "port": 443,
+        "password": "17146021026"
+      },
+      "fastopen": {
+        "enable": true,
+        "size": 10,
+        "timeout": 30
+      },
+      "outStream": {
+        "protocol": "ws",
+        "tls": {
+          "sni": "uif03.top",
+          "enabled": true
+        },
+        "setting": {
+          "host": "uif03.top",
+          "path": "trojan_ws"
+        }
+      }
+    },
+    "cf24": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "172.67.176.101",
         "port": 443,
         "password": "17146021026"
       },

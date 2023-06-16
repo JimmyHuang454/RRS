@@ -101,6 +101,20 @@ void main() {
     expect(extensionList.build(), rawData);
   });
 
+  test('ApplicationData', () {
+    var temp =
+        "\x17\x03\x03\x00\x35\x07\x04\x81\xef\x24\xa0\x3a\xf0\xa7\x54\x65"
+        "\xfd\x20\x34\x09\xea\x2e\x3e\xf3\x8c\x30\x34\xd9\xa5\xa9\xea\x0c"
+        "\x96\xad\x16\x40\x13\xf7\x47\x29\xce\x8f\x65\x3f\xe9\x7f\x7d\x0d"
+        "\x64\xea\xda\x7c\x87\x82\x59\x13\xbd\x2d";
+
+    var rawData = List<int>.from(temp.codeUnits);
+    var applicationData = ApplicationData.parse(rawData: rawData);
+
+    expect(applicationData.tlsVersion, TLSVersion.tls1_2);
+    expect(applicationData.build(), rawData);
+  });
+
   test('clientCompressionMethod', () {
     var clientCompressionMethod =
         ClientCompressionMethod.parse(rawData: [1, 0]).build();
