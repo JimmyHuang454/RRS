@@ -30,6 +30,13 @@ enum HandshakeType {
   final int value;
 }
 
+enum ExtensionType {
+  serverName([0, 0]);
+
+  const ExtensionType(this.value);
+  final List<int> value;
+}
+
 void checkLen(List<dynamic> input, int len) {
   if (input.length != len) {
     throw Exception('wrong len');
@@ -189,6 +196,21 @@ class ExtensionList {
       list.add(Extension(type: type, data: rawData.sublist(0, extensionsLen)));
       rawData = rawData.sublist(extensionsLen);
       len2 += extensionsLen + 4;
+    }
+  }
+
+  void setServerName(List<int> serverName) {
+    var serverNameLen = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, serverName.length, Endian.big);
+
+    var serverNameListLen = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, serverName.length + 3, Endian.big);
+
+    for (var i = 0; i < list.length; i++) {
+      if (listsEqual(list[i].type, ExtensionType.serverName.value)) {
+        list[i].data = serverNameListLen + [0] + serverNameLen + serverName;
+        break;
+      }
     }
   }
 

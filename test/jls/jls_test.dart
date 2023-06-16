@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -41,12 +42,18 @@ void main() {
     var httpServer = await ServerSocket.bind(host, serverPort);
     httpServer.listen(
       (event) async {
-        event.listen((data) {
-        });
+        event.listen((data) {});
       },
     );
 
     var client = await Socket.connect(host, serverPort);
     await delay(1);
+  });
+
+  test('clientHello', () async {
+    var jlsHandShakeClient = JLSHandShakeClient(
+        pwdStr: '123', ivStr: '456', handshake: clientHelloHandshake);
+    devPrint(await jlsHandShakeClient.build());
+    
   });
 }

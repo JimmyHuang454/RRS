@@ -78,7 +78,6 @@ void main() {
 
   test('extension', () {
     var extensions = Extension(type: [0, 0], data: [2]).build();
-
     expect(extensions, [0, 0, 0, 1, 2]);
   });
 
@@ -90,7 +89,7 @@ void main() {
     expect(extensionList, [0, 5] + [0, 0, 0, 1, 2]);
   });
 
-  test('extensionList parse', () {
+  test('extensionList parse serverHello', () {
     var temp = "\x00\x2e"
         "\x00\x33\x00\x24\x00\x1d\x00\x20\xa1\x31\xbc\xa8\x54\xe5\xc9\xdb"
         "\x28\x00\x39\xdc\x5a\x2d\x6d\x10\xf9\x75\xce\x86\x2c\xcd\xe9\x67"
@@ -99,6 +98,22 @@ void main() {
     var rawData = List<int>.from(temp.codeUnits);
     var extensionList = ExtensionList.parse(rawData: rawData);
     expect(extensionList.build(), rawData);
+  });
+
+  test('extensionList serverName', () {
+    var temp = "\x00\x12"
+        "\x00\x00\x00\x0e\x00\x0c\x00\x00\x09\x75\x69\x66\x30\x33\x2e\x74"
+        "\x6f\x70";
+    var rawData = List<int>.from(temp.codeUnits);
+    var extensionList = ExtensionList.parse(rawData: rawData);
+
+    expect(extensionList.list.length, 1);
+    expect(extensionList.list[0].type, ExtensionType.serverName.value);
+    expect(extensionList.list[0].data.length, 14);
+    var newDomain = [1, 2, 3];
+    extensionList.setServerName(newDomain);
+    expect(extensionList.list[0].data, [0, 6, 0, 0, 3] + newDomain);
+    expect(extensionList.build(), [0, 12, 0, 0, 0, 8, 0, 6, 0, 0, 3, 1, 2, 3]);
   });
 
   test('ApplicationData', () {
@@ -149,6 +164,8 @@ void main() {
     expect(res.clientCipherSuites!.len, 36);
 
     expect(res.build(), rawClientHello1);
+
+    res.extensionList!.setServerName([1, 2]);
   });
 
   test('serverHello parse', () {
