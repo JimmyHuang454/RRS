@@ -31,9 +31,17 @@ enum HandshakeType {
 }
 
 enum ExtensionType {
-  serverName([0, 0]);
+  serverName([0, 0]),
+  keyShare([0, 0x33]);
 
   const ExtensionType(this.value);
+  final List<int> value;
+}
+
+enum SupportGroup {
+  x25519([0, 0x1d]);
+
+  const SupportGroup(this.value);
   final List<int> value;
 }
 
@@ -101,18 +109,11 @@ class ApplicationData extends TLSBase {
 
 class Handshake extends TLSBase {
   HandshakeType? handshakeType;
+  ExtensionList? extensionList;
   List<int>? random = [];
   List<int>? sessionID = [];
   List<int>? len = [];
   TLSVersion? handshakeTLSVersion;
-
-  Handshake(
-      {this.handshakeType = HandshakeType.clientHello,
-      this.random = const [],
-      this.handshakeTLSVersion = TLSVersion.tls1_2,
-      this.sessionID = const [],
-      super.tlsVersion = TLSVersion.tls1_2})
-      : super(contentType: ContentType.handshake);
 
   Handshake.parse({required List<int> rawData})
       : super.parse(rawData: rawData) {
@@ -214,6 +215,28 @@ class ExtensionList {
     }
   }
 
+  Extension getKeyShareExtension() {
+    for (var i = 0; i < list.length; i++) {
+      if (listsEqual(list[i].type, ExtensionType.keyShare.value)) {
+        return list[i];
+      }
+    }
+    throw Exception('missing keyShare');
+  }
+
+  List<int> getKeyShare() {
+    var res = getKeyShareExtension();
+    return res.data.sublist(4);
+  }
+
+  // x25519 only.
+  void setKeyShare(List<int> keyShare) {
+    var res = getKeyShareExtension();
+    var keyShareLen = Uint8List(2)
+      ..buffer.asByteData().setInt16(0, keyShare.length, Endian.big);
+    res.data = SupportGroup.x25519.value + keyShareLen + keyShare;
+  }
+
   List<int> build() {
     List<int> extensions = [];
     for (var i = 0; i < list.length; i++) {
@@ -257,18 +280,8 @@ class ClientCompressionMethod {
 }
 
 class ClientHello extends Handshake {
-  ExtensionList? extensionList;
   ClientCipherSuites? clientCipherSuites;
   ClientCompressionMethod? clientCompressionMethod;
-
-  ClientHello(
-      {required super.random,
-      super.sessionID,
-      required this.clientCipherSuites,
-      required this.clientCompressionMethod,
-      required this.extensionList,
-      super.tlsVersion = TLSVersion.tls1_0})
-      : super(handshakeType: HandshakeType.clientHello);
 
   ClientHello.parse({required List<int> rawData})
       : super.parse(rawData: rawData) {
@@ -294,18 +307,8 @@ class ClientHello extends Handshake {
 }
 
 class ServerHello extends Handshake {
-  ExtensionList? extensionList;
   List<int>? serverCompressionMethod;
   List<int>? serverCipherSuite;
-
-  ServerHello(
-      {required super.random,
-      super.sessionID,
-      required this.serverCompressionMethod,
-      required this.serverCipherSuite,
-      required this.extensionList,
-      required super.tlsVersion})
-      : super(handshakeType: HandshakeType.serverHello);
 
   ServerHello.parse({required List<int> rawData})
       : super.parse(rawData: rawData) {

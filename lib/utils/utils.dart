@@ -221,3 +221,19 @@ String generateRandomString(int len) {
       List.generate(len, (index) => Random().nextInt(33) + 89));
   return result;
 }
+
+List<int> zeroList({int len = 32}) {
+  List<int> res = [];
+  for (var i = 0; i < len; i++) {
+    res.add(0);
+  }
+  return res;
+}
+
+// 4 bytes.
+List<int> unixTimeStamp() {
+  var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  var timeList = Uint8List(4)
+    ..buffer.asByteData().setUint32(0, time, Endian.big);
+  return timeList;
+}
