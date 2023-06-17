@@ -40,7 +40,7 @@ class TCPRRSSocket extends RRSSocket {
     // streamSubscription = socket.listen(onData,
     //     onError: onError, onDone: onDone, cancelOnError: true);
 
-    streamSubscription = socket.listen((event) async {
+    streamSubscription = socket.asBroadcastStream().listen((event) async {
       streamSubscription!.pause();
       await onData!(event);
       streamSubscription!.resume();

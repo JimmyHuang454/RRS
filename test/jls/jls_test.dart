@@ -38,10 +38,10 @@ void main() {
 
   test('clientHello parse.', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', format: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
 
     await jlsHandShakeClient.build();
-    expect(jlsHandShakeClient.format!.random,
+    expect(jlsHandShakeClient.local!.random,
         jlsHandShakeClient.fakeRandom!.fakeRandom);
 
     var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
@@ -50,42 +50,42 @@ void main() {
 
   test('serverHello', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', format: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
     await jlsHandShakeClient.build();
     var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
     var clientRandom = parsedClient.random;
 
     var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', format: serverHelloHandshake);
-    expect(await jlsHandShakeServer.checkClient(inputClientHello: parsedClient),
+        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
+    expect(await jlsHandShakeServer.check(inputRemote: parsedClient),
         true);
 
     // test random must be restored.
-    expect(jlsHandShakeServer.handshake!.random, clientRandom);
+    expect(jlsHandShakeServer.remote!.random, clientRandom);
 
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '0123', ivStr: '456', format: serverHelloHandshake);
-    expect(await jlsHandShakeServer.checkClient(inputClientHello: parsedClient),
+        pwdStr: '0123', ivStr: '456', local: serverHelloHandshake);
+    expect(await jlsHandShakeServer.check(inputRemote: parsedClient),
         false);
 
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '4567', format: serverHelloHandshake);
-    expect(await jlsHandShakeServer.checkClient(inputClientHello: parsedClient),
+        pwdStr: '123', ivStr: '4567', local: serverHelloHandshake);
+    expect(await jlsHandShakeServer.check(inputRemote: parsedClient),
         false);
 
     // can not change clientHello
     parsedClient.sessionID = randomBytes(32);
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', format: serverHelloHandshake);
-    expect(await jlsHandShakeServer.checkClient(inputClientHello: parsedClient),
+        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
+    expect(await jlsHandShakeServer.check(inputRemote: parsedClient),
         false);
   });
 
   test('clientHello', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', format: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
     var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', format: serverHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
 
     await jlsHandShakeClient.build();
 
@@ -93,28 +93,28 @@ void main() {
     var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
 
     // and check it.
-    jlsHandShakeServer.checkClient(inputClientHello: parsedClient);
-    expect(await jlsHandShakeServer.checkClient(inputClientHello: parsedClient),
+    jlsHandShakeServer.check(inputRemote: parsedClient);
+    expect(await jlsHandShakeServer.check(inputRemote: parsedClient),
         true);
 
     await jlsHandShakeServer.build();
     // client received then parse it.
     var parsedServer = ServerHello.parse(rawData: jlsHandShakeServer.data);
     // and check it.
-    expect(await jlsHandShakeClient.checkServer(inputServerHello: parsedServer),
+    expect(await jlsHandShakeClient.check(inputRemote: parsedServer),
         true);
 
     var sharedKey = parsedServer.extensionList!.getKeyShare();
     parsedServer.extensionList!.setKeyShare(randomBytes(32));
-    expect(await jlsHandShakeClient.checkServer(inputServerHello: parsedServer),
+    expect(await jlsHandShakeClient.check(inputRemote: parsedServer),
         false);
 
     parsedServer.extensionList!.setKeyShare(sharedKey);
-    expect(await jlsHandShakeClient.checkServer(inputServerHello: parsedServer),
+    expect(await jlsHandShakeClient.check(inputRemote: parsedServer),
         true);
 
     parsedServer.sessionID = zeroList();
-    expect(await jlsHandShakeClient.checkServer(inputServerHello: parsedServer),
+    expect(await jlsHandShakeClient.check(inputRemote: parsedServer),
         false);
   });
 }

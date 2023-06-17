@@ -31,7 +31,6 @@ void main() async {
   );
 
   test('HTTPIn1 -> freedom', () async {
-    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port1);
     var times = 0;
@@ -49,7 +48,6 @@ void main() async {
   });
 
   test('HTTPIn2 -> HTTPOut -> HTTPIn1 -> freedom', () async {
-    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port2);
     var times = 0;
@@ -68,7 +66,6 @@ void main() async {
   });
 
   test('HTTPIn1 -> block', () async {
-    return;
     var client = TCPClient(config: {});
     var temp = await client.connect(host, port3);
     var clientClosed = false;
