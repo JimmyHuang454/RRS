@@ -67,6 +67,13 @@ class JLSHandShakeSide {
   FakeRandom? fakeRandom;
   Handshake? format; // format
   List<int> data = [];
+  List<int> pwd = [];
+  List<int> iv = [];
+
+  Handshake? handshake;
+
+  SecretKey? secretKey;
+  SimplePublicKey? simplePublicKey;
 
   final supportGroup = X25519();
   SimpleKeyPair? keyPair;
@@ -74,28 +81,60 @@ class JLSHandShakeSide {
   String pwdStr; // from user.
   String ivStr; // from user.
 
-  JLSHandShakeSide({required this.pwdStr, required this.ivStr, this.format});
-}
+  JLSHandShakeSide({required this.pwdStr, required this.ivStr, this.format}) {
+    pwd = utf8.encode(pwdStr);
+    iv = utf8.encode(ivStr);
+  }
 
-class JLSHandShakeClient extends JLSHandShakeSide {
-  JLSHandShakeClient(
-      {required super.pwdStr, required super.ivStr, required super.format});
+  Future<void> getSecretKey() async {
+    // handshake should be init.
+    // input other side pubKey then generate sharedSecretKey.
+    simplePublicKey = SimplePublicKey(handshake!.extensionList!.getKeyShare(),
+        type: KeyPairType.x25519);
 
-  Future<void> generateShareKey() async {
+    secretKey = await supportGroup.sharedSecretKey(
+      keyPair: keyPair!,
+      remotePublicKey: simplePublicKey!,
+    );
+  }
+
+  Future<void> setKeyShare() async {
     keyPair = await supportGroup.newKeyPair();
     var pubKey = await keyPair!.extractPublicKey();
     format!.extensionList!.setKeyShare(pubKey.bytes);
+  }
+}
+
+class JLSHandShakeClient extends JLSHandShakeSide {
+  ServerHello? serverHello;
+
+  JLSHandShakeClient(
+      {required super.pwdStr, required super.ivStr, required super.format});
+
+  Future<bool> checkServer({required ServerHello inputServerHello}) async {
+    handshake = inputServerHello;
+    var random = inputServerHello.random!;
+    inputServerHello.random = zeroList();
+    await getSecretKey();
+
+    // iv == iv + clientHello(Not 0 random) + serverHello(0 random)
+    fakeRandom = FakeRandom(
+        pwd: pwd + await secretKey!.extractBytes(),
+        iv: iv + data + inputServerHello.build());
+    inputServerHello.random = random; // !! must restore.
+    var isValid = await fakeRandom!.parse(rawFakeRandom: random);
+    return isValid;
   }
 
   Future<List<int>> build() async {
     format!.random = zeroList();
     format!.sessionID = randomBytes(32);
-    await generateShareKey();
+    await setKeyShare();
 
     data = format!.build();
 
-    fakeRandom =
-        FakeRandom(pwd: utf8.encode(pwdStr), iv: utf8.encode(ivStr) + data);
+    // iv == iv + clientHello(0 random).
+    fakeRandom = FakeRandom(pwd: pwd, iv: iv + data);
     format!.random = await fakeRandom!.build();
     data = format!.build();
     return data;
@@ -103,50 +142,33 @@ class JLSHandShakeClient extends JLSHandShakeSide {
 }
 
 class JLSHandShakeServer extends JLSHandShakeSide {
-  ClientHello clientHello;
-  SecretKey? sharedSecretKey;
-  SimplePublicKey? clientKeyShare;
-
   JLSHandShakeServer(
-      {required super.pwdStr,
-      required super.ivStr,
-      required super.format,
-      required this.clientHello});
+      {required super.pwdStr, required super.ivStr, required super.format});
 
-  Future<bool> checkClient() async {
-    var clientRandom = clientHello.random!;
-    clientHello.random = zeroList();
-    fakeRandom = FakeRandom(
-        pwd: utf8.encode(pwdStr), iv: utf8.encode(ivStr) + clientHello.build());
-    clientHello.random = clientRandom; // !! must restore.
-    var isValid = await fakeRandom!.parse(rawFakeRandom: clientRandom);
+  Future<bool> checkClient({required ClientHello inputClientHello}) async {
+    handshake = inputClientHello;
+    var random = inputClientHello.random!;
+
+    inputClientHello.random = zeroList();
+    fakeRandom = FakeRandom(pwd: pwd, iv: iv + inputClientHello.build());
+    inputClientHello.random = random; // !! must restore.
+
+    var isValid = await fakeRandom!.parse(rawFakeRandom: random);
     return isValid;
-  }
-
-  Future<void> getSharedSecretKey() async {
-    keyPair = await supportGroup.newKeyPair();
-    var pubKey = await keyPair!.extractPublicKey();
-    format!.extensionList!.setKeyShare(pubKey.bytes);
-
-    clientKeyShare = SimplePublicKey(clientHello.extensionList!.getKeyShare(),
-        type: KeyPairType.x25519);
-
-    sharedSecretKey = await supportGroup.sharedSecretKey(
-      keyPair: keyPair!,
-      remotePublicKey: clientKeyShare!,
-    );
   }
 
   // build after check.
   Future<List<int>> build() async {
     format!.random = zeroList();
-    format!.sessionID = clientHello.sessionID;
-    await getSharedSecretKey();
+    format!.sessionID = handshake!.sessionID;
+    await setKeyShare();
+    await getSecretKey();
     data = format!.build();
 
+    // iv == iv + clientHello(Not 0 random) + serverHello(0 random)
     fakeRandom = FakeRandom(
-        pwd: utf8.encode(pwdStr) + await sharedSecretKey!.extractBytes(),
-        iv: utf8.encode(ivStr) + clientHello.build() + data);
+        pwd: pwd + await secretKey!.extractBytes(),
+        iv: iv + handshake!.build() + data);
     format!.random = await fakeRandom!.build();
     data = format!.build();
     return data;
