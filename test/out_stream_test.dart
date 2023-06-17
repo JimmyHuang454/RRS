@@ -3,7 +3,7 @@ import 'package:proxy/obj_list.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('buildInStream', () {
+  test('buildOutStream', () {
     var res = buildOutStream('TCPClient', {'protocol': 'tcp'});
     expect(res.tag, 'TCPClient');
     expect(res.config, {'protocol': 'tcp', 'tag': 'TCPClient'});

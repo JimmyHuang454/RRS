@@ -76,6 +76,16 @@ void main() {
             [0, 1, 1]);
   });
 
+  test('ApplicationData', () {
+    var applicationData = ApplicationData(data: [1]);
+    var res = applicationData.build();
+    expect(
+        res,
+        [ContentType.applicationData.value] +
+            TLSVersion.tls1_2.value +
+            [0, 1, 1]);
+  });
+
   test('extension', () {
     var extensions = Extension(type: [0, 0], data: [2]).build();
     expect(extensions, [0, 0, 0, 1, 2]);

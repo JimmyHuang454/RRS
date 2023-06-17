@@ -115,9 +115,9 @@ class JLSHandShakeSide {
 
     var iv2 = sha512.convert(iv + id).bytes;
     var secretBox = await aes.encrypt(data, secretKey: finalPWD!, nonce: iv2);
-
+    var appData = secretBox.cipherText + secretBox.mac.bytes;
     sendID += 1;
-    return ApplicationData(data: secretBox.cipherText + secretBox.mac.bytes);
+    return ApplicationData(data: appData);
   }
 
   Future<List<int>> receive(ApplicationData input) async {

@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
+import 'package:proxy/transport/jls/client.dart';
+import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/user.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -48,9 +50,9 @@ class TransportClient {
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
     useTLS = getValue(config, 'tls.enabled', false);
+    useJLS = getValue(config, 'jls.enabled', false);
     outSNI = getValue(config, 'tls.sni', '');
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
-    useJLS = getValue(config, 'jls.enabled', true);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
     var temp = getValue(config, 'tls.supportedProtocols', '');
     if (temp != '') {
@@ -78,8 +80,11 @@ class TransportClient {
     }
 
     var res = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
+
     if (useJLS! && !(useTLS!)) {
-      
+      var jls = JLSSocket(rrsSocket: res);
+      await jls.secure();
+      return jls;
     }
     return res;
   }

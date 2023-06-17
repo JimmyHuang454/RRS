@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:proxy/transport/jls/server.dart';
 import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -46,6 +47,7 @@ class TransportServer {
   Map<String, dynamic> config;
 
   late bool useTLS;
+  late bool useJLS;
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
   late SecurityContext securityContext;
@@ -59,6 +61,7 @@ class TransportServer {
   }) {
     tag = getValue(config, 'tag', '');
     useTLS = getValue(config, 'tls.enabled', false);
+    useJLS = getValue(config, 'jls.enabled', false);
     requireClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
@@ -70,7 +73,8 @@ class TransportServer {
 
   Future<RRSServerSocket> bind(address, int port) async {
     ServerSocket serverSocket;
-    if (useTLS) {
+
+    if (useTLS && !useJLS) {
       serverSocket = (await SecureServerSocket.bind(
           address, port, securityContext,
           shared: false)) as ServerSocket;
@@ -78,7 +82,16 @@ class TransportServer {
       serverSocket = await ServerSocket.bind(address, port, shared: false);
     }
 
-    return RRSServerSocketBase(
+    var res = RRSServerSocketBase(
         rrsServerSocket: TCPRRSServerSocket(serverSocket: serverSocket));
+
+    if (useJLS) {
+      if (useTLS) {
+        throw Exception('can only use JLS or TLS');
+      }
+      return JLSServerSocket(rrsServerSocket: res);
+    }
+
+    return res;
   }
 } //}}}

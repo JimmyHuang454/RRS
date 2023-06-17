@@ -5,10 +5,11 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
+import 'package:proxy/utils/utils.dart';
 
 class JLSSocket extends RRSSocketBase {
   //{{{
-  late JLSHandShakeSide local;
+  JLSHandShakeSide? local;
 
   bool isCheck = false;
 
@@ -26,14 +27,11 @@ class JLSSocket extends RRSSocketBase {
 
   Future<void> secure() async {
     rrsSocket.listen((data) async {
-      if (isCheck) {
-      } else {
-        if (!await local.checkServer(
-            inputServerHello: ServerHello.parse(rawData: data))) {
-          // TODO: handle it like normal tls1.3 client.
-          closeAndThrow('wrong server response');
-        }
+      if (await local!.check(inputRemote: ServerHello.parse(rawData: data))) {
         isConnected.complete(true);
+      } else {
+        // TODO: handle it like normal tls1.3 client.
+        closeAndThrow('wrong server response');
       }
     }, onDone: () async {
       closeAndThrow('unexpected closed.');
@@ -41,7 +39,8 @@ class JLSSocket extends RRSSocketBase {
       closeAndThrow(e);
     });
 
-    rrsSocket.add(await local.build());
+    var clientHello = await local!.build();
+    rrsSocket.add(clientHello);
 
     var res = await isConnected.future.timeout(Duration(seconds: 3));
     if (!res) {
@@ -52,14 +51,21 @@ class JLSSocket extends RRSSocketBase {
 
   @override
   Future<void> add(List<int> data) async {
-    var res = await local.send(data);
-    rrsSocket.add(res.build());
+    var res = (await local!.send(data)).build();
+    rrsSocket.add(res);
   }
 
   @override
   void listen(Future<void> Function(Uint8List event)? onData,
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) {
-    rrsSocket.listen((data) async {}, onDone: onDone, onError: onError);
+    rrsSocket.listen((data) async {
+      var realData = await local!.receive(ApplicationData.parse(rawData: data));
+      if (realData.isEmpty) {
+        // TODO: unexpected msg.
+        return;
+      }
+      onData!(Uint8List.fromList(realData));
+    }, onDone: onDone, onError: onError);
   }
 } //}}}

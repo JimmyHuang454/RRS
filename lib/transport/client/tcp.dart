@@ -8,6 +8,7 @@ class TCPRRSSocket extends RRSSocket {
   Socket socket;
 
   StreamSubscription<Uint8List>? streamSubscription;
+  Stream<Uint8List>? listenBroad;
 
   TCPRRSSocket({required this.socket});
 
@@ -37,10 +38,9 @@ class TCPRRSSocket extends RRSSocket {
   void listen(Future<void> Function(Uint8List event)? onData,
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) {
-    // streamSubscription = socket.listen(onData,
-    //     onError: onError, onDone: onDone, cancelOnError: true);
+    listenBroad ??= socket.asBroadcastStream();
 
-    streamSubscription = socket.asBroadcastStream().listen((event) async {
+    streamSubscription = listenBroad!.listen((event) async {
       streamSubscription!.pause();
       await onData!(event);
       streamSubscription!.resume();
