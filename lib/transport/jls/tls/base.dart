@@ -56,7 +56,8 @@ class TLSBase {
   ContentType? contentType;
   List<int> data = [];
 
-  TLSBase({required this.tlsVersion, required this.contentType});
+  TLSBase(
+      {required this.tlsVersion, required this.contentType, data = const []});
 
   TLSBase.parse({required List<int> rawData}) {
     var type = rawData[0];
@@ -101,6 +102,9 @@ class ChangeSpec extends TLSBase {
 }
 
 class ApplicationData extends TLSBase {
+  ApplicationData({super.tlsVersion = TLSVersion.tls1_2, required super.data})
+      : super(contentType: ContentType.changeCipherSpec);
+
   ApplicationData.parse({required List<int> rawData})
       : super.parse(rawData: rawData) {
     data = rawData.sublist(5);

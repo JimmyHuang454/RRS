@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
@@ -68,8 +69,10 @@ class JLSHandShakeSide {
   Handshake? format; // format
   List<int> data = [];
   List<int> pwd = [];
+  late SecretKey finnallyPWD;
   List<int> iv = [];
 
+  final aes = AesGcm.with256bits(nonceLength: 64);
   Handshake? handshake;
 
   SecretKey? secretKey;
@@ -78,10 +81,11 @@ class JLSHandShakeSide {
   final supportGroup = X25519();
   SimpleKeyPair? keyPair;
 
-  String pwdStr; // from user.
-  String ivStr; // from user.
+  int sendID = 0;
+  int receiveID = 0;
 
-  JLSHandShakeSide({required this.pwdStr, required this.ivStr, this.format}) {
+  JLSHandShakeSide(
+      {required String pwdStr, required String ivStr, this.format}) {
     pwd = utf8.encode(pwdStr);
     iv = utf8.encode(ivStr);
   }
@@ -96,12 +100,41 @@ class JLSHandShakeSide {
       keyPair: keyPair!,
       remotePublicKey: simplePublicKey!,
     );
+    finnallyPWD = await aes.newSecretKeyFromBytes(
+        sha256.convert(pwd + await secretKey!.extractBytes()).bytes);
   }
 
   Future<void> setKeyShare() async {
     keyPair = await supportGroup.newKeyPair();
     var pubKey = await keyPair!.extractPublicKey();
     format!.extensionList!.setKeyShare(pubKey.bytes);
+  }
+
+  Future<ApplicationData> send(List<int> data) async {
+    var id = Uint8List(4)..buffer.asByteData().setUint32(0, sendID, Endian.big);
+
+    var iv2 = sha512.convert(iv + id).bytes;
+    var secretBox = await aes.encrypt(data, secretKey: finnallyPWD, nonce: iv2);
+
+    sendID += 1;
+    return ApplicationData(data: secretBox.cipherText + secretBox.mac.bytes);
+  }
+
+  Future<List<int>> receive(ApplicationData input) async {
+    var id = Uint8List(4)
+      ..buffer.asByteData().setUint32(0, receiveID, Endian.big);
+    var iv2 = sha512.convert(iv + id).bytes;
+    var secretBox = SecretBox(input.data.sublist(0, input.data.length - 16),
+        nonce: iv2, mac: Mac(input.data.sublist(input.data.length - 16)));
+    List<int> res = [];
+
+    try {
+      res = await aes.decrypt(secretBox, secretKey: finnallyPWD);
+    } catch (e) {
+      return [];
+    }
+    receiveID += 1;
+    return res;
   }
 }
 

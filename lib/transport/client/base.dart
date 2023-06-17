@@ -36,6 +36,7 @@ class TransportClient {
 
   // TLS
   bool? useTLS;
+  bool? useJLS;
   bool? allowInsecure;
   bool? useSystemRoot;
   List<String>? supportedProtocols;
@@ -49,6 +50,7 @@ class TransportClient {
     useTLS = getValue(config, 'tls.enabled', false);
     outSNI = getValue(config, 'tls.sni', '');
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
+    useJLS = getValue(config, 'jls.enabled', true);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
     var temp = getValue(config, 'tls.supportedProtocols', '');
     if (temp != '') {
@@ -67,14 +69,19 @@ class TransportClient {
       outSNI = host;
     }
 
-    if (useTLS!) {
+    if (useTLS! && !(useJLS!)) {
       socket = await SecureSocket.secure(socket,
           host: outSNI,
           context: securityContext,
           supportedProtocols: supportedProtocols,
           onBadCertificate: onBadCertificate);
     }
-    return RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
+
+    var res = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
+    if (useJLS! && !(useTLS!)) {
+      
+    }
+    return res;
   }
 
   bool onBadCertificate(X509Certificate certificate) {
