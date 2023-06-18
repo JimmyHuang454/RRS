@@ -17,17 +17,19 @@ void main() async {
     });
     var serverListen = await server.bind(host, serverPort);
     serverListen.listen((inClient) {
-      devPrint('server check ok.');
       inClient.listen((data) async {
         inClient.add(data);
       });
     });
 
     var c = await client.connect(host, serverPort);
+    var receiveTime = 0;
     c.add(zeroList());
     c.listen((data) async {
-      devPrint(data);
+      receiveTime += 1;
     });
     await delay(1);
+
+    expect(receiveTime, 1);
   });
 }
