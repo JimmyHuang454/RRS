@@ -19,12 +19,15 @@ void main() async {
     serverListen.listen((inClient) {
       devPrint('server check ok.');
       inClient.listen((data) async {
-        devPrint(data);
+        inClient.add(data);
       });
     });
 
     var c = await client.connect(host, serverPort);
-    c.add([1]);
+    c.add(zeroList());
+    c.listen((data) async {
+      devPrint(data);
+    });
     await delay(1);
   });
 }

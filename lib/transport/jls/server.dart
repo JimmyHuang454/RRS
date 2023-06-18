@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/transport/jls/client.dart';
 import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
@@ -44,7 +45,9 @@ class JLSServerSocket extends RRSServerSocketBase {
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     rrsServerSocket.listen((client) async {
       if (await auth(client)) {
-        onData!(client);
+        var res = JLSSocket(rrsSocket: client);
+        res.local = local;
+        onData!(res);
       }
     }, onDone: onDone, onError: onError);
   }

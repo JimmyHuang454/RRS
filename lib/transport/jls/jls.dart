@@ -91,9 +91,11 @@ class JLSHandShakeSide {
   }
 
   Future<void> getSecretKey() async {
+    var isClient = remote!.handshakeType! == HandshakeType.clientHello;
     // remote should be init first.
     // input other side pubKey then generate sharedSecretKey.
-    simplePublicKey = SimplePublicKey(remote!.extensionList!.getKeyShare(),
+    simplePublicKey = SimplePublicKey(
+        remote!.extensionList!.getKeyShare(isClient),
         type: KeyPairType.x25519);
 
     sharedSecretKey = await supportGroup.sharedSecretKey(
@@ -107,7 +109,8 @@ class JLSHandShakeSide {
   Future<void> setKeyShare() async {
     keyPair = await supportGroup.newKeyPair();
     var pubKey = await keyPair!.extractPublicKey();
-    local!.extensionList!.setKeyShare(pubKey.bytes);
+    var isClient = local!.handshakeType! == HandshakeType.clientHello;
+    local!.extensionList!.setKeyShare(pubKey.bytes, isClient);
   }
 
   Future<ApplicationData> send(List<int> data) async {

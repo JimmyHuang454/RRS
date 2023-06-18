@@ -230,17 +230,28 @@ class ExtensionList {
     throw Exception('missing keyShare');
   }
 
-  List<int> getKeyShare() {
+  List<int> getKeyShare(bool isClient) {
     var res = getKeyShareExtension();
-    return res.data.sublist(4);
+    if (isClient) {
+      return res.data.sublist(6);
+    } else {
+      return res.data.sublist(4);
+    }
   }
 
   // x25519 only.
-  void setKeyShare(List<int> keyShare) {
+  void setKeyShare(List<int> keyShare, bool isClient) {
     var res = getKeyShareExtension();
     var keyShareLen = Uint8List(2)
       ..buffer.asByteData().setInt16(0, keyShare.length, Endian.big);
-    res.data = SupportGroup.x25519.value + keyShareLen + keyShare;
+    if (isClient) {
+      var temp = SupportGroup.x25519.value + keyShareLen + keyShare;
+      keyShareLen = Uint8List(2)
+        ..buffer.asByteData().setInt16(0, temp.length, Endian.big);
+      res.data = keyShareLen + temp;
+    } else {
+      res.data = SupportGroup.x25519.value + keyShareLen + keyShare;
+    }
   }
 
   List<int> build() {

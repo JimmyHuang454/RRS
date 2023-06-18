@@ -174,7 +174,10 @@ void main() {
     expect(res.clientCipherSuites!.len, 36);
 
     expect(res.build(), rawClientHello1);
+    expect(res.build(), rawData);
 
+    res.extensionList!.setKeyShare(zeroList(), true);
+    expect(res.extensionList!.getKeyShare(true), zeroList());
     res.extensionList!.setServerName([1, 2]);
   });
 
@@ -194,6 +197,10 @@ void main() {
     var res = ServerHello.parse(rawData: rawData);
     expect(res.tlsVersion, TLSVersion.tls1_2);
     expect(res.handshakeTLSVersion, TLSVersion.tls1_2);
-    expect(res.build(), List<int>.from(temp.codeUnits));
+    expect(res.build(), temp.codeUnits);
+    expect(res.build(), rawData);
+
+    res.extensionList!.setKeyShare(zeroList(), false);
+    expect(res.extensionList!.getKeyShare(false), zeroList());
   });
 }

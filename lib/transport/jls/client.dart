@@ -12,6 +12,7 @@ class JLSSocket extends RRSSocketBase {
   JLSHandShakeSide? local;
 
   bool isCheck = false;
+  List<int> content = [];
 
   Completer isConnected = Completer();
 
@@ -25,9 +26,30 @@ class JLSSocket extends RRSSocketBase {
     throw Exception('[JLS] $msg.');
   }
 
+  List<int> waitRecord() {
+    if (content.length < 5) {
+      return [];
+    }
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+    var len = byteData.getUint16(0, Endian.big);
+    if (content.length - 5 < len) {
+      return [];
+    }
+    var res = content.sublist(0, 5 + len);
+    content = content.sublist(5 + len);
+    return res;
+  }
+
   Future<void> secure() async {
     rrsSocket.listen((data) async {
-      if (await local!.check(inputRemote: ServerHello.parse(rawData: data))) {
+      content += data;
+      var record = waitRecord();
+      if (record.isEmpty) {
+        return;
+      }
+
+      if (await local!.check(inputRemote: ServerHello.parse(rawData: record))) {
         isConnected.complete(true);
       } else {
         // TODO: handle it like normal tls1.3 client.
@@ -60,12 +82,21 @@ class JLSSocket extends RRSSocketBase {
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) {
     rrsSocket.listen((data) async {
-      var realData = await local!.receive(ApplicationData.parse(rawData: data));
-      if (realData.isEmpty) {
-        // TODO: unexpected msg.
-        return;
+      content += data;
+      while (true) {
+        var record = waitRecord();
+        if (record.isEmpty) {
+          return;
+        }
+
+        var realData =
+            await local!.receive(ApplicationData.parse(rawData: data));
+        if (realData.isEmpty) {
+          // TODO: unexpected msg.
+          return;
+        }
+        onData!(Uint8List.fromList(realData));
       }
-      onData!(Uint8List.fromList(realData));
     }, onDone: onDone, onError: onError);
   }
 } //}}}
