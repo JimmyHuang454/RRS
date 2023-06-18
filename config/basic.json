@@ -8,7 +8,7 @@
     "cf1": {
       "protocol": "trojan",
       "setting": {
-        "address": "162.159.240.131",
+        "address": "172.64.171.224",
         "port": 443,
         "password": "17146021026"
       },
@@ -241,7 +241,7 @@
     "all": {
       "rules": [
         {
-          "outbound": "hk"
+          "balance": "hk"
         }
       ]
     },

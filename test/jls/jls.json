@@ -1,0 +1,57 @@
+{
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
+  "inbounds": {
+    "HTTPIn": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      },
+      "route": "httpIn_to_jlsHttpout"
+    },
+    "HTTPIn2": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      },
+      "route": "freedom",
+      "inStream": {
+        "jls": {
+          "password": "123",
+          "random": "456",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "outbounds": {
+    "jlsHttpout": {
+      "protocol": "http",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 1
+      },
+      "outStream": {
+        "jls": {
+          "password": "123",
+          "random": "456",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "routes": {
+    "httpIn_to_jlsHttpout": {
+      "rules": [
+        {
+          "outbound": "jlsHttpout"
+        }
+      ]
+    }
+  }
+}

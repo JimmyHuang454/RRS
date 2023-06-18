@@ -47,7 +47,7 @@ void main() {
 
     await jlsHandShakeClient.build();
     expect(jlsHandShakeClient.local!.random,
-        jlsHandShakeClient.fakeRandom!.fakeRandom);
+        jlsHandShakeClient.clientFakeRandom!.fakeRandom);
 
     var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
     expect(parsedClient.build(), jlsHandShakeClient.data);

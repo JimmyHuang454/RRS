@@ -71,9 +71,10 @@ class JLSHandShakeSide {
   List<int> pwd = [];
   SecretKey? finalPWD;
 
-  FakeRandom? fakeRandom;
+  FakeRandom? clientFakeRandom;
+  FakeRandom? serverFakeRandom;
   Handshake? local; // can be client or server.
-  Handshake? remote; // oposite to local.
+  Handshake? remote; // opposite to local.
 
   final aes = AesGcm.with256bits(nonceLength: 64);
   SecretKey? sharedSecretKey;
@@ -91,19 +92,25 @@ class JLSHandShakeSide {
   }
 
   Future<void> getSecretKey() async {
-    var isClient = remote!.handshakeType! == HandshakeType.clientHello;
     // remote should be init first.
     // input other side pubKey then generate sharedSecretKey.
     simplePublicKey = SimplePublicKey(
-        remote!.extensionList!.getKeyShare(isClient),
+        remote!.extensionList!.getKeyShare(remote!.isClient()),
         type: KeyPairType.x25519);
 
     sharedSecretKey = await supportGroup.sharedSecretKey(
       keyPair: keyPair!,
       remotePublicKey: simplePublicKey!,
     );
-    finalPWD = await aes.newSecretKeyFromBytes(
-        sha256.convert(pwd + await sharedSecretKey!.extractBytes()).bytes);
+  }
+
+  Future<void> buildFinalPWD() async {
+    finalPWD = await aes.newSecretKeyFromBytes(sha256
+        .convert(pwd +
+            await sharedSecretKey!.extractBytes() +
+            clientFakeRandom!.n +
+            serverFakeRandom!.n)
+        .bytes);
   }
 
   void setServerName(List<int> newServerName) {
@@ -113,15 +120,15 @@ class JLSHandShakeSide {
   Future<void> setKeyShare() async {
     keyPair = await supportGroup.newKeyPair();
     var pubKey = await keyPair!.extractPublicKey();
-    var isClient = local!.handshakeType! == HandshakeType.clientHello;
-    local!.extensionList!.setKeyShare(pubKey.bytes, isClient);
+    local!.extensionList!.setKeyShare(pubKey.bytes, local!.isClient());
   }
 
   Future<ApplicationData> send(List<int> data) async {
     var id = Uint8List(4)..buffer.asByteData().setUint32(0, sendID, Endian.big);
 
-    var iv2 = sha512.convert(iv + id).bytes;
-    var secretBox = await aes.encrypt(data, secretKey: finalPWD!, nonce: iv2);
+    var packetIV = sha512.convert(iv + id).bytes;
+    var secretBox =
+        await aes.encrypt(data, secretKey: finalPWD!, nonce: packetIV);
     var appData = secretBox.cipherText + secretBox.mac.bytes;
     sendID += 1;
     return ApplicationData(data: appData);
@@ -160,6 +167,7 @@ class JLSHandShakeClient extends JLSHandShakeSide {
 
   @override
   Future<bool> check({required Handshake inputRemote}) async {
+    // call after build.
     remote = inputRemote;
 
     var random = inputRemote.random!;
@@ -167,11 +175,12 @@ class JLSHandShakeClient extends JLSHandShakeSide {
     await getSecretKey();
 
     // iv == iv + clientHello(Not 0 random) + serverHello(0 random)
-    fakeRandom = FakeRandom(
+    serverFakeRandom = FakeRandom(
         pwd: pwd + await sharedSecretKey!.extractBytes(),
         iv: iv + data + inputRemote.build());
     inputRemote.random = random; // !! must restore.
-    var isValid = await fakeRandom!.parse(rawFakeRandom: random);
+    var isValid = await serverFakeRandom!.parse(rawFakeRandom: random);
+    await buildFinalPWD();
     return isValid;
   }
 
@@ -184,8 +193,8 @@ class JLSHandShakeClient extends JLSHandShakeSide {
     data = local!.build();
 
     // iv == iv + clientHello(0 random).
-    fakeRandom = FakeRandom(pwd: pwd, iv: iv + data);
-    local!.random = await fakeRandom!.build();
+    clientFakeRandom = FakeRandom(pwd: pwd, iv: iv + data);
+    local!.random = await clientFakeRandom!.build();
     data = local!.build();
     return data;
   }
@@ -201,10 +210,10 @@ class JLSHandShakeServer extends JLSHandShakeSide {
     var random = inputRemote.random!;
 
     inputRemote.random = zeroList();
-    fakeRandom = FakeRandom(pwd: pwd, iv: iv + inputRemote.build());
+    clientFakeRandom = FakeRandom(pwd: pwd, iv: iv + inputRemote.build());
     inputRemote.random = random; // !! must restore.
 
-    var isValid = await fakeRandom!.parse(rawFakeRandom: random);
+    var isValid = await clientFakeRandom!.parse(rawFakeRandom: random);
     return isValid;
   }
 
@@ -217,11 +226,12 @@ class JLSHandShakeServer extends JLSHandShakeSide {
     data = local!.build();
 
     // iv == iv + clientHello(Not 0 random) + serverHello(0 random)
-    fakeRandom = FakeRandom(
+    serverFakeRandom = FakeRandom(
         pwd: pwd + await sharedSecretKey!.extractBytes(),
         iv: iv + remote!.build() + data);
-    local!.random = await fakeRandom!.build();
+    local!.random = await serverFakeRandom!.build();
     data = local!.build();
+    await buildFinalPWD();
     return data;
   }
 }

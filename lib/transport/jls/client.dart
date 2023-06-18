@@ -95,10 +95,6 @@ class JLSSocket extends RRSSocketBase {
     await rrsSocket.clearListen();
   }
 
-  bool isClient() {
-    return jlsHandShakeSide!.local!.handshakeType == HandshakeType.clientHello;
-  }
-
   @override
   Future<void> add(List<int> data) async {
     List<int> sendData = [];
@@ -112,7 +108,7 @@ class JLSSocket extends RRSSocketBase {
       }
 
       var res = (await jlsHandShakeSide!.send(sendData)).build();
-      if (!isSendChangeSpec && isClient()) {
+      if (!isSendChangeSpec && jlsHandShakeSide!.local!.isClient()) {
         isSendChangeSpec = true;
         res = ChangeSpec().build() + res;
       }
@@ -137,7 +133,7 @@ class JLSSocket extends RRSSocketBase {
           continue;
         }
 
-        if (!isReceiveCert && isClient()) {
+        if (!isReceiveCert && jlsHandShakeSide!.local!.isClient()) {
           isReceiveCert = true;
           continue;
         }

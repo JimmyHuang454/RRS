@@ -149,6 +149,10 @@ class Handshake extends TLSBase {
         rawData.sublist(39, 39 + 32); // sessionID could not be 32 Bytes.
   }
 
+  bool isClient() {
+    return handshakeType! == HandshakeType.clientHello;
+  }
+
   @override
   List<int> build() {
     data = handshakeTLSVersion!.value +

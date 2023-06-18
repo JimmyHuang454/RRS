@@ -68,23 +68,12 @@ Map<String, dynamic> defaultSetting = {
       "address": "https://cloudflare-dns.com/dns-query"
     }
   },
-  // "routes": {
-  //   // key 'comment' is to fix type error. It's not really useful.
-  //   "default": {
-  //     "rules": [
-  //       {
-  //         "outbound": ["default"]
-  //       }
-  //     ],
-  //     'comment': {}
-  //   },
-  //   "freedom": {
-  //     "rules": [
-  //       {
-  //         "outbound": ["default"]
-  //       }
-  //     ],
-  //     'comment': {}
-  //   }
-  // }
+  "routes": {
+    // key 'comment' is to fix type error. It's not really useful.
+    "freedom": {
+      "rules": [
+        {"outbound": "freedom"} as dynamic
+      ] as dynamic,
+    } as dynamic
+  }
 };

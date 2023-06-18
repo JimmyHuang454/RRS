@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cryptography/helpers.dart';
+import 'package:proxy/handler.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/route.dart';
 import 'package:proxy/transport/client/base.dart';
@@ -206,11 +208,18 @@ abstract class InboundStruct {
       required this.config}) {
     tag = config['tag'];
 
-    var temp = getValue(config, 'inStream', 'tcp');
-    transportServer = inStreamList[temp]!;
+    var inStreamTag = getValue(config, 'inStream', 'tcp');
+    if (inStreamTag.runtimeType == String) {
+      if (!inStreamList.containsKey(inStreamTag)) {
+        throw 'wrong inStream named "$inStreamTag"';
+      }
+      transportServer = inStreamList[inStreamTag]!;
+    } else {
+      transportServer = buildInStream(randomBytesAsHexString(10), inStreamTag);
+    }
 
-    temp = getValue(config, 'route', '');
-    route = routeList[temp]!;
+    var routeTag = getValue(config, 'route', '');
+    route = routeList[routeTag]!;
 
     inAddress = getValue(config, 'setting.address', '');
     inPort = getValue(config, 'setting.port', 0);
