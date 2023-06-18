@@ -5,6 +5,7 @@ import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/grpc.dart';
 import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/transport/client/ws.dart';
+import 'package:proxy/transport/jls/format.dart';
 
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/transport/server/grpc.dart';
@@ -167,6 +168,12 @@ void buildBalance(String tag, Map<String, dynamic> config) {
   balancerList[tag] = Balancer(config: config);
 } //}}}
 
+void buildJLSFingerPrint(String tag, Map<String, dynamic> config) {
+  //{{{
+  config['tag'] = tag;
+  jlsFringerPrintList[tag] = FingerPrint(config: config);
+} //}}}
+
 void buildConifg(String tag, Map<String, dynamic> config) {
   //{{{
   if (tag == 'log') {
@@ -185,6 +192,7 @@ void _entry(Map<String, dynamic> config) {
     ['balance', buildBalance],
     ['routes', buildRoute],
     ['inbounds', buildInbounds],
+    ['fingerPrint', buildJLSFingerPrint],
   ];
 
   for (var i = 0, len = list.length; i < len; ++i) {

@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:cryptography/helpers.dart';
 import 'package:proxy/handler.dart';
+import 'package:proxy/obj_list.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
@@ -8,13 +10,22 @@ void main() async {
   var host = '127.0.0.1';
   var serverPort = await getUnusedPort(InternetAddress(host));
 
-  test('jls stream.', () async {
-    var client = buildOutStream('jls', {
-      'jls': {'enabled': true}
+  test('jls logic.', () async {
+    entry({
+      'outStream': {
+        'jls': {
+          'jls': {'enabled': true, 'password': '123', 'random': '456'} as dynamic
+        }
+      },
+      'inStream': {
+        'jls': {
+          'jls': {'enabled': true, 'password': '123', 'random': '456'} as dynamic
+        }
+      }
     });
-    var server = buildInStream('jls', {
-      'jls': {'enabled': true}
-    });
+
+    var client = outStreamList['jls']!;
+    var server = inStreamList['jls']!;
     var serverListen = await server.bind(host, serverPort);
     serverListen.listen((inClient) {
       inClient.listen((data) async {
@@ -23,13 +34,14 @@ void main() async {
     });
 
     var c = await client.connect(host, serverPort);
-    var receiveTime = 0;
-    c.add(zeroList());
+    List<int> receivedata = [];
+    var random = randomBytes(30000);
+    c.add(random);
     c.listen((data) async {
-      receiveTime += 1;
+      receivedata += data;
     });
     await delay(1);
 
-    expect(receiveTime, 1);
+    expect(receivedata, random);
   });
 }

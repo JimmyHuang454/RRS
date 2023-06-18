@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:proxy/obj_list.dart';
+import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/server.dart';
 import 'package:proxy/transport/server/tcp.dart';
 import 'package:proxy/utils/utils.dart';
@@ -46,14 +48,13 @@ class TransportServer {
   String tag = '';
   Map<String, dynamic> config;
 
+  JLSHandShakeServer? jlsHandShakeServer;
+
   late bool useTLS;
   late bool useJLS;
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
   late SecurityContext securityContext;
-
-  late bool isMux;
-  late String muxPassword;
 
   TransportServer({
     required this.protocolName,
@@ -67,8 +68,25 @@ class TransportServer {
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
-    isMux = getValue(config, 'mux.enabled', false);
-    muxPassword = getValue(config, 'mux.password', '');
+    initJLSConfig();
+  }
+
+  void initJLSConfig() {
+    useJLS = getValue(config, 'jls.enabled', false);
+    if (useJLS) {
+      var temp = getValue(config, 'jls.fingerPrint', 'default');
+      var fingerPrint = jlsFringerPrintList[temp]!;
+
+      var pwd = getValue(config, 'jls.password', '');
+      var iv = getValue(config, 'jls.random', '');
+      if (pwd == '' || iv == '') {
+        throw Exception('missing password and iv in JLS');
+      }
+      jlsHandShakeServer = JLSHandShakeServer(
+          pwdStr: pwd, ivStr: iv, local: fingerPrint.serverHello);
+
+      var fallbackWebsite = getValue(config, 'jls.fallback', '');
+    }
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
@@ -89,7 +107,8 @@ class TransportServer {
       if (useTLS) {
         throw Exception('can only use JLS or TLS');
       }
-      return JLSServerSocket(rrsServerSocket: res);
+      return JLSServerSocket(
+          rrsServerSocket: res, jlsHandShakeSide: jlsHandShakeServer);
     }
 
     return res;

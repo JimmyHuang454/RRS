@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:proxy/obj_list.dart';
 import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -47,10 +49,11 @@ class TransportClient {
   Duration? timeout;
   SecurityContext? securityContext;
 
+  JLSHandShakeClient? jlsHandShakeClient;
+
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
     useTLS = getValue(config, 'tls.enabled', false);
-    useJLS = getValue(config, 'jls.enabled', false);
     outSNI = getValue(config, 'tls.sni', '');
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
@@ -61,6 +64,29 @@ class TransportClient {
 
     var connectionTimeout = getValue(config, 'connectionTimeout', 5);
     timeout = Duration(seconds: connectionTimeout);
+
+    initJLSConfig();
+  }
+
+  void initJLSConfig() {
+    useJLS = getValue(config, 'jls.enabled', false);
+    if (useJLS!) {
+      var temp = getValue(config, 'jls.fingerPrint', 'default');
+      var fingerPrint = jlsFringerPrintList[temp]!;
+
+      var pwd = getValue(config, 'jls.password', '');
+      var iv = getValue(config, 'jls.random', '');
+      if (pwd == '' || iv == '') {
+        throw Exception('missing password and iv in JLS');
+      }
+      jlsHandShakeClient = JLSHandShakeClient(
+          pwdStr: pwd, ivStr: iv, local: fingerPrint.clientHello);
+
+      var fallbackWebsite = getValue(config, 'jls.fallback', '');
+      if (fallbackWebsite != '') {
+        jlsHandShakeClient!.setServerName(utf8.encode(fallbackWebsite));
+      }
+    }
   }
 
   Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
@@ -82,7 +108,7 @@ class TransportClient {
     var res = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
 
     if (useJLS! && !(useTLS!)) {
-      var jls = JLSSocket(rrsSocket: res);
+      var jls = JLSSocket(rrsSocket: res, jlsHandShakeSide: jlsHandShakeClient);
       await jls.secure();
       return jls;
     }

@@ -4,6 +4,7 @@ import 'package:proxy/outbounds/base.dart';
 import 'package:proxy/route/mmdb.dart';
 import 'package:proxy/route/route.dart';
 import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/user.dart';
 
@@ -21,3 +22,4 @@ Map<String, MMDB> ipdbList = {};
 Map<String, DNS> dnsList = {};
 Map<String, User> userList = {};
 Map<String, Balancer> balancerList = {};
+Map<String, FingerPrint> jlsFringerPrintList = {};

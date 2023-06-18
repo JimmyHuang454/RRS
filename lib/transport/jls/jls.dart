@@ -72,8 +72,8 @@ class JLSHandShakeSide {
   SecretKey? finalPWD;
 
   FakeRandom? fakeRandom;
-  Handshake? local;
-  Handshake? remote;
+  Handshake? local; // can be client or server.
+  Handshake? remote; // oposite to local.
 
   final aes = AesGcm.with256bits(nonceLength: 64);
   SecretKey? sharedSecretKey;
@@ -85,7 +85,7 @@ class JLSHandShakeSide {
   int receiveID = 0;
 
   JLSHandShakeSide(
-      {required String pwdStr, required String ivStr, this.local}) {
+      {required String pwdStr, required String ivStr, required this.local}) {
     pwd = utf8.encode(pwdStr);
     iv = utf8.encode(ivStr);
   }
@@ -104,6 +104,10 @@ class JLSHandShakeSide {
     );
     finalPWD = await aes.newSecretKeyFromBytes(
         sha256.convert(pwd + await sharedSecretKey!.extractBytes()).bytes);
+  }
+
+  void setServerName(List<int> newServerName) {
+    local!.extensionList!.setServerName(newServerName);
   }
 
   Future<void> setKeyShare() async {
@@ -151,8 +155,6 @@ class JLSHandShakeSide {
 }
 
 class JLSHandShakeClient extends JLSHandShakeSide {
-  ServerHello? serverHello;
-
   JLSHandShakeClient(
       {required super.pwdStr, required super.ivStr, required super.local});
 

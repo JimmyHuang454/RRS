@@ -1,4 +1,6 @@
 import 'package:cryptography/helpers.dart';
+import 'package:proxy/handler.dart';
+import 'package:proxy/obj_list.dart';
 import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
@@ -7,6 +9,9 @@ import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
 void main() {
+  entry({});
+  var defaultFingerPrint = jlsFringerPrintList['default']!;
+
   test('fakeRandom', () async {
     var pwd = [1];
     var iv = [2];
@@ -38,7 +43,7 @@ void main() {
 
   test('clientHello parse.', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
 
     await jlsHandShakeClient.build();
     expect(jlsHandShakeClient.local!.random,
@@ -50,38 +55,38 @@ void main() {
 
   test('serverHello', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
     await jlsHandShakeClient.build();
     var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
     var clientRandom = parsedClient.random;
 
     var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
     expect(await jlsHandShakeServer.check(inputRemote: parsedClient), true);
 
     // test random must be restored.
     expect(jlsHandShakeServer.remote!.random, clientRandom);
 
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '0123', ivStr: '456', local: serverHelloHandshake);
+        pwdStr: '0123', ivStr: '456', local: defaultFingerPrint.serverHello);
     expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
 
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '4567', local: serverHelloHandshake);
+        pwdStr: '123', ivStr: '4567', local: defaultFingerPrint.serverHello);
     expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
 
     // can not change clientHello
     parsedClient.sessionID = randomBytes(32);
     jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
     expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
   });
 
   test('clientHello', () async {
     var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
     var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: serverHelloHandshake);
+        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
 
     await jlsHandShakeClient.build();
 

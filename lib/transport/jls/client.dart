@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
@@ -9,17 +10,20 @@ import 'package:proxy/utils/utils.dart';
 
 class JLSSocket extends RRSSocketBase {
   //{{{
-  JLSHandShakeSide? local;
+  JLSHandShakeSide? jlsHandShakeSide;
 
   bool isCheck = false;
   List<int> content = [];
 
-  Completer isConnected = Completer();
+  bool isValid = false;
+  bool isReceiveChangeSpec = false;
+  bool isReceiveCert = false;
+  bool isSendChangeSpec = false;
+  Completer checkRes = Completer();
 
-  JLSSocket({required super.rrsSocket}) {
-    local = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: clientHelloHandshake);
-  }
+  final maxLen = 25535;
+
+  JLSSocket({required super.rrsSocket, required this.jlsHandShakeSide});
 
   void closeAndThrow(dynamic msg) {
     rrsSocket.close();
@@ -44,16 +48,29 @@ class JLSSocket extends RRSSocketBase {
   Future<void> secure() async {
     rrsSocket.listen((data) async {
       content += data;
-      var record = waitRecord();
-      if (record.isEmpty) {
-        return;
-      }
+      while (true) {
+        var record = waitRecord();
+        if (record.isEmpty) {
+          return;
+        }
 
-      if (await local!.check(inputRemote: ServerHello.parse(rawData: record))) {
-        isConnected.complete(true);
-      } else {
-        // TODO: handle it like normal tls1.3 client.
-        closeAndThrow('wrong server response');
+        if (isCheck) {
+          if (!isReceiveChangeSpec) {
+            isReceiveChangeSpec = true;
+          } else if (!isReceiveCert) {
+            isReceiveCert = true;
+            if (content.isNotEmpty) {
+              closeAndThrow('unexpected msg.');
+            }
+            checkRes.complete(true);
+          }
+        } else {
+          isCheck = true;
+          if (!await jlsHandShakeSide!
+              .check(inputRemote: ServerHello.parse(rawData: record))) {
+            content = record + content; // restore all data to forward proxy.
+          }
+        }
       }
     }, onDone: () async {
       closeAndThrow('unexpected closed.');
@@ -61,20 +78,46 @@ class JLSSocket extends RRSSocketBase {
       closeAndThrow(e);
     });
 
-    var clientHello = await local!.build();
+    var clientHello = await jlsHandShakeSide!.build();
     rrsSocket.add(clientHello);
 
-    var res = await isConnected.future.timeout(Duration(seconds: 3));
-    if (!res) {
+    try {
+      isValid = await checkRes.future.timeout(Duration(seconds: 10));
+    } catch (_) {
       closeAndThrow('timeout');
+      return;
+    }
+
+    if (!isValid) {
+      // TODO: handle it like normal tls1.3 client.
+      closeAndThrow('wrong server response');
     }
     await rrsSocket.clearListen();
   }
 
+  bool isClient() {
+    return jlsHandShakeSide!.local!.handshakeType == HandshakeType.clientHello;
+  }
+
   @override
   Future<void> add(List<int> data) async {
-    var res = (await local!.send(data)).build();
-    rrsSocket.add(res);
+    List<int> sendData = [];
+    while (data.isNotEmpty) {
+      if (data.length > maxLen) {
+        sendData = data.sublist(0, maxLen);
+        data = data.sublist(maxLen);
+      } else {
+        sendData = data;
+        data = [];
+      }
+
+      var res = (await jlsHandShakeSide!.send(sendData)).build();
+      if (!isSendChangeSpec && isClient()) {
+        isSendChangeSpec = true;
+        res = ChangeSpec().build() + res;
+      }
+      rrsSocket.add(res);
+    }
   }
 
   @override
@@ -89,8 +132,18 @@ class JLSSocket extends RRSSocketBase {
           return;
         }
 
-        var realData =
-            await local!.receive(ApplicationData.parse(rawData: data));
+        if (!isReceiveChangeSpec) {
+          isReceiveChangeSpec = true;
+          continue;
+        }
+
+        if (!isReceiveCert && isClient()) {
+          isReceiveCert = true;
+          continue;
+        }
+
+        var realData = await jlsHandShakeSide!
+            .receive(ApplicationData.parse(rawData: record));
         if (realData.isEmpty) {
           // TODO: unexpected msg.
           return;
