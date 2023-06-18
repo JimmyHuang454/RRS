@@ -21,7 +21,7 @@ class JLSSocket extends RRSSocketBase {
   bool isSendChangeSpec = false;
   Completer checkRes = Completer();
 
-  final maxLen = 25535;
+  final maxLen = 16384; // 2^14
 
   JLSSocket({required super.rrsSocket, required this.jlsHandShakeSide});
 

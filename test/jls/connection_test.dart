@@ -36,10 +36,10 @@ void main() async {
     var c = await client.connect(host, serverPort);
     List<int> receivedata = [];
     var random = randomBytes(30000);
-    c.add(random);
     c.listen((data) async {
       receivedata += data;
     });
+    c.add(random);
     await delay(1);
 
     expect(receivedata, random);
