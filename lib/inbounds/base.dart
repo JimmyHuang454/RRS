@@ -36,7 +36,6 @@ class Link {
   List<int> userID = [];
   User? user;
 
-  int timeout = 100;
   bool isValidRequest = false;
 
   Stopwatch createdTime = Stopwatch()..start();

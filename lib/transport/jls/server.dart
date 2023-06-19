@@ -17,9 +17,12 @@ class JLSServerSocket extends RRSServerSocketBase {
   bool isFallback = false;
   bool isCheck = false;
   Completer checkRes = Completer();
+  Duration? jlsTimeout;
 
   JLSServerSocket(
-      {required super.rrsServerSocket, required this.jlsHandShakeSide});
+      {required super.rrsServerSocket,
+      required this.jlsHandShakeSide,
+      required this.jlsTimeout});
 
   List<int> waitRecord() {
     if (content.length < 5) {
@@ -61,7 +64,7 @@ class JLSServerSocket extends RRSServerSocketBase {
       client.close();
     });
 
-    await checkRes.future;
+    await checkRes.future.timeout(jlsTimeout!);
     if (isFallback) {
       // TODO:  pass to fallback website.
       return false;

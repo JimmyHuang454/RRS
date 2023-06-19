@@ -49,6 +49,7 @@ class TransportServer {
   Map<String, dynamic> config;
 
   JLSHandShakeServer? jlsHandShakeServer;
+  Duration? jlsTimeout;
 
   late bool useTLS;
   late bool useJLS;
@@ -76,6 +77,9 @@ class TransportServer {
     if (useJLS) {
       var temp = getValue(config, 'jls.fingerPrint', 'default');
       var fingerPrint = jlsFringerPrintList[temp]!;
+
+      var timeout = getValue(config, 'jls.timeout', 10);
+      jlsTimeout = Duration(seconds: timeout);
 
       var pwd = getValue(config, 'jls.password', '');
       var iv = getValue(config, 'jls.random', '');
@@ -108,7 +112,9 @@ class TransportServer {
         throw Exception('can only use JLS or TLS');
       }
       return JLSServerSocket(
-          rrsServerSocket: res, jlsHandShakeSide: jlsHandShakeServer);
+          rrsServerSocket: res,
+          jlsHandShakeSide: jlsHandShakeServer,
+          jlsTimeout: jlsTimeout);
     }
 
     return res;

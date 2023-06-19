@@ -70,22 +70,23 @@ class TransportClient {
 
   void initJLSConfig() {
     useJLS = getValue(config, 'jls.enabled', false);
-    if (useJLS!) {
-      var temp = getValue(config, 'jls.fingerPrint', 'default');
-      var fingerPrint = jlsFringerPrintList[temp]!;
+    if (!useJLS!) {
+      return;
+    }
+    var temp = getValue(config, 'jls.fingerPrint', 'default');
+    var fingerPrint = jlsFringerPrintList[temp]!;
 
-      var pwd = getValue(config, 'jls.password', '');
-      var iv = getValue(config, 'jls.random', '');
-      if (pwd == '' || iv == '') {
-        throw Exception('missing password and iv in JLS');
-      }
-      jlsHandShakeClient = JLSHandShakeClient(
-          pwdStr: pwd, ivStr: iv, local: fingerPrint.clientHello);
+    var pwd = getValue(config, 'jls.password', '');
+    var iv = getValue(config, 'jls.random', '');
+    if (pwd == '' || iv == '') {
+      throw Exception('missing password and iv in JLS');
+    }
+    jlsHandShakeClient = JLSHandShakeClient(
+        pwdStr: pwd, ivStr: iv, local: fingerPrint.clientHello);
 
-      var fallbackWebsite = getValue(config, 'jls.fallback', '');
-      if (fallbackWebsite != '') {
-        jlsHandShakeClient!.setServerName(utf8.encode(fallbackWebsite));
-      }
+    var fallbackWebsite = getValue(config, 'jls.fallback', '');
+    if (fallbackWebsite != '') {
+      jlsHandShakeClient!.setServerName(utf8.encode(fallbackWebsite));
     }
   }
 
@@ -109,7 +110,7 @@ class TransportClient {
 
     if (useJLS! && !(useTLS!)) {
       var jls = JLSSocket(rrsSocket: res, jlsHandShakeSide: jlsHandShakeClient);
-      await jls.secure();
+      await jls.secure(timeout!);
       return jls;
     }
     return res;

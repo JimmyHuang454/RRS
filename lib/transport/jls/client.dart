@@ -45,7 +45,7 @@ class JLSSocket extends RRSSocketBase {
     return res;
   }
 
-  Future<void> secure() async {
+  Future<void> secure(Duration timeout) async {
     rrsSocket.listen((data) async {
       content += data;
       while (true) {
@@ -82,7 +82,7 @@ class JLSSocket extends RRSSocketBase {
     rrsSocket.add(clientHello);
 
     try {
-      isValid = await checkRes.future.timeout(Duration(seconds: 10));
+      isValid = await checkRes.future.timeout(timeout);
     } catch (_) {
       closeAndThrow('timeout');
       return;
