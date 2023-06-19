@@ -218,6 +218,12 @@ abstract class InboundStruct {
     }
 
     var routeTag = getValue(config, 'route', '');
+    if (routeTag == '') {
+      throw Exception('inbounds route can not be empty.');
+    }
+    if (!routeList.containsKey(routeTag)) {
+      throw Exception('wrong routeTag named "$routeTag"');
+    }
     route = routeList[routeTag]!;
 
     inAddress = getValue(config, 'setting.address', '');

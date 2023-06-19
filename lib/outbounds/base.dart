@@ -84,8 +84,8 @@ abstract class OutboundStruct {
       required this.protocolVersion,
       required this.config}) {
     tag = getValue(config, 'tag', '');
-    var outStreamTag = getValue(config, 'outStream', 'tcp');
 
+    var outStreamTag = getValue(config, 'outStream', 'tcp');
     if (outStreamTag.runtimeType == String) {
       if (!outStreamList.containsKey(outStreamTag) && protocolName != 'block') {
         throw 'wrong outStream named "$outStreamTag"';

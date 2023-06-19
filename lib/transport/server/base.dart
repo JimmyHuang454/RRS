@@ -56,6 +56,7 @@ class TransportServer {
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
   late SecurityContext securityContext;
+  String? fallbackWebsite;
 
   TransportServer({
     required this.protocolName,
@@ -89,7 +90,7 @@ class TransportServer {
       jlsHandShakeServer = JLSHandShakeServer(
           pwdStr: pwd, ivStr: iv, local: fingerPrint.serverHello);
 
-      var fallbackWebsite = getValue(config, 'jls.fallback', '');
+      fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
     }
   }
 
@@ -114,6 +115,7 @@ class TransportServer {
       return JLSServerSocket(
           rrsServerSocket: res,
           jlsHandShakeSide: jlsHandShakeServer,
+          fallbackWebsite: fallbackWebsite,
           jlsTimeout: jlsTimeout);
     }
 
