@@ -14,7 +14,7 @@ class JLSServerSocket extends RRSServerSocketBase {
 
   List<int> content = [];
 
-  bool isFallback = false;
+  bool isValid = false;
   bool isCheck = false;
   Completer checkRes = Completer();
   Duration? jlsTimeout;
@@ -47,29 +47,31 @@ class JLSServerSocket extends RRSServerSocketBase {
         return;
       }
 
-      isFallback = !(await jlsHandShakeSide!
-          .check(inputRemote: ClientHello.parse(rawData: record)));
-      if (content.isNotEmpty) {
-        // its should not more len a clientHello.
-        isFallback = true;
-      }
-
-      if (isFallback) {
+      var res = await jlsHandShakeSide!
+          .check(inputRemote: ClientHello.parse(rawData: record));
+      if (content.isNotEmpty || !res) {
         content = record + content;
+        // its should not more len a clientHello.
+        checkRes.complete(false);
+      } else {
+        checkRes.complete(true);
       }
-      checkRes.complete(isFallback);
     }, onDone: () async {
       client.close();
     }, onError: (e, s) async {
       client.close();
     });
 
-    await checkRes.future.timeout(jlsTimeout!);
-    if (isFallback) {
+    try {
+      isValid = await checkRes.future.timeout(jlsTimeout!);
+    } catch (_) {
+      isValid = false;
+    }
+    await client.clearListen();
+    if (!isValid) {
       // TODO:  pass to fallback website.
       return false;
     }
-    await client.clearListen();
     client.add(await jlsHandShakeSide!.build() +
         ChangeSpec().build() +
         buildRandomCert());

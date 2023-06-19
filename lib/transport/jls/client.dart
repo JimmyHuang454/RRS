@@ -69,6 +69,8 @@ class JLSSocket extends RRSSocketBase {
           if (!await jlsHandShakeSide!
               .check(inputRemote: ServerHello.parse(rawData: record))) {
             content = record + content; // restore all data to forward proxy.
+            checkRes.complete(false);
+            break;
           }
         }
       }
@@ -84,15 +86,14 @@ class JLSSocket extends RRSSocketBase {
     try {
       isValid = await checkRes.future.timeout(timeout);
     } catch (_) {
-      closeAndThrow('timeout');
-      return;
+      isValid = false;
     }
 
+    await rrsSocket.clearListen();
     if (!isValid) {
       // TODO: handle it like normal tls1.3 client.
-      closeAndThrow('wrong server response');
+      closeAndThrow('wrong server response or timetou.');
     }
-    await rrsSocket.clearListen();
   }
 
   @override
