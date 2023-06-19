@@ -38,18 +38,18 @@ Map<String, dynamic> defaultSetting = {
     "tls": {
       "protocol": "tcp",
       "tls": {
-        "enabled": true,
+        "enable": true,
       },
     },
     "tls_tcp": {
       "protocol": "tcp",
       "tls": {
-        "enabled": true,
+        "enable": true,
       },
     },
     "tls_ws": {
       "protocol": "ws",
-      "tls": {"enabled": true},
+      "tls": {"enable": true},
       "setting": {"path": "uif_trojan"}
     }
   },

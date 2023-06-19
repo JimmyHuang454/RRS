@@ -62,7 +62,7 @@
     "tls_ws": {
       "protocol": "ws",
       "tls": {
-        "enabled": true
+        "enable": true
       },
       "setting": {
         "path": "uif_trojan"
@@ -71,13 +71,13 @@
     "ws_mux": {
       "protocol": "ws",
       "tls": {
-        "enabled": true
+        "enable": true
       },
       "setting": {
         "path": "uif_trojan"
       },
       "mux": {
-        "enabled": true,
+        "enable": true,
         "password": "123",
         "maxThread": 11
       }

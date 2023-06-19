@@ -55,7 +55,7 @@ void main() async {
           "setting": {"address": host, "port": serverPort, "password": '12'},
           "inStream": {
             'jls': {
-              'enabled': true,
+              'enable': true,
               'password': '123',
               'random': '456',
               'fallback': fallback

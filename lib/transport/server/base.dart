@@ -62,15 +62,15 @@ class TransportServer {
     required this.config,
   }) {
     tag = getValue(config, 'tag', '');
-    useTLS = getValue(config, 'tls.enabled', false);
-    useJLS = getValue(config, 'jls.enabled', false);
+    useTLS = getValue(config, 'tls.enable', false);
+    useJLS = getValue(config, 'jls.enable', false);
     requireClientCertificate =
         getValue(config, 'tls.requireClientCertificate', true);
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
     fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
-    useJLS = getValue(config, 'jls.enabled', false);
+    useJLS = getValue(config, 'jls.enable', false);
   }
 
   JLSHandShakeServer buildJLSServer() {

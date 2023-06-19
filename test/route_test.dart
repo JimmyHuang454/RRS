@@ -187,7 +187,7 @@ void main() {
             "ip": [
               {"ipdb": "geoip", "type": "CN"}
             ],
-            "cache": {"enabled": true, "size": 2000}
+            "cache": {"enable": true, "size": 2000}
           }
         ],
       });

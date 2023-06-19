@@ -26,7 +26,7 @@
           "password": "123",
           "fallback": "uif03.top",
           "random": "456",
-          "enabled": true
+          "enable": true
         }
       }
     }
@@ -43,7 +43,7 @@
         "jls": {
           "password": "123",
           "random": "456",
-          "enabled": true
+          "enable": true
         }
       }
     }

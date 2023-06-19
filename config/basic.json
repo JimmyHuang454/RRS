@@ -21,7 +21,7 @@
         "protocol": "ws",
         "tls": {
           "sni": "uif03.top",
-          "enabled": true
+          "enable": true
         },
         "setting": {
           "host": "uif03.top",
@@ -45,7 +45,7 @@
         "protocol": "ws",
         "tls": {
           "sni": "uif03.top",
-          "enabled": true
+          "enable": true
         },
         "setting": {
           "host": "uif03.top",
@@ -69,7 +69,7 @@
         "protocol": "ws",
         "tls": {
           "sni": "uif03.top",
-          "enabled": true
+          "enable": true
         },
         "setting": {
           "host": "uif03.top",
@@ -153,7 +153,7 @@
         "protocol": "tcp",
         "tls": {
           "sni": "65-108-102-32.nhost.00cdn.com",
-          "enabled": true
+          "enable": true
         }
       }
     },
@@ -208,13 +208,13 @@
         "serviceName": "trojan_grpc"
       },
       "tls": {
-        "enabled": true
+        "enable": true
       }
     },
     "ws_with_tls": {
       "protocol": "ws",
       "tls": {
-        "enabled": true
+        "enable": true
       },
       "setting": {
         "path": "trojan_ws"
@@ -224,13 +224,13 @@
       "protocol": "tcp",
       "tls": {
         "sni": "65-108-102-32.nhost.00cdn.com",
-        "enabled": true
+        "enable": true
       }
     },
     "ws_hk": {
       "protocol": "ws",
       "tls": {
-        "enabled": true
+        "enable": true
       },
       "setting": {
         "path": "e78c10f5-5200-4af4-94c6-65cc4e471c5e"
@@ -290,7 +290,7 @@
             }
           ],
           "cache": {
-            "enabled": true,
+            "enable": true,
             "size": 2000
           }
         },

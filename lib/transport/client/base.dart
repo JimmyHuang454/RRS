@@ -51,7 +51,7 @@ class TransportClient {
 
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
-    useTLS = getValue(config, 'tls.enabled', false);
+    useTLS = getValue(config, 'tls.enable', false);
     outSNI = getValue(config, 'tls.sni', '');
     allowInsecure = getValue(config, 'tls.allowInsecure', false);
     useSystemRoot = getValue(config, 'tls.useSystemRoot', true);
@@ -63,7 +63,7 @@ class TransportClient {
     var connectionTimeout = getValue(config, 'connectionTimeout', 5);
     timeout = Duration(seconds: connectionTimeout);
 
-    useJLS = getValue(config, 'jls.enabled', false);
+    useJLS = getValue(config, 'jls.enable', false);
   }
 
   JLSHandShakeClient buildJLSClient() {

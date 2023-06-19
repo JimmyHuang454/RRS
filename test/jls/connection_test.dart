@@ -16,13 +16,13 @@ void main() async {
       'outStream': {
         'jls': {
           'jls':
-              {'enabled': true, 'password': '123', 'random': '456'} as dynamic
+              {'enable': true, 'password': '123', 'random': '456'} as dynamic
         }
       },
       'inStream': {
         'jls': {
           'jls':
-              {'enabled': true, 'password': '123', 'random': '456'} as dynamic
+              {'enable': true, 'password': '123', 'random': '456'} as dynamic
         }
       }
     });
