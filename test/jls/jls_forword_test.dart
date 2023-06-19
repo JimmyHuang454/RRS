@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cryptography/helpers.dart';
 import 'package:proxy/handler.dart';
-import 'package:proxy/obj_list.dart';
-import 'package:proxy/transport/client/tcp.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:test/test.dart';
 
@@ -37,11 +34,18 @@ void main() async {
     await delay(1);
     var client = await Socket.connect(host, serverPort);
     var socket = await SecureSocket.secure(client, host: fallback);
+    var isClosed = false;
     socket.add(buildHTTPProxyRequest(fallback));
     socket.listen((event) {
       var res = utf8.decode(event);
+      devPrint(res);
       expect(res.contains(fallback), true);
+    }, onDone: () {
+      isClosed = true;
     });
     await delay(1);
+    socket.close();
+    await delay(1);
+    expect(isClosed, true);
   });
 }
