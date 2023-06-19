@@ -13,10 +13,18 @@ class FingerPrint {
   Map<String, dynamic> config;
 
   FingerPrint({required this.config}) {
-    clientHello = ClientHello.parse(
-        rawData: List<int>.from((config['clientHello'] as String).codeUnits));
-    serverHello = ServerHello.parse(
-        rawData: List<int>.from((config['serverHello'] as String).codeUnits));
+    clientHello = buildClientHello();
+    serverHello = buildServerHello();
     changeSpec = ChangeSpec();
+  }
+
+  ClientHello buildClientHello() {
+    var temp = (config['clientHello'] as String).codeUnits;
+    return ClientHello.parse(rawData: List<int>.from(temp));
+  }
+
+  ServerHello buildServerHello() {
+    var temp = (config['serverHello'] as String).codeUnits;
+    return ServerHello.parse(rawData: List<int>.from(temp));
   }
 }

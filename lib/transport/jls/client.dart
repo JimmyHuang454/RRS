@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/client/base.dart';
-import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
 import 'package:proxy/utils/utils.dart';
@@ -66,8 +66,9 @@ class JLSSocket extends RRSSocketBase {
           }
         } else {
           isCheck = true;
-          if (!await jlsHandShakeSide!
-              .check(inputRemote: ServerHello.parse(rawData: record))) {
+          var parsedHello = ServerHello.parse(rawData: record);
+          var res = await jlsHandShakeSide!.check(inputRemote: parsedHello);
+          if (!res) {
             content = record + content; // restore all data to forward proxy.
             checkRes.complete(false);
             break;
@@ -92,7 +93,7 @@ class JLSSocket extends RRSSocketBase {
     await rrsSocket.clearListen();
     if (!isValid) {
       // TODO: handle it like normal tls1.3 client.
-      closeAndThrow('wrong server response or timetou.');
+      closeAndThrow('wrong server response or timeout.');
     }
   }
 
@@ -142,7 +143,8 @@ class JLSSocket extends RRSSocketBase {
         var realData = await jlsHandShakeSide!
             .receive(ApplicationData.parse(rawData: record));
         if (realData.isEmpty) {
-          // TODO: unexpected msg.
+          // auth did not pass.
+          // TODO: unexpected msg(handle it like TLS1.3)
           return;
         }
         onData!(Uint8List.fromList(realData));

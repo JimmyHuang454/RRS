@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:cryptography/cryptography.dart' as cryptography;
 import 'package:cryptography/helpers.dart';
+import 'package:proxy/utils/utils.dart';
 
 import 'package:test/test.dart';
 
@@ -29,6 +30,7 @@ void main() {
     temp = Uri.parse('fuck://abc.cn');
     expect(temp.host, 'abc.cn');
   });
+
 
   test('AES.', () async {
     var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;

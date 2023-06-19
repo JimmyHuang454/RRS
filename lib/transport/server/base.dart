@@ -48,7 +48,6 @@ class TransportServer {
   String tag = '';
   Map<String, dynamic> config;
 
-  JLSHandShakeServer? jlsHandShakeServer;
   Duration? jlsTimeout;
 
   late bool useTLS;
@@ -70,28 +69,26 @@ class TransportServer {
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
-    initJLSConfig();
+    fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
+    useJLS = getValue(config, 'jls.enabled', false);
   }
 
-  void initJLSConfig() {
-    useJLS = getValue(config, 'jls.enabled', false);
-    if (useJLS) {
-      var temp = getValue(config, 'jls.fingerPrint', 'default');
-      var fingerPrint = jlsFringerPrintList[temp]!;
+  JLSHandShakeServer buildJLSServer() {
+    var temp = getValue(config, 'jls.fingerPrint', 'default');
+    var fingerPrint = jlsFringerPrintList[temp]!;
 
-      var timeout = getValue(config, 'jls.timeout', 10);
-      jlsTimeout = Duration(seconds: timeout);
+    var timeout = getValue(config, 'jls.timeout', 10);
+    jlsTimeout = Duration(seconds: timeout);
 
-      var pwd = getValue(config, 'jls.password', '');
-      var iv = getValue(config, 'jls.random', '');
-      if (pwd == '' || iv == '') {
-        throw Exception('missing password and iv in JLS');
-      }
-      jlsHandShakeServer = JLSHandShakeServer(
-          pwdStr: pwd, ivStr: iv, local: fingerPrint.serverHello);
-
-      fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
+    var pwd = getValue(config, 'jls.password', '');
+    var iv = getValue(config, 'jls.random', '');
+    if (pwd == '' || iv == '') {
+      throw Exception('missing password and iv in JLS');
     }
+    var jlsHandShakeServer = JLSHandShakeServer(
+        pwdStr: pwd, ivStr: iv, local: fingerPrint.buildServerHello());
+
+    return jlsHandShakeServer;
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
@@ -114,7 +111,7 @@ class TransportServer {
       }
       return JLSServerSocket(
           rrsServerSocket: res,
-          jlsHandShakeSide: jlsHandShakeServer,
+          jlsHandShakeSide: buildJLSServer(),
           fallbackWebsite: fallbackWebsite,
           jlsTimeout: jlsTimeout);
     }

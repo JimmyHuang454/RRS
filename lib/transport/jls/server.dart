@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:cryptography/helpers.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/tcp.dart';
@@ -51,8 +52,8 @@ class JLSServerSocket extends RRSServerSocketBase {
         return;
       }
 
-      var res = await jlsHandShakeSide!
-          .check(inputRemote: ClientHello.parse(rawData: record));
+      var parsedHello = ClientHello.parse(rawData: record);
+      var res = await jlsHandShakeSide!.check(inputRemote: parsedHello);
       if (content.isNotEmpty || !res) {
         // its should not more len a clientHello.
         // restore record to forward proxy.
@@ -77,9 +78,8 @@ class JLSServerSocket extends RRSServerSocketBase {
       await forward(client);
       return false;
     }
-    client.add(await jlsHandShakeSide!.build() +
-        ChangeSpec().build() +
-        buildRandomCert());
+    var serverHello = await jlsHandShakeSide!.build();
+    client.add(serverHello + ChangeSpec().build() + buildRandomCert());
     return true;
   }
 

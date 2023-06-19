@@ -49,8 +49,6 @@ class TransportClient {
   Duration? timeout;
   SecurityContext? securityContext;
 
-  JLSHandShakeClient? jlsHandShakeClient;
-
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
     useTLS = getValue(config, 'tls.enabled', false);
@@ -65,14 +63,10 @@ class TransportClient {
     var connectionTimeout = getValue(config, 'connectionTimeout', 5);
     timeout = Duration(seconds: connectionTimeout);
 
-    initJLSConfig();
+    useJLS = getValue(config, 'jls.enabled', false);
   }
 
-  void initJLSConfig() {
-    useJLS = getValue(config, 'jls.enabled', false);
-    if (!useJLS!) {
-      return;
-    }
+  JLSHandShakeClient buildJLSClient() {
     var temp = getValue(config, 'jls.fingerPrint', 'default');
     var fingerPrint = jlsFringerPrintList[temp]!;
 
@@ -81,13 +75,14 @@ class TransportClient {
     if (pwd == '' || iv == '') {
       throw Exception('missing password and iv in JLS');
     }
-    jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: pwd, ivStr: iv, local: fingerPrint.clientHello);
+    var jlsHandShakeClient = JLSHandShakeClient(
+        pwdStr: pwd, ivStr: iv, local: fingerPrint.buildClientHello());
 
     var fallbackWebsite = getValue(config, 'jls.fallback', '');
     if (fallbackWebsite != '') {
-      jlsHandShakeClient!.setServerName(utf8.encode(fallbackWebsite));
+      jlsHandShakeClient.setServerName(utf8.encode(fallbackWebsite));
     }
+    return jlsHandShakeClient;
   }
 
   Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
@@ -109,7 +104,7 @@ class TransportClient {
     var res = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
 
     if (useJLS! && !(useTLS!)) {
-      var jls = JLSSocket(rrsSocket: res, jlsHandShakeSide: jlsHandShakeClient);
+      var jls = JLSSocket(rrsSocket: res, jlsHandShakeSide: buildJLSClient());
       await jls.secure(timeout!);
       return jls;
     }

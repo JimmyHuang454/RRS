@@ -80,7 +80,7 @@
     "cf_uif03": {
       "protocol": "trojan",
       "setting": {
-        "address": "cf.uif03.top",
+        "address": "uif03.top",
         "port": 443,
         "password": "17146021026"
       },
@@ -303,7 +303,7 @@
   "balance": {
     "hk": {
       "outbound": [
-        "cf1"
+        "cf_uif03"
       ]
     }
   },

@@ -321,7 +321,6 @@ class ClientHello extends Handshake {
 
   @override
   List<int> build() {
-    sessionID = randomBytes(32);
     data = clientCipherSuites!.build() +
         clientCompressionMethod!.build() +
         extensionList!.build();
