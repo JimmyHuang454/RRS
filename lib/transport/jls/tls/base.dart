@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cryptography/helpers.dart';
 import 'package:proxy/utils/utils.dart';
 import 'package:quiver/collection.dart';
 
@@ -320,6 +321,7 @@ class ClientHello extends Handshake {
 
   @override
   List<int> build() {
+    sessionID = randomBytes(32);
     data = clientCipherSuites!.build() +
         clientCompressionMethod!.build() +
         extensionList!.build();
