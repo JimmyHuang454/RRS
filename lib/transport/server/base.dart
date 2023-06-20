@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:proxy/obj_list.dart';
+import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/server.dart';
 import 'package:proxy/transport/server/tcp.dart';
@@ -55,7 +56,10 @@ class TransportServer {
   late bool requireClientCertificate;
   late List<String> supportedProtocols;
   late SecurityContext securityContext;
+
   String? fallbackWebsite;
+  FingerPrint? fingerPrint;
+  String? pwd, iv;
 
   TransportServer({
     required this.protocolName,
@@ -69,26 +73,25 @@ class TransportServer {
     supportedProtocols = getValue(config, 'tls.supportedProtocols', ['']);
     // securityContext = SecurityContext(withTrustedRoots: useTLS);
 
-    fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
     useJLS = getValue(config, 'jls.enable', false);
+    if (useJLS) {
+      fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
+      var temp = getValue(config, 'jls.fingerPrint', 'default');
+      fingerPrint = jlsFringerPrintList[temp]!;
+
+      var timeout = getValue(config, 'jls.timeout', 10);
+      jlsTimeout = Duration(seconds: timeout);
+
+      pwd = getValue(config, 'jls.password', '');
+      iv = getValue(config, 'jls.random', '');
+      if (pwd == '' || iv == '') {
+        throw Exception('missing password and iv in JLS');
+      }
+    }
   }
 
-  JLSHandShakeServer buildJLSServer() {
-    var temp = getValue(config, 'jls.fingerPrint', 'default');
-    var fingerPrint = jlsFringerPrintList[temp]!;
-
-    var timeout = getValue(config, 'jls.timeout', 10);
-    jlsTimeout = Duration(seconds: timeout);
-
-    var pwd = getValue(config, 'jls.password', '');
-    var iv = getValue(config, 'jls.random', '');
-    if (pwd == '' || iv == '') {
-      throw Exception('missing password and iv in JLS');
-    }
-    var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: pwd, ivStr: iv, local: fingerPrint.buildServerHello());
-
-    return jlsHandShakeServer;
+  JLSServer buildJLSServer() {
+    return JLSServer(pwdStr: pwd!, ivStr: iv!, fingerPrint: fingerPrint!);
   }
 
   Future<RRSServerSocket> bind(address, int port) async {
@@ -110,10 +113,7 @@ class TransportServer {
         throw Exception('can only use JLS or TLS');
       }
       return JLSServerSocket(
-          rrsServerSocket: res,
-          jlsHandShakeSide: buildJLSServer(),
-          fallbackWebsite: fallbackWebsite,
-          jlsTimeout: jlsTimeout);
+          rrsServerSocket: res, newJLSServer: buildJLSServer);
     }
 
     return res;

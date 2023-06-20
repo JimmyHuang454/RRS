@@ -15,14 +15,12 @@ void main() async {
     entry({
       'outStream': {
         'jls': {
-          'jls':
-              {'enable': true, 'password': '123', 'random': '456'} as dynamic
+          'jls': {'enable': true, 'password': '123', 'random': '456'} as dynamic
         }
       },
       'inStream': {
         'jls': {
-          'jls':
-              {'enable': true, 'password': '123', 'random': '456'} as dynamic
+          'jls': {'enable': true, 'password': '123', 'random': '456'} as dynamic
         }
       }
     });
@@ -33,16 +31,24 @@ void main() async {
     serverListen.listen((inClient) {
       inClient.listen((data) async {
         inClient.add(data);
+      }, onError: (e, s) async {
+        devPrint(e);
+      }, onDone: () async {
+        devPrint(2);
       });
     });
 
     List<int> receivedata = [];
-    var random = randomBytes(30000);
-    var times = 2;
+    var random = zeroList();
+    var times = 1;
     for (var i = 0; i < times; i++) {
       var c = await client.connect(host, serverPort);
       c.listen((data) async {
         receivedata += data;
+      }, onDone: () async {
+        devPrint(2);
+      }, onError: (e, s) async {
+        devPrint(e);
       });
       c.add(random);
     }

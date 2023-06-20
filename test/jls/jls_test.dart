@@ -1,7 +1,6 @@
 import 'package:cryptography/helpers.dart';
 import 'package:proxy/handler.dart';
 import 'package:proxy/obj_list.dart';
-import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
 import 'package:proxy/utils/utils.dart';
@@ -42,75 +41,74 @@ void main() {
   });
 
   test('clientHello parse.', () async {
-    var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
+    var jlsClient =
+        JLSClient(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
 
-    await jlsHandShakeClient.build();
-    expect(jlsHandShakeClient.local!.random,
-        jlsHandShakeClient.clientFakeRandom!.fakeRandom);
+    await jlsClient.build();
+    expect(jlsClient.local!.random, jlsClient.clientFakeRandom!.fakeRandom);
 
-    var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
-    expect(parsedClient.build(), jlsHandShakeClient.data);
+    var parsedClient = ClientHello.parse(rawData: jlsClient.data);
+    expect(parsedClient.build(), jlsClient.data);
   });
 
   test('serverHello', () async {
-    var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
-    await jlsHandShakeClient.build();
-    var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
+    var jlsClient =
+        JLSClient(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
+    await jlsClient.build();
+    var parsedClient = ClientHello.parse(rawData: jlsClient.data);
     var clientRandom = parsedClient.random;
 
-    var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
-    expect(await jlsHandShakeServer.check(inputRemote: parsedClient), true);
+    var jlsServer =
+        JLSServer(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
+    expect(await jlsServer.check(inputRemote: parsedClient), true);
 
     // test random must be restored.
-    expect(jlsHandShakeServer.remote!.random, clientRandom);
+    expect(jlsServer.remote!.random, clientRandom);
 
-    jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '0123', ivStr: '456', local: defaultFingerPrint.serverHello);
-    expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
+    jlsServer =
+        JLSServer(pwdStr: '23', ivStr: '456', fingerPrint: defaultFingerPrint);
+    expect(await jlsServer.check(inputRemote: parsedClient), false);
 
-    jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '4567', local: defaultFingerPrint.serverHello);
-    expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
+    jlsServer =
+        JLSServer(pwdStr: '123', ivStr: '56', fingerPrint: defaultFingerPrint);
+    expect(await jlsServer.check(inputRemote: parsedClient), false);
 
     // can not change clientHello
     parsedClient.sessionID = randomBytes(32);
-    jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
-    expect(await jlsHandShakeServer.check(inputRemote: parsedClient), false);
+    jlsServer =
+        JLSServer(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
+    expect(await jlsServer.check(inputRemote: parsedClient), false);
   });
 
   test('clientHello', () async {
-    var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.clientHello);
-    var jlsHandShakeServer = JLSHandShakeServer(
-        pwdStr: '123', ivStr: '456', local: defaultFingerPrint.serverHello);
+    var jlsClient =
+        JLSClient(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
+    var jlsServer =
+        JLSServer(pwdStr: '123', ivStr: '456', fingerPrint: defaultFingerPrint);
 
-    await jlsHandShakeClient.build();
+    await jlsClient.build();
 
     // server received then parse it.
-    var parsedClient = ClientHello.parse(rawData: jlsHandShakeClient.data);
+    var parsedClient = ClientHello.parse(rawData: jlsClient.data);
 
     // and check it.
-    jlsHandShakeServer.check(inputRemote: parsedClient);
-    expect(await jlsHandShakeServer.check(inputRemote: parsedClient), true);
+    jlsServer.check(inputRemote: parsedClient);
+    expect(await jlsServer.check(inputRemote: parsedClient), true);
 
-    await jlsHandShakeServer.build();
+    await jlsServer.build();
     // client received then parse it.
-    var parsedServer = ServerHello.parse(rawData: jlsHandShakeServer.data);
+    var parsedServer = ServerHello.parse(rawData: jlsServer.data);
     // and check it.
-    expect(await jlsHandShakeClient.check(inputRemote: parsedServer), true);
+    expect(await jlsClient.check(inputRemote: parsedServer), true);
 
     var sharedKey = parsedServer.extensionList!.getKeyShare(false);
     parsedServer.extensionList!.setKeyShare(randomBytes(32), false);
-    expect(await jlsHandShakeClient.check(inputRemote: parsedServer), false);
+    expect(await jlsClient.check(inputRemote: parsedServer), false);
 
     parsedServer.extensionList!.setKeyShare(sharedKey, false);
-    expect(await jlsHandShakeClient.check(inputRemote: parsedServer), true);
+    expect(await jlsClient.check(inputRemote: parsedServer), true);
 
     parsedServer.sessionID = zeroList();
-    expect(await jlsHandShakeClient.check(inputRemote: parsedServer), false);
+    expect(await jlsClient.check(inputRemote: parsedServer), false);
   });
 }

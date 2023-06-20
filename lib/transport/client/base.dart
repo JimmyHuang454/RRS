@@ -66,7 +66,7 @@ class TransportClient {
     useJLS = getValue(config, 'jls.enable', false);
   }
 
-  JLSHandShakeClient buildJLSClient() {
+  JLSClient buildJLSClient() {
     var temp = getValue(config, 'jls.fingerPrint', 'default');
     var fingerPrint = jlsFringerPrintList[temp]!;
 
@@ -75,14 +75,13 @@ class TransportClient {
     if (pwd == '' || iv == '') {
       throw Exception('missing password and iv in JLS');
     }
-    var jlsHandShakeClient = JLSHandShakeClient(
-        pwdStr: pwd, ivStr: iv, local: fingerPrint.buildClientHello());
+    var jlsClient = JLSClient(pwdStr: pwd, ivStr: iv, fingerPrint: fingerPrint);
 
     var fallbackWebsite = getValue(config, 'jls.fallback', '');
     if (fallbackWebsite != '') {
-      jlsHandShakeClient.setServerName(utf8.encode(fallbackWebsite));
+      jlsClient.setServerName(utf8.encode(fallbackWebsite));
     }
-    return jlsHandShakeClient;
+    return jlsClient;
   }
 
   Future<RRSSocket> connect(host, int port, {dynamic sourceAddress}) async {
@@ -101,14 +100,16 @@ class TransportClient {
           onBadCertificate: onBadCertificate);
     }
 
-    var res = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
+    var client = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
 
     if (useJLS! && !(useTLS!)) {
-      var jls = JLSSocket(rrsSocket: res, jlsHandShakeSide: buildJLSClient());
-      await jls.secure(timeout!);
+      var handler = JLSClientHandler(client: client, jls: buildJLSClient());
+      if (!await handler.secure()) {
+      }
+      var jls = JLSSocket(rrsSocket: client, jlsHandler: handler);
       return jls;
     }
-    return res;
+    return client;
   }
 
   bool onBadCertificate(X509Certificate certificate) {

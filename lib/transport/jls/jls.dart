@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/helpers.dart';
+import 'package:proxy/transport/client/base.dart';
+import 'package:proxy/transport/client/tcp.dart';
+import 'package:proxy/transport/jls/format.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
 import 'package:proxy/utils/utils.dart';
 
@@ -64,7 +68,7 @@ class FakeRandom {
   }
 }
 
-class JLSHandShakeSide {
+class JLS {
   List<int> data = [];
 
   List<int> iv = [];
@@ -76,6 +80,8 @@ class JLSHandShakeSide {
   Handshake? local; // can be client or server.
   Handshake? remote; // opposite to local.
 
+  FingerPrint fingerPrint;
+
   final aes = AesGcm.with256bits(nonceLength: 64);
   SecretKey? sharedSecretKey;
   SimplePublicKey? simplePublicKey; // remote pub key.
@@ -85,8 +91,10 @@ class JLSHandShakeSide {
   int sendID = 0;
   int receiveID = 0;
 
-  JLSHandShakeSide(
-      {required String pwdStr, required String ivStr, required this.local}) {
+  JLS(
+      {required String pwdStr,
+      required String ivStr,
+      required this.fingerPrint}) {
     pwd = utf8.encode(pwdStr);
     iv = utf8.encode(ivStr);
   }
@@ -161,11 +169,11 @@ class JLSHandShakeSide {
   }
 }
 
-class JLSHandShakeClient extends JLSHandShakeSide {
-  JLSHandShakeClient(
-      {required super.pwdStr, required super.ivStr, required super.local}) {
-    // local = ClientHello.parse(rawData: local!.build());
-  }
+class JLSClient extends JLS {
+  JLSClient(
+      {required super.pwdStr,
+      required super.ivStr,
+      required super.fingerPrint});
 
   @override
   Future<bool> check({required Handshake inputRemote}) async {
@@ -188,6 +196,7 @@ class JLSHandShakeClient extends JLSHandShakeSide {
 
   @override
   Future<List<int>> build() async {
+    local = fingerPrint.buildClientHello();
     local!.random = zeroList();
     local!.sessionID = randomBytes(32);
     await setKeyShare();
@@ -204,9 +213,11 @@ class JLSHandShakeClient extends JLSHandShakeSide {
   }
 }
 
-class JLSHandShakeServer extends JLSHandShakeSide {
-  JLSHandShakeServer(
-      {required super.pwdStr, required super.ivStr, required super.local});
+class JLSServer extends JLS {
+  JLSServer(
+      {required super.pwdStr,
+      required super.ivStr,
+      required super.fingerPrint});
 
   @override
   Future<bool> check({required Handshake inputRemote}) async {
@@ -225,6 +236,7 @@ class JLSHandShakeServer extends JLSHandShakeSide {
 
   @override
   Future<List<int>> build() async {
+    local = fingerPrint.buildServerHello();
     local!.random = zeroList();
     local!.sessionID = remote!.sessionID;
     await setKeyShare();
@@ -239,5 +251,71 @@ class JLSHandShakeServer extends JLSHandShakeSide {
     data = local!.build();
     await buildFinalPWD();
     return data;
+  }
+}
+
+class JLSHandler {
+  JLS jls;
+  RRSSocket client;
+
+  Duration jlsTimeout;
+  String fallbackWebsite;
+
+  List<int> content = [];
+  bool isValid = false;
+  bool isCheck = false;
+  bool isReceiveChangeSpec = false;
+  bool isSendChangeSpec = false;
+  Completer checkRes = Completer();
+
+  JLSHandler(
+      {required this.jls,
+      required this.client,
+      this.jlsTimeout = const Duration(seconds: 5),
+      this.fallbackWebsite = 'apple.com'});
+
+  Future<bool> secure() async {
+    return false;
+  }
+
+  List<int> waitRecord() {
+    if (content.length < 5) {
+      return [];
+    }
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+    var len = byteData.getUint16(0, Endian.big);
+    if (content.length - 5 < len) {
+      return [];
+    }
+    var res = content.sublist(0, 5 + len);
+    content = content.sublist(5 + len);
+    return res;
+  }
+
+  Future<void> forward() async {
+    var tcp = TCPClient(config: {});
+    var fallback = await tcp.connect(fallbackWebsite, 443);
+
+    client.listen((data) async {
+      fallback.add(data);
+    }, onDone: () async {
+      fallback.close();
+    }, onError: (e, s) async {
+      fallback.close();
+    });
+
+    fallback.listen((data) async {
+      client.add(data);
+    }, onDone: () async {
+      client.close();
+    }, onError: (e, s) async {
+      client.close();
+    });
+    fallback.add(content);
+  }
+
+  List<int> buildRandomCert({int len = 32}) {
+    return ApplicationData(data: randomBytes(len)).build();
   }
 }

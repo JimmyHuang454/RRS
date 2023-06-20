@@ -1,52 +1,28 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/jls/jls.dart';
 import 'package:proxy/transport/jls/tls/base.dart';
 import 'package:proxy/utils/utils.dart';
 
-class JLSSocket extends RRSSocketBase {
-  //{{{
-  JLSHandShakeSide? jlsHandShakeSide;
-
-  bool isCheck = false;
-  List<int> content = [];
-
-  bool isValid = false;
-  bool isReceiveChangeSpec = false;
+class JLSClientHandler extends JLSHandler {
   bool isReceiveCert = false;
-  bool isSendChangeSpec = false;
-  Completer checkRes = Completer();
 
-  final maxLen = 16384; // 2^14
-
-  JLSSocket({required super.rrsSocket, required this.jlsHandShakeSide});
+  JLSClientHandler(
+      {required super.client,
+      required super.jls,
+      super.jlsTimeout,
+      super.fallbackWebsite});
 
   void closeAndThrow(dynamic msg) {
-    rrsSocket.close();
+    client.close();
     throw Exception('[JLS] $msg.');
   }
 
-  List<int> waitRecord() {
-    if (content.length < 5) {
-      return [];
-    }
-    ByteData byteData =
-        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
-    var len = byteData.getUint16(0, Endian.big);
-    if (content.length - 5 < len) {
-      return [];
-    }
-    var res = content.sublist(0, 5 + len);
-    content = content.sublist(5 + len);
-    return res;
-  }
-
-  Future<void> secure(Duration timeout) async {
-    rrsSocket.listen((data) async {
+  @override
+  Future<bool> secure() async {
+    client.listen((data) async {
       content += data;
       while (true) {
         var record = waitRecord();
@@ -67,8 +43,11 @@ class JLSSocket extends RRSSocketBase {
         } else {
           isCheck = true;
           var parsedHello = ServerHello.parse(rawData: record);
-          var res = await jlsHandShakeSide!.check(inputRemote: parsedHello);
-          if (!res) {
+          isValid = await jls.check(inputRemote: parsedHello);
+          if (isValid) {
+            client.add(ChangeSpec().build());
+            isSendChangeSpec = true;
+          } else {
             content = record + content; // restore all data to forward proxy.
             checkRes.complete(false);
             break;
@@ -81,20 +60,52 @@ class JLSSocket extends RRSSocketBase {
       closeAndThrow(e);
     });
 
-    var clientHello = await jlsHandShakeSide!.build();
-    rrsSocket.add(clientHello);
+    var clientHello = await jls.build();
+    client.add(clientHello);
 
     try {
-      isValid = await checkRes.future.timeout(timeout);
-    } catch (_) {
-      isValid = false;
+      await checkRes.future.timeout(jlsTimeout);
+    } catch (_) {}
+
+    await client.clearListen();
+
+    if (!isReceiveCert) {
+      closeAndThrow('timeout to get server cert.');
+      return false;
     }
 
-    await rrsSocket.clearListen();
     if (!isValid) {
       // TODO: handle it like normal tls1.3 client.
       closeAndThrow('wrong server response or timeout.');
+      return false;
     }
+    return true;
+  }
+}
+
+class JLSSocket extends RRSSocketBase {
+  //{{{
+
+  JLSHandler jlsHandler;
+  List<int> content = [];
+
+  final maxLen = 16384; // 2^14
+
+  JLSSocket({required super.rrsSocket, required this.jlsHandler});
+
+  List<int> waitRecord() {
+    if (content.length < 5) {
+      return [];
+    }
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+    var len = byteData.getUint16(0, Endian.big);
+    if (content.length - 5 < len) {
+      return [];
+    }
+    var res = content.sublist(0, 5 + len);
+    content = content.sublist(5 + len);
+    return res;
   }
 
   @override
@@ -109,11 +120,7 @@ class JLSSocket extends RRSSocketBase {
         data = [];
       }
 
-      var res = (await jlsHandShakeSide!.send(sendData)).build();
-      if (!isSendChangeSpec && jlsHandShakeSide!.local!.isClient()) {
-        isSendChangeSpec = true;
-        res = ChangeSpec().build() + res;
-      }
+      var res = (await jlsHandler.jls.send(sendData)).build();
       rrsSocket.add(res);
     }
   }
@@ -123,6 +130,7 @@ class JLSSocket extends RRSSocketBase {
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) {
     rrsSocket.listen((data) async {
+      devPrint(1);
       content += data;
       while (true) {
         var record = waitRecord();
@@ -130,17 +138,7 @@ class JLSSocket extends RRSSocketBase {
           return;
         }
 
-        if (!isReceiveChangeSpec) {
-          isReceiveChangeSpec = true;
-          continue;
-        }
-
-        if (!isReceiveCert && jlsHandShakeSide!.local!.isClient()) {
-          isReceiveCert = true;
-          continue;
-        }
-
-        var realData = await jlsHandShakeSide!
+        var realData = await jlsHandler.jls
             .receive(ApplicationData.parse(rawData: record));
         if (realData.isEmpty) {
           // auth did not pass.
