@@ -67,7 +67,7 @@ class JLSServerHandler extends JLSHandler {
 }
 
 class JLSServerSocket extends RRSServerSocketBase {
-  JLSServer Function() newJLSServer;
+  JLSServerHandler Function(RRSSocket client) newJLSServer;
 
   JLSServerSocket({required super.rrsServerSocket, required this.newJLSServer});
 
@@ -75,7 +75,7 @@ class JLSServerSocket extends RRSServerSocketBase {
   void listen(void Function(RRSSocket event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     rrsServerSocket.listen((client) async {
-      var handler = JLSServerHandler(client: client, jls: newJLSServer());
+      var handler = newJLSServer(client);
       if (await handler.secure()) {
         onData!(JLSSocket(rrsSocket: client, jlsHandler: handler));
       }

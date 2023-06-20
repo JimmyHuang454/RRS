@@ -121,10 +121,6 @@ class JLS {
     finalPWD = await aes.newSecretKeyFromBytes(res);
   }
 
-  void setServerName(List<int> newServerName) {
-    local!.extensionList!.setServerName(newServerName);
-  }
-
   Future<void> setKeyShare() async {
     keyPair = await supportGroup.newKeyPair();
     var pubKey = await keyPair!.extractPublicKey();
@@ -138,6 +134,7 @@ class JLS {
     var secretBox =
         await aes.encrypt(data, secretKey: finalPWD!, nonce: packetIV);
     var appData = secretBox.cipherText + secretBox.mac.bytes;
+    // var appData = data + randomBytes(16);
     sendID += 1;
     return ApplicationData(data: appData);
   }
@@ -146,12 +143,14 @@ class JLS {
     var id = Uint8List(4)
       ..buffer.asByteData().setUint32(0, receiveID, Endian.big);
     var iv2 = sha512.convert(iv + id).bytes;
-    var secretBox = SecretBox(input.data.sublist(0, input.data.length - 16),
-        nonce: iv2, mac: Mac(input.data.sublist(input.data.length - 16)));
+    var cipherText = input.data.sublist(0, input.data.length - 16);
+    var mac = Mac(input.data.sublist(input.data.length - 16));
+    var secretBox = SecretBox(cipherText, nonce: iv2, mac: mac);
     List<int> res = [];
 
     try {
       res = await aes.decrypt(secretBox, secretKey: finalPWD!);
+      // res = cipherText;
     } catch (e) {
       return [];
     }
@@ -170,10 +169,12 @@ class JLS {
 }
 
 class JLSClient extends JLS {
+  List<int>? servername;
   JLSClient(
       {required super.pwdStr,
       required super.ivStr,
-      required super.fingerPrint});
+      required super.fingerPrint,
+      this.servername});
 
   @override
   Future<bool> check({required Handshake inputRemote}) async {
@@ -197,6 +198,7 @@ class JLSClient extends JLS {
   @override
   Future<List<int>> build() async {
     local = fingerPrint.buildClientHello();
+    setServerName();
     local!.random = zeroList();
     local!.sessionID = randomBytes(32);
     await setKeyShare();
@@ -210,6 +212,12 @@ class JLSClient extends JLS {
     local!.random = await clientFakeRandom!.build();
     data = local!.build();
     return data;
+  }
+
+  void setServerName() {
+    if (servername != null) {
+      local!.extensionList!.setServerName(servername!);
+    }
   }
 }
 
@@ -271,7 +279,7 @@ class JLSHandler {
   JLSHandler(
       {required this.jls,
       required this.client,
-      this.jlsTimeout = const Duration(seconds: 5),
+      this.jlsTimeout = const Duration(seconds: 3),
       this.fallbackWebsite = 'apple.com'});
 
   Future<bool> secure() async {

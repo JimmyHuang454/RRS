@@ -53,6 +53,23 @@
         }
       }
     },
+    "jls": {
+      "protocol": "trojan",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8088,
+        "password": "123"
+      },
+      "outStream": {
+        "protocol": "tcp",
+        "jls": {
+          "password": "123",
+          "fallback": "uif03.top",
+          "random": "456",
+          "enable": true
+        }
+      }
+    },
     "cf24": {
       "protocol": "trojan",
       "setting": {
@@ -189,7 +206,7 @@
         "port": 8080
       },
       "inStream": "tcp",
-      "route": "proxy"
+      "route": "all"
     },
     "socks5_inbound": {
       "protocol": "socks5",
@@ -303,7 +320,7 @@
   "balance": {
     "hk": {
       "outbound": [
-        "cf_uif03"
+        "jls"
       ]
     }
   },

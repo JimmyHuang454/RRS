@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 void main() async {
   var host = '127.0.0.1';
   var serverPort = await getUnusedPort(InternetAddress(host));
+  var random = randomBytes(1000000);
 
   test('jls logic.', () async {
     entry({
@@ -39,25 +40,25 @@ void main() async {
     });
 
     List<int> receivedata = [];
-    var random = zeroList();
-    var times = 1;
+    var times = 2;
+    var isClose = false;
     for (var i = 0; i < times; i++) {
       var c = await client.connect(host, serverPort);
       c.listen((data) async {
         receivedata += data;
       }, onDone: () async {
-        devPrint(2);
+        isClose = true;
       }, onError: (e, s) async {
-        devPrint(e);
+        isClose = true;
       });
       c.add(random);
+      expect(isClose, false);
     }
     await delay(1);
     expect(receivedata.length, random.length * times);
   });
 
   test('jls config.', () async {
-    return;
     // httpin -> jlsHttpout -> jlsHttpIn -> freedom
     var config = await readConfigWithJson5('./test/jls/jls.json');
     var host = '127.0.0.1';

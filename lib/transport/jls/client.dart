@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
@@ -10,10 +11,7 @@ class JLSClientHandler extends JLSHandler {
   bool isReceiveCert = false;
 
   JLSClientHandler(
-      {required super.client,
-      required super.jls,
-      super.jlsTimeout,
-      super.fallbackWebsite});
+      {required super.client, required super.jls, super.jlsTimeout});
 
   void closeAndThrow(dynamic msg) {
     client.close();
@@ -38,6 +36,8 @@ class JLSClientHandler extends JLSHandler {
             if (content.isNotEmpty) {
               closeAndThrow('unexpected msg.');
             }
+            isSendChangeSpec = true;
+            await client.add(ChangeSpec().build());
             checkRes.complete(true);
           }
         } else {
@@ -45,8 +45,6 @@ class JLSClientHandler extends JLSHandler {
           var parsedHello = ServerHello.parse(rawData: record);
           isValid = await jls.check(inputRemote: parsedHello);
           if (isValid) {
-            client.add(ChangeSpec().build());
-            isSendChangeSpec = true;
           } else {
             content = record + content; // restore all data to forward proxy.
             checkRes.complete(false);
@@ -87,66 +85,51 @@ class JLSSocket extends RRSSocketBase {
   //{{{
 
   JLSHandler jlsHandler;
-  List<int> content = [];
 
   final maxLen = 16384; // 2^14
 
   JLSSocket({required super.rrsSocket, required this.jlsHandler});
 
-  List<int> waitRecord() {
-    if (content.length < 5) {
-      return [];
-    }
-    ByteData byteData =
-        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
-    var len = byteData.getUint16(0, Endian.big);
-    if (content.length - 5 < len) {
-      return [];
-    }
-    var res = content.sublist(0, 5 + len);
-    content = content.sublist(5 + len);
-    return res;
-  }
-
   @override
   Future<void> add(List<int> data) async {
     List<int> sendData = [];
     while (data.isNotEmpty) {
-      if (data.length > maxLen) {
-        sendData = data.sublist(0, maxLen);
-        data = data.sublist(maxLen);
-      } else {
-        sendData = data;
-        data = [];
+      int len = data.length;
+      if (len > maxLen) {
+        len = maxLen;
       }
+      sendData = (await jlsHandler.jls.send(data.sublist(0, len))).build();
+      rrsSocket.add(sendData);
+      data = data.sublist(len);
+    }
+  }
 
-      var res = (await jlsHandler.jls.send(sendData)).build();
-      rrsSocket.add(res);
+  Future<void> updateData(
+      Uint8List data, Future<void> Function(Uint8List event)? onData) async {
+    jlsHandler.content += data;
+    while (true) {
+      var record = jlsHandler.waitRecord();
+      if (record.isEmpty) {
+        return;
+      }
+      var res =
+          await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
+      if (res.isEmpty) {
+        // TODO: unexpected msg.
+        return;
+      }
+      onData!(Uint8List.fromList(res));
     }
   }
 
   @override
   void listen(Future<void> Function(Uint8List event)? onData,
       {Future<void> Function(dynamic e, dynamic s)? onError,
-      Future<void> Function()? onDone}) {
+      Future<void> Function()? onDone}) async {
+    await updateData(
+        Uint8List.fromList([]), onData); // handle left msg in handshake.
     rrsSocket.listen((data) async {
-      devPrint(1);
-      content += data;
-      while (true) {
-        var record = waitRecord();
-        if (record.isEmpty) {
-          return;
-        }
-
-        var realData = await jlsHandler.jls
-            .receive(ApplicationData.parse(rawData: record));
-        if (realData.isEmpty) {
-          // auth did not pass.
-          // TODO: unexpected msg(handle it like TLS1.3)
-          return;
-        }
-        onData!(Uint8List.fromList(realData));
-      }
+      await updateData(data, onData);
     }, onDone: onDone, onError: onError);
   }
 } //}}}

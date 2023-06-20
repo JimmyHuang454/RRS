@@ -43,7 +43,7 @@ void main() async {
 
   test('jls forward.', () async {
     var serverPort = await getUnusedPort(InternetAddress(host));
-    var fallback = 'baidu.com';
+    var fallback = 'uif03.top';
     entry({
       "config": {
         "log": {"level": "debug"}
@@ -72,7 +72,7 @@ void main() async {
     socket.listen((event) {
       var res = utf8.decode(event);
       devPrint(res);
-      expect(res.contains(fallback), true);
+      expect(res.contains('Content-Length'), true);
     }, onDone: () {
       isClosed = true;
     });

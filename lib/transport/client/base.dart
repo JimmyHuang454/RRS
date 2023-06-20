@@ -48,6 +48,7 @@ class TransportClient {
 
   Duration? timeout;
   SecurityContext? securityContext;
+  String? fallbackWebsite;
 
   TransportClient({required this.protocolName, required this.config}) {
     tag = getValue(config, 'tag', '');
@@ -64,6 +65,7 @@ class TransportClient {
     timeout = Duration(seconds: connectionTimeout);
 
     useJLS = getValue(config, 'jls.enable', false);
+    fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
   }
 
   JLSClient buildJLSClient() {
@@ -75,12 +77,11 @@ class TransportClient {
     if (pwd == '' || iv == '') {
       throw Exception('missing password and iv in JLS');
     }
-    var jlsClient = JLSClient(pwdStr: pwd, ivStr: iv, fingerPrint: fingerPrint);
-
-    var fallbackWebsite = getValue(config, 'jls.fallback', '');
-    if (fallbackWebsite != '') {
-      jlsClient.setServerName(utf8.encode(fallbackWebsite));
-    }
+    var jlsClient = JLSClient(
+        pwdStr: pwd,
+        ivStr: iv,
+        fingerPrint: fingerPrint,
+        servername: utf8.encode(fallbackWebsite!));
     return jlsClient;
   }
 
@@ -104,8 +105,7 @@ class TransportClient {
 
     if (useJLS! && !(useTLS!)) {
       var handler = JLSClientHandler(client: client, jls: buildJLSClient());
-      if (!await handler.secure()) {
-      }
+      if (!await handler.secure()) {}
       var jls = JLSSocket(rrsSocket: client, jlsHandler: handler);
       return jls;
     }

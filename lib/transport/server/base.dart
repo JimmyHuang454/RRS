@@ -90,8 +90,10 @@ class TransportServer {
     }
   }
 
-  JLSServer buildJLSServer() {
-    return JLSServer(pwdStr: pwd!, ivStr: iv!, fingerPrint: fingerPrint!);
+  JLSServerHandler buildJLSServer(RRSSocket client) {
+    var res = JLSServer(pwdStr: pwd!, ivStr: iv!, fingerPrint: fingerPrint!);
+    return JLSServerHandler(
+        client: client, jls: res, fallbackWebsite: fallbackWebsite!);
   }
 
   Future<RRSServerSocket> bind(address, int port) async {

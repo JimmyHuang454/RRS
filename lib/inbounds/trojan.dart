@@ -7,6 +7,15 @@ import 'package:proxy/utils/utils.dart';
 import 'package:proxy/inbounds/base.dart';
 import 'package:proxy/utils/const.dart';
 
+enum ATYP{
+  domain(3),
+  ipv4(1),
+  ipv6(4);
+
+  const ATYP(this.value);
+  final int value;
+}
+
 class TrojanRequest extends Link {
   bool isAuth = false;
   bool isParseDST = false;
