@@ -1,5 +1,7 @@
 import 'package:proxy/balance/balancer.dart';
 import 'package:proxy/config.dart';
+import 'package:proxy/inbounds/jls.dart';
+import 'package:proxy/outbounds/jls.dart';
 import 'package:proxy/outbounds/socks5.dart';
 import 'package:proxy/transport/client/base.dart';
 import 'package:proxy/transport/client/grpc.dart';
@@ -82,6 +84,8 @@ Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
     res = HTTPIn(config: config);
   } else if (protocol == 'trojan') {
     res = TrojanIn(config: config);
+  } else if (protocol == 'jls') {
+    res = JLSIn(config: config);
   } else {
     res = Socks5In(config: config);
   }
@@ -114,6 +118,8 @@ OutboundStruct _buildOutbounds(Map<String, dynamic> config) {
     return FreedomOut(config: config);
   } else if (protocol == 'socks5') {
     return Socks5Out(config: config);
+  } else if (protocol == 'jls') {
+    return JLSOut(config: config);
   } else {
     throw "there are no outbound protocol named '$protocol'";
   }

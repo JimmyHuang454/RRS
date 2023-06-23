@@ -14,10 +14,11 @@
       "route": "httpIn_to_jlsHttpout"
     },
     "HTTPIn2": {
-      "protocol": "trojan",
+      "protocol": "jls",
       "setting": {
         "address": "127.0.0.1",
         "password": "123",
+        "random": "123",
         "port": 8088
       },
       "route": "freedom",
@@ -26,24 +27,25 @@
           "password": "123",
           "fallback": "uif03.top",
           "random": "456",
-          "enable": true
+          "enable": false
         }
       }
     }
   },
   "outbounds": {
     "jlsHttpout": {
-      "protocol": "trojan",
+      "protocol": "jls",
       "setting": {
         "address": "127.0.0.1",
         "password": "123",
+        "random": "123",
         "port": 8088
       },
       "outStream": {
         "jls": {
           "password": "123",
           "random": "456",
-          "enable": true
+          "enable": false
         }
       }
     }

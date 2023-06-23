@@ -128,23 +128,23 @@ class JLS {
   }
 
   Future<ApplicationData> send(List<int> data) async {
-    var id = Uint8List(4)..buffer.asByteData().setUint32(0, sendID, Endian.big);
+    var id = Uint8List(8)..buffer.asByteData().setUint64(0, sendID, Endian.big);
 
     var packetIV = sha512.convert(iv + id).bytes;
     var secretBox =
         await aes.encrypt(data, secretKey: finalPWD!, nonce: packetIV);
-    var appData = secretBox.cipherText + secretBox.mac.bytes;
+    var appData = secretBox.mac.bytes + secretBox.cipherText;
     // var appData = data + randomBytes(16);
     sendID += 1;
     return ApplicationData(data: appData);
   }
 
   Future<List<int>> receive(ApplicationData input) async {
-    var id = Uint8List(4)
-      ..buffer.asByteData().setUint32(0, receiveID, Endian.big);
+    var id = Uint8List(8)
+      ..buffer.asByteData().setUint64(0, receiveID, Endian.big);
     var iv2 = sha512.convert(iv + id).bytes;
-    var cipherText = input.data.sublist(0, input.data.length - 16);
-    var mac = Mac(input.data.sublist(input.data.length - 16));
+    var cipherText = input.data.sublist(16);
+    var mac = Mac(input.data.sublist(0, 16));
     var secretBox = SecretBox(cipherText, nonce: iv2, mac: mac);
     List<int> res = [];
 
@@ -298,6 +298,9 @@ class JLSHandler {
     }
     var res = content.sublist(0, 5 + len);
     content = content.sublist(5 + len);
+    if (len == 0) {
+      return [];
+    }
     return res;
   }
 

@@ -107,17 +107,15 @@ class TransportServer {
       serverSocket = await ServerSocket.bind(address, port, shared: false);
     }
 
-    var res = RRSServerSocketBase(
-        rrsServerSocket: TCPRRSServerSocket(serverSocket: serverSocket));
+    var s = TCPRRSServerSocket(serverSocket: serverSocket);
 
     if (useJLS) {
       if (useTLS) {
         throw Exception('can only use JLS or TLS');
       }
-      return JLSServerSocket(
-          rrsServerSocket: res, newJLSServer: buildJLSServer);
+      return JLSServerSocket(rrsServerSocket: s, newJLSServer: buildJLSServer);
     }
 
-    return res;
+    return RRSServerSocketBase(rrsServerSocket: s);
   }
 } //}}}

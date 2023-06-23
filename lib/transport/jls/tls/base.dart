@@ -109,9 +109,18 @@ class ApplicationData extends TLSBase {
       : super(contentType: ContentType.applicationData);
 
   ApplicationData.parse({required List<int> rawData})
-      : super.parse(rawData: rawData) {
+      : super(
+            tlsVersion: TLSVersion.tls1_2,
+            data: [],
+            contentType: ContentType.applicationData) {
     data = rawData.sublist(5);
   }
+}
+
+List<int> buildAppData(List<int> data) {
+  var len = Uint8List(2)
+    ..buffer.asByteData().setInt16(0, data.length, Endian.big);
+  return [0x17, 0x3, 0x3] + len + data;
 }
 
 class Handshake extends TLSBase {

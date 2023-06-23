@@ -86,49 +86,105 @@ class JLSSocket extends RRSSocketBase {
 
   JLSHandler jlsHandler;
 
-  final maxLen = 16384; // 2^14
+  final maxLen = 16000; // 2^14
+  List<int> content = [];
 
   JLSSocket({required super.rrsSocket, required this.jlsHandler});
 
+  List<int> waitRecord() {
+    if (content.length < 5) {
+      return [];
+    }
+    ByteData byteData =
+        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+    var len = byteData.getUint16(0, Endian.big);
+    if (content.length - 5 < len) {
+      return [];
+    }
+    var res = content.sublist(0, 5 + len);
+    content = content.sublist(5 + len);
+    if (len == 0) {
+      return [];
+    }
+    return res;
+  }
+
   @override
   Future<void> add(List<int> data) async {
-    List<int> sendData = [];
     while (data.isNotEmpty) {
-      int len = data.length;
-      if (len > maxLen) {
-        len = maxLen;
+      List<int> res = [];
+      if (data.length > maxLen) {
+        res = data.sublist(0, maxLen);
+        data = data.sublist(maxLen);
+      } else {
+        res = data;
+        data = [];
       }
-      sendData = (await jlsHandler.jls.send(data.sublist(0, len))).build();
-      rrsSocket.add(sendData);
-      data = data.sublist(len);
+      // var temp = (await jlsHandler.jls.send(res)).build();
+      var temp = ApplicationData(data: res).build();
+      // var temp = buildAppData(res);
+      super.add(temp);
     }
   }
 
+  int currentLen = 0;
+
   Future<void> updateData(
       Uint8List data, Future<void> Function(Uint8List event)? onData) async {
-    jlsHandler.content += data;
+    content += data;
     while (true) {
-      var record = jlsHandler.waitRecord();
-      if (record.isEmpty) {
+      if (content.isEmpty) {
         return;
       }
-      var res =
-          await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
-      if (res.isEmpty) {
-        // TODO: unexpected msg.
-        return;
+      if (currentLen == 0) {
+        if (content.length < 5) {
+          return;
+        }
+        ByteData byteData =
+            ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+        currentLen = byteData.getUint16(0, Endian.big);
+        content = content.sublist(5);
       }
-      onData!(Uint8List.fromList(res));
+      List<int> res = [];
+      if (content.length >= currentLen) {
+        res = content.sublist(0, currentLen);
+      } else {
+        res = content;
+      }
+      content = content.sublist(res.length);
+      currentLen -= res.length;
+      await onData!(Uint8List.fromList(res));
     }
+
+    // onData!(data);
+    // return;
+    // content += data;
+    // List<int> res = [];
+    // while (true) {
+    //   var record = waitRecord();
+    //   if (record.isEmpty) {
+    //     break;
+    //   }
+    //   devPrint(record.length);
+    //   res = record.sublist(5);
+    //   // var res =
+    //   //     await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
+    //   if (res.isEmpty) {
+    //     // TODO: unexpected msg.
+    //     devPrint('res.isEmpty');
+    //     return;
+    //   }
+    //   await onData!(Uint8List.fromList(res));
+    // }
   }
 
   @override
   void listen(Future<void> Function(Uint8List event)? onData,
       {Future<void> Function(dynamic e, dynamic s)? onError,
       Future<void> Function()? onDone}) async {
-    await updateData(
-        Uint8List.fromList([]), onData); // handle left msg in handshake.
-    rrsSocket.listen((data) async {
+    await updateData(Uint8List.fromList(jlsHandler.content),
+        onData); // handle left msg in handshake.
+    super.listen((data) async {
       await updateData(data, onData);
     }, onDone: onDone, onError: onError);
   }

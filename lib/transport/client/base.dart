@@ -101,15 +101,15 @@ class TransportClient {
           onBadCertificate: onBadCertificate);
     }
 
-    var client = RRSSocketBase(rrsSocket: TCPRRSSocket(socket: socket));
+    var s = TCPRRSSocket(socket: socket);
 
     if (useJLS! && !(useTLS!)) {
-      var handler = JLSClientHandler(client: client, jls: buildJLSClient());
+      var handler = JLSClientHandler(client: s, jls: buildJLSClient());
       if (!await handler.secure()) {}
-      var jls = JLSSocket(rrsSocket: client, jlsHandler: handler);
+      var jls = JLSSocket(rrsSocket: s, jlsHandler: handler);
       return jls;
     }
-    return client;
+    return RRSSocketBase(rrsSocket: s);
   }
 
   bool onBadCertificate(X509Certificate certificate) {
