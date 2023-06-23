@@ -70,16 +70,17 @@ class JLSClientHandler extends JLSHandler {
       return false;
     }
 
-    if (!isReceiveCert) {
-      closeAndThrow('timeout to get server cert');
-      return false;
-    }
-
     if (!isValid) {
       // TODO: handle it like normal tls1.3 client.
       closeAndThrow('wrong server response or timeout.');
       return false;
     }
+
+    if (!isReceiveCert) {
+      closeAndThrow('timeout to get server cert');
+      return false;
+    }
+
     await client.add(ChangeSpec().build());
     return true;
   }

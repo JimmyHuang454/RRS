@@ -80,14 +80,14 @@ Future<InboundStruct> _buildInbounds(Map<String, dynamic> config) async {
   var protocol = getValue(config, 'protocol', 'socks5');
 
   InboundStruct res;
-  if (protocol == 'http') {
-    res = HTTPIn(config: config);
+  if (protocol == 'socks5') {
+    res = Socks5In(config: config);
   } else if (protocol == 'trojan') {
     res = TrojanIn(config: config);
   } else if (protocol == 'jls') {
     res = JLSIn(config: config);
   } else {
-    res = Socks5In(config: config);
+    res = HTTPIn(config: config);
   }
 
   await res.bind();

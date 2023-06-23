@@ -58,7 +58,7 @@ class JLSServerHandler extends JLSHandler {
     await client.clearListen();
 
     if (!isValid) {
-      // await forward();
+      await forward();
       return false;
     }
 

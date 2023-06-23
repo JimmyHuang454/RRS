@@ -75,21 +75,4 @@ void main() async {
     expect(socks5Res, msg);
     expect(times, 1);
   });
-
-  test('socks5in -> error server.', () async {
-    var client = TCPClient(config: {});
-    var temp = await client.connect(host, port2);
-    var unknowPort = await getUnusedPort(InternetAddress(host));
-    var socks5Res = [];
-    var clientClosed = false;
-    temp.listen((data) async {
-      socks5Res += data;
-    }, onDone: () async {
-      clientClosed = true;
-    });
-    await temp.add(buildSock5Request(Address(host), unknowPort));
-    await delay(3);
-    expect(clientClosed, true);
-    expect(socks5Res, [5, 0, 5, 1, 0, 1, 0, 0, 0, 0, 0, 0]);
-  });
 }

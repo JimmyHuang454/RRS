@@ -5,151 +5,16 @@
     }
   },
   "outbounds": {
-    "cf1": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "172.64.171.224",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": true,
-        "size": 10,
-        "timeout": 30
-      },
-      "outStream": {
-        "protocol": "ws",
-        "tls": {
-          "sni": "uif03.top",
-          "enable": true
-        },
-        "setting": {
-          "host": "uif03.top",
-          "path": "trojan_ws"
-        }
-      }
-    },
-    "cf23": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "172.67.157.27",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": true,
-        "size": 10,
-        "timeout": 30
-      },
-      "outStream": {
-        "protocol": "ws",
-        "tls": {
-          "sni": "uif03.top",
-          "enable": true
-        },
-        "setting": {
-          "host": "uif03.top",
-          "path": "trojan_ws"
-        }
-      }
-    },
     "jls": {
       "protocol": "jls",
       "setting": {
-        "address": "34.92.68.240",
+        //"address": "34.92.68.240",
+        //"address": "34.150.24.241",
+        "address": "194.156.133.227",
         "port": 443,
         "password": "123",
         "random": "123"
       }
-    },
-    "cf24": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "172.67.176.101",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": true,
-        "size": 10,
-        "timeout": 30
-      },
-      "outStream": {
-        "protocol": "ws",
-        "tls": {
-          "sni": "uif03.top",
-          "enable": true
-        },
-        "setting": {
-          "host": "uif03.top",
-          "path": "trojan_ws"
-        }
-      }
-    },
-    "cf_uif03": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "uif03.top",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "outStream": "ws_with_tls"
-    },
-    "cf1_jimmy": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "cf.jimmyhuang454.com",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "outStream": "ws_with_tls"
-    },
-    "cf2": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "cf5.forfun.life",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": false,
-        "size": 10,
-        "timeout": 40
-      },
-      "outStream": "ws_with_tls"
-    },
-    "cf3": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "cf3.forfun.life",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": false,
-        "size": 10,
-        "timeout": 40
-      },
-      "outStream": "ws_with_tls"
-    },
-    "bit": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "trahk1.bnnodeservice.com",
-        "sni": "cert.bitbyte.one",
-        "port": 32443,
-        "password": "447029f7-fd0d-4120-b2ef-6e8d10f8df70"
-      },
-      "outStream": "tcp_with_tls"
-    },
-    "hk2": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "node.jimmyhuang454.com",
-        "port": 443,
-        "password": "e78c10f5-5200-4af4-94c6-65cc4e471c5e"
-      },
-      "outStream": "ws_hk"
     },
     "hyh": {
       "protocol": "trojan",
@@ -165,29 +30,6 @@
           "enable": true
         }
       }
-    },
-    "hk": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "node2.jimmyhuang454.com",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "fastopen": {
-        "enable": true,
-        "size": 10,
-        "timeout": 30
-      },
-      "outStream": "ws_with_tls"
-    },
-    "hk_grpc": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "node2.jimmyhuang454.com",
-        "port": 443,
-        "password": "17146021026"
-      },
-      "outStream": "grpc_with_tls"
     }
   },
   "inbounds": {
