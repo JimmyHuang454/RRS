@@ -14,6 +14,7 @@ class JLSClientHandler extends JLSHandler {
 
   void closeAndThrow(dynamic msg) {
     client.close();
+    checkRes.complete(false);
     throw Exception('[JLS] $msg.');
   }
 
@@ -36,7 +37,6 @@ class JLSClientHandler extends JLSHandler {
               closeAndThrow('unexpected msg.');
             }
             isSendChangeSpec = true;
-            await client.add(ChangeSpec().build());
             checkRes.complete(true);
           }
         } else {
@@ -54,7 +54,7 @@ class JLSClientHandler extends JLSHandler {
     }, onDone: () async {
       closeAndThrow('unexpected closed.');
     }, onError: (e, s) async {
-      closeAndThrow(e);
+      closeAndThrow('unexpected Error.');
     });
 
     var clientHello = await jls.build();
@@ -80,6 +80,7 @@ class JLSClientHandler extends JLSHandler {
       closeAndThrow('wrong server response or timeout.');
       return false;
     }
+    await client.add(ChangeSpec().build());
     return true;
   }
 }

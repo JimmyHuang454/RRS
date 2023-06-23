@@ -54,12 +54,12 @@
       }
     },
     "jls": {
-      "protocol": "trojan",
+      "protocol": "jls",
       "setting": {
-        "address": "127.0.0.1",
-        "port": 8088,
+        "address": "34.92.68.240",
+        "port": 443,
         "password": "123",
-        "random": "456"
+        "random": "123"
       }
     },
     "cf24": {

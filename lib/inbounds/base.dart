@@ -110,6 +110,7 @@ class Link {
       logger.info(
           'Error: ${buildLinkInfo()} (${routingTime.elapsed}) (${connectTime!.elapsed})');
       logger.info('(${e.toString()})');
+      await closeClient();
       return false;
     }
 

@@ -88,7 +88,7 @@ class JLSOut extends OutboundStruct {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
-    var sec = getValue(config, 'setting.timeout', 60);
+    var sec = getValue(config, 'setting.timeout', 10);
     timeout = Duration(seconds: sec);
 
     var settingAddress = getValue(config, 'setting.address', '');
@@ -113,7 +113,6 @@ class JLSOut extends OutboundStruct {
         JLSClientHandler(client: client, jls: jlsClient, jlsTimeout: timeout!);
 
     if (!await handler.secure()) {
-      await client.close();
       throw Exception('failed to secure.');
     }
 

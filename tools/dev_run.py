@@ -12,7 +12,6 @@ def DoCMD(cmd, is_wait=True, cwd=None):
     else:
         subprocess.Popen(cmd, shell=True, cwd=cwd)
 
-
 DoCMD([
     'dart', 'run', './bin/proxy.dart', '-c',
     os.path.dirname(BASE_DIR) + '/config/basic.json'

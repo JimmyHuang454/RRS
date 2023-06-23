@@ -58,12 +58,13 @@ class JLSServerHandler extends JLSHandler {
     await client.clearListen();
 
     if (!isValid) {
-      await forward();
+      // await forward();
       return false;
     }
 
     if (!isReceiveChangeSpec) {
       // ChangeSpec timeout.
+      devPrint('not receive spec.');
       close();
       return false;
     }
