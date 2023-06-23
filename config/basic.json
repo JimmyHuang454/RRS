@@ -58,16 +58,8 @@
       "setting": {
         "address": "127.0.0.1",
         "port": 8088,
-        "password": "123"
-      },
-      "outStream": {
-        "protocol": "tcp",
-        "jls": {
-          "password": "123",
-          "fallback": "uif03.top",
-          "random": "456",
-          "enable": true
-        }
+        "password": "123",
+        "random": "456"
       }
     },
     "cf24": {

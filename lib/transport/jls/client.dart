@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:proxy/transport/client/base.dart';
@@ -24,7 +23,7 @@ class JLSClientHandler extends JLSHandler {
       content += data;
       while (true) {
         var record = waitRecord();
-        if (record.isEmpty) {
+        if (record.isEmpty || client.isClosed) {
           return;
         }
 
@@ -67,8 +66,12 @@ class JLSClientHandler extends JLSHandler {
 
     await client.clearListen();
 
+    if (client.isClosed) {
+      return false;
+    }
+
     if (!isReceiveCert) {
-      closeAndThrow('timeout to get server cert.');
+      closeAndThrow('timeout to get server cert');
       return false;
     }
 
@@ -132,50 +135,22 @@ class JLSSocket extends RRSSocketBase {
   Future<void> updateData(
       Uint8List data, Future<void> Function(Uint8List event)? onData) async {
     content += data;
+    List<int> res = [];
     while (true) {
-      if (content.isEmpty) {
+      var record = waitRecord();
+      if (record.isEmpty) {
+        break;
+      }
+      res = record.sublist(5);
+      // var res =
+      //     await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
+      if (res.isEmpty) {
+        // TODO: unexpected msg.
+        devPrint('res.isEmpty');
         return;
       }
-      if (currentLen == 0) {
-        if (content.length < 5) {
-          return;
-        }
-        ByteData byteData =
-            ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
-        currentLen = byteData.getUint16(0, Endian.big);
-        content = content.sublist(5);
-      }
-      List<int> res = [];
-      if (content.length >= currentLen) {
-        res = content.sublist(0, currentLen);
-      } else {
-        res = content;
-      }
-      content = content.sublist(res.length);
-      currentLen -= res.length;
       await onData!(Uint8List.fromList(res));
     }
-
-    // onData!(data);
-    // return;
-    // content += data;
-    // List<int> res = [];
-    // while (true) {
-    //   var record = waitRecord();
-    //   if (record.isEmpty) {
-    //     break;
-    //   }
-    //   devPrint(record.length);
-    //   res = record.sublist(5);
-    //   // var res =
-    //   //     await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
-    //   if (res.isEmpty) {
-    //     // TODO: unexpected msg.
-    //     devPrint('res.isEmpty');
-    //     return;
-    //   }
-    //   await onData!(Uint8List.fromList(res));
-    // }
   }
 
   @override

@@ -14,6 +14,11 @@ class JLSServerHandler extends JLSHandler {
       super.jlsTimeout,
       super.fallbackWebsite});
 
+  void close() {
+    client.close();
+    checkRes.complete(false);
+  }
+
   @override
   Future<bool> secure() async {
     client.listen((date) async {
@@ -41,9 +46,9 @@ class JLSServerHandler extends JLSHandler {
         }
       }
     }, onDone: () async {
-      client.close();
+      close();
     }, onError: (e, s) async {
-      client.close();
+      close();
     });
 
     try {
@@ -59,7 +64,7 @@ class JLSServerHandler extends JLSHandler {
 
     if (!isReceiveChangeSpec) {
       // ChangeSpec timeout.
-      client.close();
+      close();
       return false;
     }
     return true;

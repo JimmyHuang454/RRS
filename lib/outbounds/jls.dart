@@ -16,6 +16,7 @@ class JLSConnect extends Connect {
   final List<int> crlf = '\r\n'.codeUnits; // X'0D0A'
   bool isSendHeader = false;
   JLSClientHandler jlsClientHandler;
+  final maxLen = 16384; // 2^14
 
   JLSConnect(
       {required super.link,
@@ -50,33 +51,8 @@ class JLSConnect extends Connect {
     return res;
   } //}}}
 
-  List<int> _buildUDPHead(int payloadLen) {
-    //{{{
-    List<int> request = [];
-
-    var addressType = link.targetAddress!.type;
-
-    if (addressType == AddressType.domain) {
-      request.add(3);
-      request.add(link.targetAddress!.rawAddress.lengthInBytes);
-    } else if (addressType == AddressType.ipv4) {
-      request.add(1);
-    } else {
-      request.add(4);
-    }
-    request += link.targetAddress!.rawAddress;
-    request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, link.targetport!, Endian.big);
-
-    request += Uint8List(2)
-      ..buffer.asByteData().setInt16(0, payloadLen, Endian.big);
-    var res = request + crlf;
-    return res;
-  } //}}}
-
   @override
   Future<void> add(List<int> data) async {
-    final maxLen = 16000;
     while (data.isNotEmpty) {
       List<int> res = [];
       if (data.length > maxLen) {
@@ -91,20 +67,13 @@ class JLSConnect extends Connect {
   }
 
   Future<void> sendData(List<int> data) async {
-    var res = await jlsClientHandler.jls.send(data);
-    data = res.data;
-
-    data = ApplicationData(data: data).build();
-
-    if (link.streamType == StreamType.udp) {
-      data = _buildUDPHead(data.length) + data;
-    } else {
-      if (!isSendHeader) {
-        isSendHeader = true;
-        data = _buildRequest() + data;
-      }
+    if (!isSendHeader) {
+      isSendHeader = true;
+      data = _buildRequest() + data;
     }
-    await super.add(data);
+
+    var res = (await jlsClientHandler.jls.send(data)).build();
+    await super.add(res);
   }
 }
 
@@ -119,7 +88,7 @@ class JLSOut extends OutboundStruct {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
-    var sec = getValue(config, 'setting.timeout', 10);
+    var sec = getValue(config, 'setting.timeout', 60);
     timeout = Duration(seconds: sec);
 
     var settingAddress = getValue(config, 'setting.address', '');
@@ -144,6 +113,7 @@ class JLSOut extends OutboundStruct {
         JLSClientHandler(client: client, jls: jlsClient, jlsTimeout: timeout!);
 
     if (!await handler.secure()) {
+      await client.close();
       throw Exception('failed to secure.');
     }
 

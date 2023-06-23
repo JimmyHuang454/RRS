@@ -23,11 +23,7 @@ class JLSRequest extends Link {
       required super.inboundStruct,
       required this.jlsServerHandler}) {
     client.listen((data) async {
-      if (!isParseDST) {
-        await parseDST(data);
-      } else {
-        await handleData(data);
-      }
+      await handleData(data);
     }, onError: (e, s) async {
       await closeServer();
     }, onDone: () async {
@@ -37,26 +33,21 @@ class JLSRequest extends Link {
 
   Future<void> parseDST(List<int> data) async {
     //{{{
-    content += data;
-    if (content.length < 3) {
-      return;
-    }
-
-    if (content[1] == 3) {
+    if (data[0] == 3) {
       cmd = CmdType.udp;
-    } else if (content[1] == 2) {
+    } else if (data[0] == 2) {
       cmd = CmdType.bind;
     }
 
     int addressEnd = 2;
-    var atyp = content[1];
+    var atyp = data[1];
     bool isDomain = false;
 
     if (atyp == 1) {
       addressEnd += 4;
     } else if (atyp == 3) {
       isDomain = true;
-      addressEnd += content[2] + 1;
+      addressEnd += data[2] + 1;
     } else if (atyp == 4) {
       addressEnd += 16;
     } else {
@@ -66,15 +57,15 @@ class JLSRequest extends Link {
 
     var addressAndPortLength = addressEnd + 2;
     var trojanRequestLength = addressAndPortLength + 2; // with CRLF.
-    if (content.length < trojanRequestLength) {
+    if (data.length < trojanRequestLength) {
       return;
     }
 
     if (isDomain) {
       targetAddress = Address.fromRawAddress(
-          content.sublist(3, addressEnd), AddressType.domain);
+          data.sublist(3, addressEnd), AddressType.domain);
     } else {
-      var address = content.sublist(2, addressEnd);
+      var address = data.sublist(2, addressEnd);
       if (atyp == 4) {
         targetAddress = Address.fromRawAddress(address, AddressType.ipv6);
       } else {
@@ -83,19 +74,19 @@ class JLSRequest extends Link {
     }
 
     Uint8List byteList =
-        Uint8List.fromList(content.sublist(addressEnd, addressAndPortLength));
+        Uint8List.fromList(data.sublist(addressEnd, addressAndPortLength));
     ByteData byteData = ByteData.sublistView(byteList);
     targetport = byteData.getUint16(0, Endian.big);
 
-    content = content.sublist(trojanRequestLength);
+    data = data.sublist(trojanRequestLength);
     isParseDST = true;
     await bindServer();
 
-    await handleData([]);
-    content = [];
+    serverAdd(data);
   } //}}}
 
   List<int> waitRecord() {
+    //{{{
     if (content.length < 5) {
       return [];
     }
@@ -108,7 +99,7 @@ class JLSRequest extends Link {
     var res = content.sublist(0, 5 + len);
     content = content.sublist(5 + len);
     return res;
-  }
+  } //}}}
 
   Future<void> handleData(List<int> data) async {
     content += data;
@@ -119,12 +110,13 @@ class JLSRequest extends Link {
       }
       var res = await jlsServerHandler.jls
           .receive(ApplicationData.parse(rawData: record));
-      serverAdd(res);
-    }
-  }
 
-  void passToTunnel(List<int> data) {
-    content += data;
+      if (!isParseDST) {
+        await parseDST(res);
+      } else {
+        serverAdd(res);
+      }
+    }
   }
 }
 
@@ -139,7 +131,7 @@ class JLSIn extends InboundStruct {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
-    var sec = getValue(config, 'setting.timeout', 10);
+    var sec = getValue(config, 'setting.timeout', 60);
     timeout = Duration(seconds: sec);
 
     if (password == '' || iv == '') {
@@ -166,7 +158,7 @@ class JLSIn extends InboundStruct {
       );
 
       if (!await handler.secure()) {
-        devPrint('failed to secure.');
+        devPrint('wrong client.');
         return;
       }
 

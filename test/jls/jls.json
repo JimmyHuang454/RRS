@@ -25,8 +25,9 @@
       "inStream": {
         "jls": {
           "password": "123",
-          "fallback": "uif03.top",
           "random": "456",
+          "fallback": "uif03.top",
+          "timeout": 3,
           "enable": false
         }
       }
@@ -39,6 +40,7 @@
         "address": "127.0.0.1",
         "password": "123",
         "random": "123",
+        "timeout": 3,
         "port": 8088
       },
       "outStream": {
