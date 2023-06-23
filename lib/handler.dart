@@ -189,8 +189,8 @@ void buildConifg(String tag, Map<String, dynamic> config) {
 
 void _entry(Map<String, dynamic> config) {
   var list = [
-    ['config', buildConifg],
     ['data', buildData],
+    ['config', buildConifg],
     ['dns', buildDNS],
     ['outStream', buildOutStream],
     ['inStream', buildInStream],

@@ -1,94 +1,83 @@
 {
   "inbounds": {
-    "http_inbound": {
-      "protocol": "http",
+    "jls": {
+      "protocol": "jls",
       "setting": {
         "address": "0.0.0.0",
-        "port": 8080
+        "password": "123",
+        "random": "123",
+        "port": 443
       },
-      "inStream": "tcp",
-      "route": "proxy"
+      "route": "freedom"
+    },
+    "HTTP": {
+      "protocol": "http",
+      "route": "proxy",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8183
+      }
     }
   },
   "outbounds": {
-    "trojan": {
-      "protocol": "trojan",
+    "jls": {
+      "protocol": "jls",
       "setting": {
-        "address": "normal.uif02.xyz",
+        "address": "0.0.0.0",
         "port": 443,
-        "password": "password2"
-      },
-      "outStream": "tls_ws"
-    },
-    "trojan2": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "normal2.uif02.xyz",
-        "port": 443,
-        "password": "password2"
-      },
-      "outStream": "tls_ws"
-    },
-    "trojan_mux": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "normal.uif02.xyz",
-        "port": 443,
-        "password": "password2"
-      },
-      "outStream": "ws_mux"
+        "password": "123",
+        "random": "123"
+      }
+    }
+  },
+  "balance": {
+    "default": {
+      "outbound": [
+        "jls"
+      ]
     }
   },
   "routes": {
     "proxy": {
-      "rules": [{
-        "ip": [{
-          "ipdb": "geoip",
-          "type": "CN"
-        }],
-        "outbound": ["freedom"],
-        "useCache": true
-      }, {
-        "outbound": ["trojan", "trojan2"]
-      }]
-    },
-    "freedom": {
-      "rules": [{
-        "outbound": ["freedom"]
-      }]
-    }
-  },
-  "outStream": {
-    "tls_ws": {
-      "protocol": "ws",
-      "tls": {
-        "enable": true
-      },
-      "setting": {
-        "path": "uif_trojan"
-      }
-    },
-    "ws_mux": {
-      "protocol": "ws",
-      "tls": {
-        "enable": true
-      },
-      "setting": {
-        "path": "uif_trojan"
-      },
-      "mux": {
-        "enable": true,
-        "password": "123",
-        "maxThread": 11
-      }
-    }
-  },
-  "data": {
-    "ipdb": {
-      "geoip": {
-        "type": "mmdb",
-        "path": "C:/Users/qwer/Desktop/vimrc/myproject/ECY/flutter/proxy2/proxy/bin/Country.mmdb"
-      }
+      "rules": [
+        {
+          "outbound": "freedom",
+          "domain": [
+            "regex:.*.cn"
+          ],
+          "ip": [
+            "192.168.0.0/16"
+          ]
+        },
+        {
+          "balance": "default",
+          "domain": [
+            "google",
+            "twitter",
+            "wiki",
+            "instagram",
+            "facebook",
+            "youtube",
+            "github"
+          ]
+        },
+        {
+          "outbound": "freedom",
+          "ip": [
+            {
+              "ipdb": "defaultCN",
+              "type": "CN"
+            }
+          ],
+          "cache": {
+            "enable": true,
+            "size": 2000
+          }
+        },
+        {
+          "balance": "default"
+        }
+      ]
     }
   }
 }

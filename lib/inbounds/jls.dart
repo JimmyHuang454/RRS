@@ -136,7 +136,7 @@ class JLSIn extends InboundStruct {
 
     if (password == '' || iv == '') {
       throw Exception(
-          '"password", "random", "fallback" can not be empty in setting.');
+          '"password", "random",can not be empty in setting.');
     }
   }
 

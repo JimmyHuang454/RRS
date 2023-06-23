@@ -1,3 +1,5 @@
+import 'package:proxy/utils/utils.dart';
+
 var rawClientHello =
     "\x16\x03\x01\x00\xf3\x01\x00\x00\xef\x03\x03\x7c\xc4\x5b\x86\x56"
     "\xa1\x5e\xc4\x1d\xcc\xa9\xc2\x77\xe9\x5e\x38\x30\x8f\x6c\x4a\xba"
@@ -32,6 +34,11 @@ Map<String, dynamic> defaultSetting = {
     "tcp": {"protocol": "tcp"},
     "ws": {"protocol": "ws"}
   },
+  "data": {
+    "ipdb": {
+      "defaultCN": {'path': '${getRunningDir()}/ip.mmdb', 'type': 'mmdb'}
+    } as dynamic
+  } as dynamic,
   "outStream": {
     "default": {"protocol": "tcp"},
     "tcp": {"protocol": "tcp"},
