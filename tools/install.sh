@@ -33,11 +33,12 @@ check_if_running_as_root() {
 
 check_if_running_as_root
 
+sudo chmod -R 775 .
 fuser -k -n tcp 443
 SAVE_PATH="./abc.zip"
 download_lastest_RRS_to $SAVE_PATH
 rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
-sudo chmod -R 775 .
 sudo nohup ./runtime/RRS_Linux.exe &>/dev/null &
+echo 'ok!!!!!!!!!!!'
