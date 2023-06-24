@@ -1,0 +1,16 @@
+name: build and publish
+on: [push]
+
+jobs:
+  setup_env:
+    name: build and publish
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    if: "contains(github.event.head_commit.message, 'test')"
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: test install
+        run: bash <(wget -qO- -o- https://raw.githubusercontent.com/JimmyHuang454/RRS/master/tools/install.sh)
