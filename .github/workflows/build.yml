@@ -18,12 +18,10 @@ jobs:
       - name: Install dependencies
         run: dart compile exe ./bin/proxy.dart -o ./disk/RRS_${{ runner.os }}.exe
 
-      - name: Archive Release
-        uses: thedoctor0/zip-release@0.7.1
+      - uses: vimtor/action-zip@v1
         with:
-          type: 'zip'
-          directory: './disk'
-          filename: 'RRS_${{ runner.os }}.zip'
+          files: ./disk/
+          dest: RRS_${{ runner.os }}.zip
 
       - run: ls
 
