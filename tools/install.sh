@@ -40,5 +40,6 @@ download_lastest_RRS_to $SAVE_PATH
 rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
-sudo nohup ./runtime/RRS_Linux.exe &>/dev/null &
+nohup ./runtime/RRS_Linux.exe &>/dev/null &
+
 echo 'ok!!!!!!!!!!!'
