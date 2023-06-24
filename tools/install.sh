@@ -12,6 +12,8 @@ download_lastest_RRS_to() {
 }
 
 decompression() {
+  apt install zip
+
   if ! unzip -q "$1" -d ./runtime/ ; then
     quit 'error: decompression failed.'
   fi
@@ -31,6 +33,8 @@ check_if_running_as_root() {
   fi
 }
 
+PWD = "$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+
 check_if_running_as_root
 
 fuser -k -n tcp 443
@@ -40,6 +44,11 @@ rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
 sudo chmod -R 775 .
+sed -i "s/123456/$PWD/" ./runtime/config.json
 nohup ./runtime/RRS_Linux.exe &>/dev/null &
 
-echo 'ok!!!!!!!!!!!'
+
+echo ' '
+echo 'password: $PWD'
+echo 'random: $PWD'
+echo ' '
