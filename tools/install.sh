@@ -6,7 +6,7 @@ quit(){
 download_lastest_RRS_to() {
   DOWNLOAD_LINK="https://github.com/JimmyHuang454/RRS/releases/latest/download/RRS_Linux.zip"
   echo "Downloading from: $DOWNLOAD_LINK"
-  if ! curl -R -H 'Cache-Control: no-cache' -o "$1"  "$DOWNLOAD_LINK"; then
+  if ! curl -R -L -H 'Cache-Control: no-cache' -o "$1"  "$DOWNLOAD_LINK"; then
     quit 'error: Download failed! Please check your network or try again.'
   fi
 }
@@ -17,6 +17,11 @@ decompression() {
   fi
 }
 
-SAVE_PATH="./step1.zip"
+SAVE_PATH="./abc.zip"
+sudo chmod -R 775 .
 download_lastest_RRS_to $SAVE_PATH
+rm ./runtime/
 decompression $SAVE_PATH
+rm $SAVE_PATH
+fuser -k -n tcp 443
+nohup ./runtime/RRS_Linux.exe

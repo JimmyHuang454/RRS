@@ -274,7 +274,7 @@ class JLSHandler {
   bool isCheck = false;
   bool isReceiveChangeSpec = false;
   bool isSendChangeSpec = false;
-  Completer checkRes = Completer();
+  Completer<dynamic> checkRes = Completer<dynamic>();
 
   JLSHandler(
       {required this.jls,

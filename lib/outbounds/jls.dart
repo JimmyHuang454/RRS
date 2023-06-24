@@ -53,7 +53,7 @@ class JLSConnect extends Connect {
 
   @override
   Future<void> add(List<int> data) async {
-    while (data.isNotEmpty) {
+    while (data.isNotEmpty && !isClosed) {
       List<int> res = [];
       if (data.length > maxLen) {
         res = data.sublist(0, maxLen);

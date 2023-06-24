@@ -12,14 +12,6 @@ class JLSClientHandler extends JLSHandler {
   JLSClientHandler(
       {required super.client, required super.jls, super.jlsTimeout});
 
-  void closeAndThrow(dynamic msg) {
-    client.close();
-    if (!checkRes.isCompleted) {
-      checkRes.complete(false);
-    }
-    throw Exception('[JLS] $msg.');
-  }
-
   @override
   Future<bool> secure() async {
     client.listen((data) async {
@@ -36,10 +28,11 @@ class JLSClientHandler extends JLSHandler {
           } else if (!isReceiveCert) {
             isReceiveCert = true;
             if (content.isNotEmpty) {
-              closeAndThrow('unexpected msg.');
+              checkRes.complete('unexpected msg.');
+              return;
             }
             isSendChangeSpec = true;
-            checkRes.complete(true);
+            checkRes.complete('ok');
           }
         } else {
           isCheck = true;
@@ -48,39 +41,36 @@ class JLSClientHandler extends JLSHandler {
           if (isValid) {
           } else {
             content = record + content; // restore all data to forward proxy.
-            checkRes.complete(false);
+            checkRes.complete('serverHello check failed.');
             break;
           }
         }
       }
     }, onDone: () async {
-      closeAndThrow('unexpected closed.');
+      checkRes.complete('unexpected close.');
     }, onError: (e, s) async {
-      closeAndThrow('unexpected Error.');
+      checkRes.complete(e);
     });
 
     var clientHello = await jls.build();
     client.add(clientHello);
 
+    var res = '';
     try {
-      await checkRes.future.timeout(jlsTimeout);
-    } catch (_) {}
+      res = await checkRes.future.timeout(jlsTimeout);
+    } catch (_) {
+      res = 'timeout';
+    }
 
     await client.clearListen();
 
-    if (client.isClosed) {
-      return false;
-    }
-
     if (!isValid) {
       // TODO: handle it like normal tls1.3 client.
-      closeAndThrow('wrong server response or timeout.');
-      return false;
+      throw Exception(res);
     }
 
     if (!isReceiveCert) {
-      closeAndThrow('timeout to get server cert');
-      return false;
+      throw Exception('timeout to get cert.');
     }
 
     await client.add(ChangeSpec().build());

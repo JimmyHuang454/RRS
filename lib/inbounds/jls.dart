@@ -135,8 +135,7 @@ class JLSIn extends InboundStruct {
     timeout = Duration(seconds: sec);
 
     if (password == '' || iv == '') {
-      throw Exception(
-          '"password", "random",can not be empty in setting.');
+      throw Exception('"password", "random",can not be empty in setting.');
     }
   }
 
@@ -158,6 +157,7 @@ class JLSIn extends InboundStruct {
       );
 
       if (!await handler.secure()) {
+        await client.close();
         return;
       }
 

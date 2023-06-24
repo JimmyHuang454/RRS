@@ -14,13 +14,6 @@ class JLSServerHandler extends JLSHandler {
       super.jlsTimeout,
       super.fallbackWebsite});
 
-  void close() {
-    client.close();
-    if (!checkRes.isCompleted) {
-      checkRes.complete(false);
-    }
-  }
-
   @override
   Future<bool> secure() async {
     client.listen((date) async {
@@ -31,7 +24,7 @@ class JLSServerHandler extends JLSHandler {
       }
       if (isCheck) {
         isReceiveChangeSpec = true;
-        checkRes.complete(true);
+        checkRes.complete('ok.');
       } else {
         isCheck = true;
         var parsedHello = ClientHello.parse(rawData: record);
@@ -40,7 +33,7 @@ class JLSServerHandler extends JLSHandler {
           // it's len should not more than a clientHello.
           // restore record to forward proxy.
           content = record + content;
-          checkRes.complete(false);
+          checkRes.complete('clientHello check failed.');
         } else {
           var serverHello = await jls.build();
           client.add(serverHello + ChangeSpec().build() + buildRandomCert());
@@ -48,14 +41,17 @@ class JLSServerHandler extends JLSHandler {
         }
       }
     }, onDone: () async {
-      close();
+      checkRes.complete('unexpected close.');
     }, onError: (e, s) async {
-      close();
+      checkRes.complete(e);
     });
 
+    var res = '';
     try {
-      await checkRes.future.timeout(jlsTimeout);
-    } catch (_) {}
+      res = await checkRes.future.timeout(jlsTimeout);
+    } catch (_) {
+      res = 'timeout';
+    }
 
     await client.clearListen();
 
@@ -66,8 +62,6 @@ class JLSServerHandler extends JLSHandler {
 
     if (!isReceiveChangeSpec) {
       // ChangeSpec timeout.
-      devPrint('not receive spec.');
-      close();
       return false;
     }
     return true;
