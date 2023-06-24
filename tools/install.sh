@@ -88,7 +88,7 @@ check_if_running_as_root() {
 }
 
 check_if_running_as_root
-kill -9 $(pgrep -f [RRS_Linux.exe])
+kill -9 `pgrep RRS_Linux.exe`
 cd /usr/bin/
 rm -rf ./rrs/
 mkdir ./rrs/
