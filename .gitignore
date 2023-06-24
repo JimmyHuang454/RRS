@@ -28,3 +28,4 @@ pubspec.lock
 tags
 # Persistent undo
 [._]*.un~
+disk
