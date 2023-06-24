@@ -18,9 +18,6 @@ jobs:
       - name: Install dependencies
         run: dart compile exe ./bin/proxy.dart -o ./disk/RRS_${{ runner.os }}.exe
 
-      - name: zip
-        run: zip -r -q RRS_${{ runner.os }}.zip disk
-
       - name: Archive Release
         uses: thedoctor0/zip-release@0.7.1
         with:
