@@ -34,31 +34,19 @@ random: 123124293489023745908237
         "password": "123", // 复制粘贴Server的密码和随机数
         "random": "123"
       }
-    },
-    "myTrojan": {
-      "protocol": "trojan",
-      "setting": {
-        "address": "0.0.0.0",// 填写server的地址
-        "port": 443,// server 的端口
-        "password": "123"
-      },
-      "outStream": {
-        "protocol":"tcp", // 留空为tcp
-        "tls": {
-          "enable": true
-        }
-      }
     }
-  },
+  }
 }
 ```
 
-里面的 address 和 password 要根据实际的server配置来填写（也就是生成的密码和随机数）。
+里面的 address，password 和random 要根据实际的server配置来填写（也就是生成的密码和随机数）。
 
-最后，直接在运行 RRS_Windows.exe 即可
+最后，直接在运行 RRS_Windows.exe 即可。默认开放本机的 8183 端口作为 HTTP 代理入口，用户自行设置系统代理即可使用。
 
 ---
-## JLS 说明
+## [JLS](https://github.com/JimmyHuang454/JLS) 说明
+目前 JLS的支持还在实验阶段，可能会随时改变或更新！
+
 RRS 完整实现 JLS 协议，从网络协议栈看，JLS 应该是与 TLS 同层，但是 RRS 中的实现是基于 Trojan，去除了 Trojan 的前 58 个验证字节（其余逻辑与Trojan一样）。又因为 dart 编程语言的 Stream 特性，只要内存足够，就会不断接受输入（也就是不限制 buffer 大小），导致测速的时候会暴涨内存，待处理完所有流后自动恢复正常。
 
 https://app.codecov.io/gh/JimmyHuang454/RRS
