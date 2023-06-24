@@ -16,7 +16,10 @@ jobs:
       - run: dart pub get
 
       - name: Install dependencies
-        run: dart compile exe ./bin/proxy.dart -o ./RRS_${{ runner.os }}.exe
+        run: dart compile exe ./bin/proxy.dart -o ./disk/RRS_${{ runner.os }}.exe
+
+      - name: zip
+        run: zip -r -q RRS.zip disk
 
       - name: Release
         uses: softprops/action-gh-release@v1
