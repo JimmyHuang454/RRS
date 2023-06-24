@@ -24,4 +24,4 @@ decompression $SAVE_PATH
 rm $SAVE_PATH
 fuser -k -n tcp 443
 sudo chmod -R 775 .
-nohup ./runtime/RRS_Linux.exe
+sudo nohup ./runtime/RRS_Linux.exe
