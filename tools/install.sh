@@ -18,10 +18,10 @@ decompression() {
 }
 
 SAVE_PATH="./abc.zip"
-sudo chmod -R 775 .
 download_lastest_RRS_to $SAVE_PATH
-rm ./runtime/
+rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
 fuser -k -n tcp 443
+sudo chmod -R 775 .
 nohup ./runtime/RRS_Linux.exe
