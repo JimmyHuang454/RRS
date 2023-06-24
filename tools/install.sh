@@ -41,6 +41,6 @@ decompression $SAVE_PATH
 rm $SAVE_PATH
 sudo chmod -R 775 .
 # nohup ./runtime/RRS_Linux.exe &>/dev/null &
-nohup ./runtime/RRS_Linux.exe
+sudo nohup ./runtime/RRS_Linux.exe
 
 echo 'ok!!!!!!!!!!!'
