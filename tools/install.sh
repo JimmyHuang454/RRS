@@ -33,7 +33,7 @@ check_if_running_as_root() {
   fi
 }
 
-PWD = "$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+PASSWORD="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
 
 check_if_running_as_root
 
@@ -48,7 +48,7 @@ sed -i "s/123456/$PWD/" ./runtime/config.json
 nohup ./runtime/RRS_Linux.exe &>/dev/null &
 
 
-echo ' '
-echo 'password: $PWD'
-echo 'random: $PWD'
-echo ' '
+echo " "
+echo "password: $PWD"
+echo "random: $PWD"
+echo " "
