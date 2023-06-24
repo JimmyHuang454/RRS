@@ -44,7 +44,7 @@ rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
 sudo chmod -R 775 .
-sed -i "s/123456/$PWD/" ./runtime/config.json
+sed -i "s/123456/$PASSWORD/" ./runtime/config.json
 nohup ./runtime/RRS_Linux.exe &>/dev/null &
 
 
