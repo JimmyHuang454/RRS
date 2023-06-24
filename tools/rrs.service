@@ -1,0 +1,11 @@
+[Unit]
+Description=RRS service.
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/rrs/RRS_Linux.exe
+ExecStop=kill -9 $(pgrep -f [RRS_Linux.exe])
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
