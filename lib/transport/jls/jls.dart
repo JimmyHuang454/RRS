@@ -279,7 +279,7 @@ class JLSHandler {
   JLSHandler(
       {required this.jls,
       required this.client,
-      this.jlsTimeout = const Duration(seconds: 3),
+      this.jlsTimeout = const Duration(seconds: 10),
       this.fallbackWebsite = 'apple.com'});
 
   Future<bool> secure() async {

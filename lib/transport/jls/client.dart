@@ -140,7 +140,6 @@ class JLSSocket extends RRSSocketBase {
       //     await jlsHandler.jls.receive(ApplicationData.parse(rawData: record));
       if (res.isEmpty) {
         // TODO: unexpected msg.
-        devPrint('res.isEmpty');
         return;
       }
       await onData!(Uint8List.fromList(res));

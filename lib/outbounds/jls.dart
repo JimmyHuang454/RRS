@@ -88,7 +88,7 @@ class JLSOut extends OutboundStruct {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
-    var sec = getValue(config, 'setting.timeout', 10);
+    var sec = getValue(config, 'setting.timeout', 30);
     timeout = Duration(seconds: sec);
 
     var settingAddress = getValue(config, 'setting.address', '');

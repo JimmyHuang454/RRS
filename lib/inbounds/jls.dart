@@ -131,7 +131,7 @@ class JLSIn extends InboundStruct {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
-    var sec = getValue(config, 'setting.timeout', 10);
+    var sec = getValue(config, 'setting.timeout', 30);
     timeout = Duration(seconds: sec);
 
     if (password == '' || iv == '') {
