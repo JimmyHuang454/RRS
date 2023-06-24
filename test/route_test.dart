@@ -32,7 +32,7 @@ Future<void> routeTest(Route obj) async {
 }
 
 void main() {
-  var dbFile = File('./bin/Country.mmdb');
+  var dbFile = File('./disk/ip.mmdb');
 
   test('route match', () async {
     entry({

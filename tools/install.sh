@@ -12,11 +12,11 @@ download_lastest_RRS_to() {
 }
 
 decompression() {
-  if ! unzip -q "$1" ; then
+  if ! unzip -q "$1" -d ./runtime/ ; then
     quit 'error: decompression failed.'
   fi
 }
 
-download_lastest_RRS_to "./step1.zip"
-decompression "./step1.zip"
-ls disk
+SAVE_PATH="./step1.zip"
+download_lastest_RRS_to $SAVE_PATH
+decompression $SAVE_PATH
