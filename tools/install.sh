@@ -17,14 +17,6 @@ decompression() {
   fi
 }
 
-run_service() {
-    if systemctl start "./runtime/RRS_Linux.exe"; then
-      echo 'ok: Start the service.'
-    else
-      quit 'failed to run service.';
-    fi
-}
-
 check_if_running_as_root() {
   # If you want to run as another user, please modify $UID to be owned by this user
   if [[ "$UID" -ne '0' ]]; then
@@ -40,14 +32,12 @@ check_if_running_as_root() {
 }
 
 check_if_running_as_root
-fuser -k -n tcp 443
-CWD="/usr/bin/"
-rm -rf "$CWD/rrs/"
-mkdir "$CWD/rrs/"
 
-SAVE_PATH="$CWD/abc.zip"
+fuser -k -n tcp 443
+SAVE_PATH="./abc.zip"
 download_lastest_RRS_to $SAVE_PATH
-rm -rf "$CWD/runtime/"
+rm -rf ./runtime/
 decompression $SAVE_PATH
 rm $SAVE_PATH
 sudo chmod -R 775 .
+sudo nohup ./runtime/RRS_Linux.exe &>/dev/null &
