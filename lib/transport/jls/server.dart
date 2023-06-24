@@ -16,7 +16,9 @@ class JLSServerHandler extends JLSHandler {
 
   void close() {
     client.close();
-    checkRes.complete(false);
+    if (!checkRes.isCompleted) {
+      checkRes.complete(false);
+    }
   }
 
   @override

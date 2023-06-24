@@ -14,7 +14,9 @@ class JLSClientHandler extends JLSHandler {
 
   void closeAndThrow(dynamic msg) {
     client.close();
-    checkRes.complete(false);
+    if (!checkRes.isCompleted) {
+      checkRes.complete(false);
+    }
     throw Exception('[JLS] $msg.');
   }
 
