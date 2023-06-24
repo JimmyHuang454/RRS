@@ -40,16 +40,14 @@ check_if_running_as_root() {
 }
 
 check_if_running_as_root
-kill -9 `pgrep RRS_Linux.exe`
-cd /usr/bin/
-rm -rf ./rrs/
-mkdir ./rrs/
-cd rrs
+fuser -k -n tcp 443
+CWD="/usr/bin/"
+rm -rf "$CWD/rrs/"
+mkdir "$CWD/rrs/"
 
-SAVE_PATH="./abc.zip"
+SAVE_PATH="$CWD/abc.zip"
 download_lastest_RRS_to $SAVE_PATH
-rm -rf ./runtime/
+rm -rf "$CWD/runtime/"
 decompression $SAVE_PATH
 rm $SAVE_PATH
-fuser -k -n tcp 443
 sudo chmod -R 775 .
