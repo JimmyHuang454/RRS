@@ -18,9 +18,12 @@ class JLSRequest extends Link {
   JLSRequest(
       {required super.client,
       required super.inboundStruct,
-      required this.jlsServerHandler}) {
+      required this.jlsServerHandler});
+
+  Future<void> init() async {
     if (jlsServerHandler.content.isNotEmpty) {
-      handleData(jlsServerHandler.content);
+      await handleData(jlsServerHandler.content);
+      jlsServerHandler.content = [];
     }
     client.listen((data) async {
       await handleData(data);
@@ -165,8 +168,9 @@ class JLSIn extends InboundStruct {
         return;
       }
 
-      JLSRequest(
+      var res = JLSRequest(
           client: client, inboundStruct: this, jlsServerHandler: handler);
+      await res.init();
     }, onError: (e, s) {}, onDone: () {});
   }
 }
