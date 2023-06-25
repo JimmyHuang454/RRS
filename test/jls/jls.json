@@ -19,6 +19,7 @@
         "address": "127.0.0.1",
         "password": "123",
         "random": "123",
+        "timeout": 2,
         "port": 8088
       },
       "route": "freedom"
@@ -31,6 +32,7 @@
         "address": "127.0.0.1",
         "password": "123",
         "random": "123",
+        "timeout": 2,
         "port": 8088
       }
     }
