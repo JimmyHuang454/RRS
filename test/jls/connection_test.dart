@@ -9,10 +9,10 @@ import 'package:test/test.dart';
 
 void main() async {
   var host = '127.0.0.1';
-  var serverPort = await getUnusedPort(InternetAddress(host));
   var random = randomBytes(30000);
 
   test('jls logic.', () async {
+    var serverPort = await getUnusedPort(InternetAddress(host));
     entry({
       'outStream': {
         'jls': {
@@ -91,7 +91,7 @@ void main() async {
       clientClosed = true;
     });
     c.add(buildHTTPProxyRequest(domain));
-    await delay(10);
+    await delay(2);
     expect(isRecive, true);
     expect(clientClosed, true);
   });
