@@ -8,13 +8,13 @@ import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/utils/utils.dart';
 
 class JLSServerHandler extends JLSHandler {
-  int certLen = 32;
+  int certLen;
 
   JLSServerHandler(
       {required super.client,
       required super.jls,
       super.jlsTimeout,
-      this.certLen,
+      this.certLen = 32,
       super.fallbackWebsite});
 
   @override
