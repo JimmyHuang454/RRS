@@ -56,12 +56,14 @@ class JLSServerHandler extends JLSHandler {
     await client.clearListen();
 
     if (!isValid) {
+      logger.info("wrong client. passing to fallbackWebsite.");
       await forward();
       return false;
     }
 
     if (!isReceiveChangeSpec) {
       // ChangeSpec timeout.
+      await client.close();
       return false;
     }
     return true;

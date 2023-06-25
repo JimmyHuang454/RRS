@@ -62,15 +62,17 @@ void main() async {
     // httpin -> jlsHttpout -> jlsHttpIn -> freedom
     var config = await readConfigWithJson5('./test/jls/jls.json');
     var host = '127.0.0.1';
-    var httpInPort = await getUnusedPort(InternetAddress(host));
-    var port2 = await getUnusedPort(InternetAddress(host));
-    var serverPort = await getUnusedPort(InternetAddress(host));
-    var domain = '$host:$serverPort';
+    // var httpInPort = await getUnusedPort(InternetAddress(host));
+    // var port2 = await getUnusedPort(InternetAddress(host));
+    var httpInPort = 34564;
+    var port2 = 34565;
     config['inbounds']['HTTPIn']['setting']['port'] = httpInPort;
     config['inbounds']['HTTPIn2']['setting']['port'] = port2;
     config['outbounds']['jlsHttpout']['setting']['port'] = port2;
     entry(config);
 
+    var serverPort = 45646;
+    var domain = '$host:$serverPort';
     var httpServer = await ServerSocket.bind(host, serverPort);
     var msg = 'Hello world'.codeUnits;
     httpServer.listen(
@@ -91,7 +93,7 @@ void main() async {
       clientClosed = true;
     });
     c.add(buildHTTPProxyRequest(domain));
-    await delay(3);
+    await delay(5);
     expect(isRecive, true);
     expect(clientClosed, true);
   });

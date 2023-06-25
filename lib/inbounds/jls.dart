@@ -161,11 +161,13 @@ class JLSIn extends InboundStruct {
         jlsTimeout: timeout!,
       );
 
+      devPrint(1);
       if (!await handler.secure()) {
         logger.info("wrong jls client");
-        await client.close();
+        devPrint(2);
         return;
       }
+      devPrint(3);
 
       JLSRequest(
           client: client, inboundStruct: this, jlsServerHandler: handler);
