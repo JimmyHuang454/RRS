@@ -4,33 +4,13 @@
       "level": "debug"
     }
   },
-  "inbounds": {
-    "jls": {
-      "protocol": "jls",
-      "setting": {
-        "address": "0.0.0.0",
-        "password": "123456",
-        "random": "123456",
-        "port": 443
-      },
-      "route": "freedom"
-    },
-    "HTTP": {
-      "protocol": "http",
-      "route": "proxy",
-      "setting": {
-        "address": "127.0.0.1",
-        "port": 8183
-      }
-    }
-  },
   "outbounds": {
     "jls": {
       "protocol": "jls",
       "setting": {
-        "address": "0.0.0.0",
+        "address": "0.0.0.0", // 地址必填
         "port": 443,
-        "password": "123456",
+        "password": "123456", // 密码和随机数也要填对
         "random": "123456"
       }
     },
@@ -46,6 +26,26 @@
           "enable": true
         }
       }
+    }
+  },
+  "inbounds": {
+    "HTTP": {
+      "protocol": "http",
+      "route": "proxy",
+      "setting": {
+        "address": "127.0.0.1",
+        "port": 8183 // 默认这个HTTP端口，可自行更改
+      }
+    },
+    "jls": {
+      "protocol": "jls",
+      "setting": {
+        "address": "0.0.0.0",
+        "password": "123456",
+        "random": "123456",
+        "port": 443
+      },
+      "route": "freedom"
     }
   },
   "balance": {
