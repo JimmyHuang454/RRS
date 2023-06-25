@@ -162,6 +162,7 @@ class JLSIn extends InboundStruct {
       );
 
       if (!await handler.secure()) {
+        logger.info("wrong jls client");
         await client.close();
         return;
       }
