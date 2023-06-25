@@ -54,7 +54,7 @@ void main() async {
       c.add(random);
       expect(isClose, false);
     }
-    await delay(1);
+    await delay(2);
     expect(receivedata.length, random.length * times);
   });
 

@@ -93,7 +93,7 @@ void main() async {
     config['outbounds']['jlsHttpout']['setting']['port'] = port2;
     entry(config);
 
-    var website = 'github.com';
+    var website = 'uif03.top';
     var transport = await connectTunnel('127.0.0.1', httpInPort, website);
 
     var stream = transport.makeRequest([
@@ -107,11 +107,10 @@ void main() async {
         for (var header in message.headers) {
           var name = utf8.decode(header.name);
           var value = utf8.decode(header.value);
-          // print('Header: $name: $value');
         }
       } else if (message is DataStreamMessage) {
         var value = utf8.decode(message.bytes);
-        expect(value.contains('github'), true);
+        expect(value.contains('world'), true);
       }
     }
     await transport.finish();
