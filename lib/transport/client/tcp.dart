@@ -41,17 +41,11 @@ class TCPRRSSocket extends RRSSocket {
     listenBroad ??= socket.asBroadcastStream();
 
     streamSubscription = listenBroad!.listen((event) async {
-      streamSubscription!.pause();
       await onData!(event);
-      streamSubscription!.resume();
     }, onError: (e, s) async {
-      streamSubscription!.pause();
       await onError!(e, s);
-      streamSubscription!.resume();
     }, onDone: () async {
-      streamSubscription!.pause();
       await onDone!();
-      streamSubscription!.resume();
     }, cancelOnError: true);
   }
 }
