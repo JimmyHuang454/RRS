@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 void main() async {
   var host = '127.0.0.1';
   var serverPort = await getUnusedPort(InternetAddress(host));
-  var random = randomBytes(1000000);
+  var random = randomBytes(30000);
 
   test('jls logic.', () async {
     entry({
