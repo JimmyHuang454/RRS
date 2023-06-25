@@ -161,6 +161,7 @@ class JLSIn extends InboundStruct {
         jlsTimeout: timeout!,
       );
 
+      logger.info("test");
       if (!await handler.secure()) {
         logger.info("wrong jls client");
         await client.close();
