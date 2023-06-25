@@ -83,13 +83,16 @@ void main() async {
     var client = TCPClient(config: {});
     var c = await client.connect(host, httpInPort);
     var clientClosed = false;
+    var isRecive = false;
     c.listen((data) async {
       expect(data, msg);
+      isRecive = true;
     }, onDone: () async {
       clientClosed = true;
     });
     c.add(buildHTTPProxyRequest(domain));
-    await delay(1);
+    await delay(3);
+    expect(isRecive, true);
     expect(clientClosed, true);
   });
 }

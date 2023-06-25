@@ -71,7 +71,6 @@ void main() async {
     socket.add(buildHTTPProxyRequest(fallback));
     socket.listen((event) {
       var res = utf8.decode(event);
-      devPrint(res);
       expect(res.contains('Content-Length'), true);
     }, onDone: () {
       isClosed = true;
@@ -93,7 +92,8 @@ void main() async {
     config['outbounds']['jlsHttpout']['setting']['port'] = port2;
     entry(config);
 
-    var website = 'github.com';
+    await delay(1);
+    var website = 'uif03.top';
     var transport = await connectTunnel('127.0.0.1', httpInPort, website);
 
     var stream = transport.makeRequest([
@@ -110,8 +110,7 @@ void main() async {
         }
       } else if (message is DataStreamMessage) {
         var value = utf8.decode(message.bytes);
-        devPrint(value);
-        expect(value.contains('github'), true);
+        expect(value.contains('fuck'), true);
       }
     }
     await transport.finish();

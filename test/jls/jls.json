@@ -22,15 +22,6 @@
         "port": 8088
       },
       "route": "freedom",
-      "inStream": {
-        "jls": {
-          "password": "123",
-          "random": "456",
-          "fallback": "uif03.top",
-          "timeout": 3,
-          "enable": false
-        }
-      }
     }
   },
   "outbounds": {

@@ -84,7 +84,7 @@ class JLSOut extends OutboundStruct {
   Duration? timeout;
 
   JLSOut({required super.config})
-      : super(protocolName: 'trojan', protocolVersion: '1') {
+      : super(protocolName: 'jls', protocolVersion: '1') {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
     fallback = getValue(config, 'setting.fallback', 'apple.com');
