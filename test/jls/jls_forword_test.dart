@@ -93,7 +93,7 @@ void main() async {
     config['outbounds']['jlsHttpout']['setting']['port'] = port2;
     entry(config);
 
-    var website = 'uif03.top';
+    var website = 'github.com';
     var transport = await connectTunnel('127.0.0.1', httpInPort, website);
 
     var stream = transport.makeRequest([
@@ -111,8 +111,7 @@ void main() async {
         }
       } else if (message is DataStreamMessage) {
         var value = utf8.decode(message.bytes);
-        expect(value.contains('fuck'), true);
-        // print('Body: $value');
+        expect(value.contains('github'), true);
       }
     }
     await transport.finish();

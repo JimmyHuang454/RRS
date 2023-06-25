@@ -13,7 +13,8 @@ class JLSRequest extends Link {
   JLSServerHandler jlsServerHandler;
   bool isParseDST = false;
   int authMethod = 0;
-  List<int> content = [];
+  List<int> rawData = [];
+  List<int> plainText = [];
 
   int currentLen = 0;
   late List<int> sendData;
@@ -87,34 +88,38 @@ class JLSRequest extends Link {
 
   List<int> waitRecord() {
     //{{{
-    if (content.length < 5) {
+    if (rawData.length < 5) {
       return [];
     }
     ByteData byteData =
-        ByteData.sublistView(Uint8List.fromList(content.sublist(3, 5)));
+        ByteData.sublistView(Uint8List.fromList(rawData.sublist(3, 5)));
     var len = byteData.getUint16(0, Endian.big);
-    if (content.length - 5 < len) {
+    if (rawData.length - 5 < len) {
       return [];
     }
-    var res = content.sublist(0, 5 + len);
-    content = content.sublist(5 + len);
+    var res = rawData.sublist(5, 5 + len);
+    rawData = rawData.sublist(5 + len);
     return res;
   } //}}}
 
   Future<void> handleData(List<int> data) async {
-    content += data;
+    rawData += data;
     while (true) {
       var record = waitRecord();
       if (record.isEmpty) {
         return;
       }
-      var res = await jlsServerHandler.jls
-          .receive(ApplicationData.parse(rawData: record));
+      var res =
+          await jlsServerHandler.jls.receive(ApplicationData(data: record));
+
+      if (res.isEmpty) {
+        continue;
+      }
 
       if (!isParseDST) {
         await parseDST(res);
       } else {
-        serverAdd(res);
+        await serverAdd(res);
       }
     }
   }

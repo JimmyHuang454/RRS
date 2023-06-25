@@ -29,3 +29,4 @@ tags
 # Persistent undo
 [._]*.un~
 disk
+test.json

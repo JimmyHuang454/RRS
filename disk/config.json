@@ -1,4 +1,9 @@
 {
+  "config": {
+    "log": {
+      "level": "debug"
+    }
+  },
   "inbounds": {
     "jls": {
       "protocol": "jls",
