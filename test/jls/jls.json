@@ -21,7 +21,7 @@
         "random": "123",
         "port": 8088
       },
-      "route": "freedom",
+      "route": "freedom"
     }
   },
   "outbounds": {
@@ -33,13 +33,6 @@
         "random": "123",
         "timeout": 3,
         "port": 8088
-      },
-      "outStream": {
-        "jls": {
-          "password": "123",
-          "random": "456",
-          "enable": false
-        }
       }
     }
   },
