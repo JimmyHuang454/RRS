@@ -8,10 +8,13 @@ import 'package:proxy/transport/server/base.dart';
 import 'package:proxy/utils/utils.dart';
 
 class JLSServerHandler extends JLSHandler {
+  int certLen = 32;
+
   JLSServerHandler(
       {required super.client,
       required super.jls,
       super.jlsTimeout,
+      this.certLen,
       super.fallbackWebsite});
 
   @override
@@ -36,7 +39,9 @@ class JLSServerHandler extends JLSHandler {
           checkRes.complete('clientHello check failed.');
         } else {
           var serverHello = await jls.build();
-          client.add(serverHello + ChangeSpec().build() + buildRandomCert());
+          client.add(serverHello +
+              ChangeSpec().build() +
+              buildRandomCert(len: certLen));
           isSendChangeSpec = true;
         }
       }

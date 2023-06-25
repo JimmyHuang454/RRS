@@ -130,6 +130,7 @@ class JLSRequest extends Link {
 class JLSIn extends InboundStruct {
   String password = '';
   String fallback = '';
+  int certLen = 32;
   String iv = '';
   Duration? timeout;
 
@@ -140,6 +141,7 @@ class JLSIn extends InboundStruct {
     fallback = getValue(config, 'setting.fallback', 'apple.com');
     var sec = getValue(config, 'setting.timeout', 30);
     timeout = Duration(seconds: sec);
+    certLen = getValue(config, 'setting.certLen', 32);
 
     if (password == '' || iv == '') {
       throw Exception('"password", "random",can not be empty in setting.');
@@ -160,6 +162,7 @@ class JLSIn extends InboundStruct {
         client: client,
         jls: jlsServer,
         fallbackWebsite: fallback,
+        certLen: certLen,
         jlsTimeout: timeout!,
       );
 
