@@ -63,6 +63,7 @@ class JLSServerHandler extends JLSHandler {
 
     if (!isReceiveChangeSpec) {
       // ChangeSpec timeout.
+      logger.info("timeout to receive spec.");
       await client.close();
       return false;
     }

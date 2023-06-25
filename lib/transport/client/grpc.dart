@@ -31,9 +31,7 @@ class GRPCSocket extends RRSSocket {
   void listen(void Function(Uint8List event)? onData,
       {Function(dynamic e, dynamic s)? onError, void Function()? onDone}) {
     streamSubscription = from.listen((event) {
-      streamSubscription!.pause();
       onData!(Uint8List.fromList(event.data));
-      streamSubscription!.resume();
     }, onDone: onDone, onError: onError, cancelOnError: true);
   }
 

@@ -14,15 +14,14 @@ class JLSRequest extends Link {
   bool isParseDST = false;
   int authMethod = 0;
   List<int> rawData = [];
-  List<int> plainText = [];
-
-  int currentLen = 0;
-  late List<int> sendData;
 
   JLSRequest(
       {required super.client,
       required super.inboundStruct,
       required this.jlsServerHandler}) {
+    if (jlsServerHandler.content.isNotEmpty) {
+      handleData(jlsServerHandler.content);
+    }
     client.listen((data) async {
       await handleData(data);
     }, onError: (e, s) async {
@@ -161,13 +160,10 @@ class JLSIn extends InboundStruct {
         jlsTimeout: timeout!,
       );
 
-      devPrint(1);
       if (!await handler.secure()) {
         logger.info("wrong jls client");
-        devPrint(2);
         return;
       }
-      devPrint(3);
 
       JLSRequest(
           client: client, inboundStruct: this, jlsServerHandler: handler);
