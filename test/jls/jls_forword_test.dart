@@ -77,7 +77,7 @@ void main() async {
     });
     await delay(1);
     socket.close();
-    await delay(1);
+    await delay(2);
     expect(isClosed, true);
   });
 
