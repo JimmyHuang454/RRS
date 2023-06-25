@@ -31,7 +31,6 @@
         "address": "127.0.0.1",
         "password": "123",
         "random": "123",
-        "timeout": 3,
         "port": 8088
       }
     }

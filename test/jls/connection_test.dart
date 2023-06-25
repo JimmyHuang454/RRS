@@ -91,7 +91,7 @@ void main() async {
       clientClosed = true;
     });
     c.add(buildHTTPProxyRequest(domain));
-    await delay(5);
+    await delay(2);
     expect(isRecive, true);
     expect(clientClosed, true);
   });
