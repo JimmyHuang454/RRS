@@ -20,6 +20,7 @@
         "password": "123",
         "random": "123",
         "timeout": 2,
+        "fallback": "www.visa.cn",
         "port": 8088
       },
       "route": "freedom"

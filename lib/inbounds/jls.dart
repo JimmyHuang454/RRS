@@ -138,7 +138,7 @@ class JLSIn extends InboundStruct {
       : super(protocolName: 'jls', protocolVersion: '1') {
     password = getValue(config, 'setting.password', '');
     iv = getValue(config, 'setting.random', '');
-    fallback = getValue(config, 'setting.fallback', 'apple.com');
+    fallback = getValue(config, 'setting.fallback', 'www.visa.cn');
     var sec = getValue(config, 'setting.timeout', 30);
     timeout = Duration(seconds: sec);
     certLen = getValue(config, 'setting.certLen', 32);

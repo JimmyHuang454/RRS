@@ -75,7 +75,7 @@ class TransportServer {
 
     useJLS = getValue(config, 'jls.enable', false);
     if (useJLS) {
-      fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
+      fallbackWebsite = getValue(config, 'jls.fallback', 'www.visa.cn');
       var temp = getValue(config, 'jls.fingerPrint', 'default');
       fingerPrint = jlsFringerPrintList[temp]!;
 

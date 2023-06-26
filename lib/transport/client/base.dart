@@ -65,7 +65,7 @@ class TransportClient {
     timeout = Duration(seconds: connectionTimeout);
 
     useJLS = getValue(config, 'jls.enable', false);
-    fallbackWebsite = getValue(config, 'jls.fallback', 'apple.com');
+    fallbackWebsite = getValue(config, 'jls.fallback', 'www.visa.cn');
   }
 
   JLSClient buildJLSClient() {
