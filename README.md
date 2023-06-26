@@ -29,7 +29,7 @@ random: 123124293489023745908237
     "jls": {
       "protocol": "jls",
       "setting": {
-        "address": "0.0.0.0", // 填写server的地址
+        "address": "0.0.0.0", // 填写server的IP地址
         "port": 443,  // server 的端口
         "password": "123", // 复制粘贴Server的密码和随机数
         "random": "123"
