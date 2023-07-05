@@ -32,48 +32,24 @@ void main() {
     expect(temp.host, 'abc.cn');
   });
 
+  test('AES2.', () async {
+    var se = crypto.sha256.convert([1]).bytes;
 
-  test('AES.', () async {
-    var time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    print(time);
-    var message = Uint8List(4)
-      ..buffer.asByteData().setUint32(0, time, Endian.big);
-
-    var se = crypto.sha256.convert([1, 2, 3]).toString().codeUnits;
-    print(se.length);
-
-    List<int> se2 = [];
-    for (var i = 0; i < 32; ++i) {
-      se2.add(i);
-    }
-    // message = se2;
-
-    final algorithm = cryptography.AesGcm.with256bits(nonceLength: 4);
-    var secretKey = await algorithm.newSecretKeyFromBytes(se2);
-    final nonce = algorithm.newNonce();
+    final algorithm = cryptography.AesGcm.with256bits(nonceLength: 64);
+    var secretKey = await algorithm.newSecretKeyFromBytes(se);
+    final nonce = [174, 148, 142, 187, 203, 70, 173, 30, 15, 35, 13, 130];
 
     // Encrypt
     final secretBox = await algorithm.encrypt(
-      message,
+      [2],
       secretKey: secretKey,
       nonce: nonce,
     );
+    print('pwd: $se len: ${se.length}');
     print('Nonce: ${secretBox.nonce} len: ${secretBox.nonce.length}');
+    print('MAC: ${secretBox.mac.bytes} len: ${secretBox.mac.bytes.length}');
     print(
         'Ciphertext: ${secretBox.cipherText} len: ${secretBox.cipherText.length}');
-    print('MAC: ${secretBox.mac.bytes} len: ${secretBox.mac.bytes.length}');
-
-    var mys = cryptography.SecretBox(secretBox.cipherText,
-        nonce: secretBox.nonce, mac: secretBox.mac);
-    // Decrypt
-    final clearText = await algorithm.decrypt(
-      mys,
-      secretKey: secretKey,
-    );
-
-    ByteData byteData = ByteData.sublistView(Uint8List.fromList(message));
-    var time2 = byteData.getUint32(0, Endian.big);
-    print(time2);
   });
 
   test('x25519.', () async {
@@ -120,7 +96,7 @@ void main() {
       keyPair: aliceKeyPair,
       remotePublicKey: bobPublicKey2,
     );
-    print(await sharedSecretKey.extractBytes());
+    // print(await sharedSecretKey.extractBytes());
   });
 
   test('hmac.', () async {
@@ -133,12 +109,7 @@ void main() {
       message,
       secretKey: secretKey,
     );
-    print(mac.bytes);
-    
-  });
-
-  test('enum.', () async {
-    print(Bar.tls1_3.value);
+    // print(mac.bytes);
   });
 }
 
