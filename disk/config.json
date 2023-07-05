@@ -12,7 +12,7 @@ certLen
         "address": "0.0.0.0", // 地址必填
         "port": 443,
         "password": "123456", // 密码和随机数也要填对
-        "random": "123456"
+        "random": "abcabc"
       }
     },
     "myTrojan": {
@@ -43,7 +43,7 @@ certLen
       "setting": {
         "address": "0.0.0.0",
         "password": "123456",
-        "random": "123456",
+        "random": "abcabc",
         "port": 443
       },
       "route": "freedom"
