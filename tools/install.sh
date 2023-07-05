@@ -36,5 +36,5 @@ nohup ./runtime/RRS_Linux.exe &>/dev/null &
 
 echo " "
 echo "password: $PASSWORD"
-echo "random: $IV"
+echo "random:   $IV"
 echo " "
