@@ -1,9 +1,8 @@
 # RRS 一个基于 Trojan 协议的代理工具 （BETA）
 
-
-
+JLS V3 可尝试 [sing-box](https://github.com/JimmyHuang454/sing-box)
 ---
-# 快速上手
+# 快速上手 JLS V2
 ## Server
 假设使用Ubuntu，确保有root权限，直接运行下面指令即可，
 ```bash
